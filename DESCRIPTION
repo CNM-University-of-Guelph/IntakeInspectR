@@ -1,0 +1,60 @@
+Package: IntakeInspectR
+Title: Data cleaning and visualisation for automatically collected feed
+    intake data
+Version: 0.0.1.0000
+Authors@R: 
+    person("Dave", "Innes", , "innesd@uoguelph.ca", role = c("cre", "aut"))
+Description: A set of tools to help researchers clean their raw feed
+    intake data by checking for common errors and visualise their data.
+License: MIT + file LICENSE
+URL: https://github.com/CNM-University-of-Guelph/IntakeInspectR
+BugReports: https://github.com/CNM-University-of-Guelph/IntakeInspectR/issues
+Depends: 
+    R (>= 2.10)
+Imports: 
+    bit64,
+    broom,
+    bslib,
+    bsicons,
+    config (>= 0.3.1),
+    data.table,
+    dplyr,
+    DT,
+    dtplyr,
+    forcats,
+    ggiraph,
+    ggplot2,
+    glue,
+    golem (>= 0.3.5),
+    grid,
+    gridlayout,
+    htmlwidgets,
+    logr,
+    lubridate,
+    magrittr,
+    MASS,
+    patchwork,
+    pkgload,
+    plotly,
+    purrr,
+    rlang,
+    shiny (>= 1.7.4),
+    shinybusy,
+    shinycssloaders,
+    shinyjs,
+    shinyWidgets,
+    stats,
+    stringr,
+    tibble,
+    tidyr,
+    tidyselect,
+    tools,
+    utils
+Suggests: 
+    spelling,
+    testthat (>= 3.0.0)
+Config/testthat/edition: 3
+Encoding: UTF-8
+Language: en-US
+LazyData: true
+RoxygenNote: 7.2.3

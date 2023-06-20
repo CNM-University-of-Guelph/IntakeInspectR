@@ -1,0 +1,33 @@
+h4 {
+  color: brown;
+  text-align: left;
+}
+
+
+.navbar{
+  padding-top:8px;
+  padding-bottom:8px;
+}
+
+/* hard reload in chrome required during dev so cache isnt used Ctrl Shift R */
+.btn-fixed-size-rdocs {
+  min-height: 50px;
+  width: 120px;
+}
+
+/* used for custom JS for resizing*/
+.grid-container {
+  height: auto;
+}
+
+.resized-tab-container {
+  position: absolute;
+  top: 60px;
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
+
+
+
+

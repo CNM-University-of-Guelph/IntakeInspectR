@@ -1,0 +1,14 @@
+.Rproj.user
+.Rhistory
+.Rdata
+.httr-oauth
+.DS_Store
+.DAT
+.Rds
+.rds
+*.DAT
+*.rds
+renv.lock
+dev/
+renv/
+rsconnect/
