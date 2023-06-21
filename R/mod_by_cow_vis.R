@@ -87,7 +87,6 @@ mod_by_cow_vis_ui <- function(id){
             full_screen = FALSE,
             bslib::navset_card_tab( # a card with nav tabs:
               id = ns('display_tabs'), #used for input$ to see active tab
-              # wrapper = function(x) bslib::card_body(x, fillable = FALSE, fill = FALSE),
 
               bslib::nav_panel(
                 title = "Overall Plots",
@@ -122,7 +121,7 @@ mod_by_cow_vis_ui <- function(id){
                 p("Visualise feed duration vs intake for individual cows. Outlier
                   points are shown twice, with an arrow pointing from original value to new fitted value."),
                 bslib::card(
-                  #make dynamically created as eitehr interactive or not:
+                  #make dynamically created as either interactive or not:
                   uiOutput(ns('selected_plot')),
                   full_screen = TRUE
                 )
@@ -132,7 +131,6 @@ mod_by_cow_vis_ui <- function(id){
                 title = "Plot: Feeding Durations",
                 value = 'plot_bins', #for accessing input$ details
                 bslib::card(
-                  bslib::card_header("Feed Durations"),
                   p('
                     The bars on this plot show the start and original (un-corrected) end
                     time of individual feeding events. Very long bars (i.e.
@@ -201,9 +199,10 @@ mod_by_cow_vis_server <- function(id, df_list){
 
       }else if(input$plot_type_overall == "hist") {
         .df %>%
-        fct_plots_summary(
+        f_plot_summary(
           x = .data$new_x,
           y = .data$new_y,
+          col_colour = NULL,
           type = 'hist')
 
       }},
@@ -264,8 +263,8 @@ mod_by_cow_vis_server <- function(id, df_list){
 
       df <- df_list()$merged_df %>%
         # the 2 ways a duration could be an error:
-        dplyr::filter(.data$is_end_time_error | .data$is_outlier) %>%
-        dplyr::select('start_time', 'cow_id', 'feed_bin_id', 'feed_duration', 'final_duration_sec', 'is_end_time_error', 'outlier_pos_neg') %>%
+        dplyr::filter(.data$is_end_time_overlap_error | .data$is_outlier) %>%
+        dplyr::select('start_time', 'cow_id', 'feed_bin_id', 'feed_duration', 'final_duration_sec', 'is_end_time_overlap_error', 'outlier_pos_neg') %>%
         dplyr::arrange(dplyr::desc(.data$feed_duration)) %>%
         dplyr::slice_head(n=1000)
 

@@ -273,7 +273,7 @@ mod_by_bin_clean_server <- function(id, df){
 
       fct_check_for_valuebox_bin(
         list_cleaned_data()$df_cleaned,
-        .data$is_end_time_error,
+        .data$is_end_time_overlap_error,
         TRUE
       )
     })

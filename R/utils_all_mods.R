@@ -54,9 +54,10 @@ fct_DT_nopages <- function(x, scrollY = 350, buttons_at_bottom = FALSE, rownames
 #' @param col_colour name of column to colour regression by
 #'
 #' @return a ggplot2
+#' @export
 
 
-fct_plots_summary <-  function(df_in, x, y = NULL, col_colour = .data$check_end_weights, type){
+f_plot_summary <-  function(df_in, x, y = NULL, col_colour = .data$check_end_weights, type){
 
   .fct_hist <- function(){
     list(

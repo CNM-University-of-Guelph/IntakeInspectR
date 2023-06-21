@@ -27,7 +27,7 @@ data frame of df_step4 with the following additional columns:
 * is_corrected_intake_bybin = boolean indicating if intake was corrected at all
 }
 \description{
-This function calculates a corrected intake as corrected_start_weight - corrected_end_weight.
+This function calculates a corrected intake as corrected_start_weight_bybin - corrected_end_weight_bybin.
 It also handles the situation where errors are produced by [f_step3()] which means a corrected
 intake cannot be calculated, and therefore it returns the original intake.
 }

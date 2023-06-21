@@ -32,13 +32,10 @@ mod_welcome_ui <- function(id){
 
             # Page title and subtitle
             h2("Welcome to IntakeInspectR"),
-            h3("A dashboard for automatically collected feed intake data"),
+            # h3("A dashboard for automatically collected feed intake data"),
 
             # Further description
-            p("IntakeInspectR is designed to help researchers analyse and
-                     visualise automatically collected raw feed intake data."),
-            p("
-                 This app is intended for cleaning an entire data set from
+            p("IntakeInspectR is intended for cleaning an entire data set from
                  multiple Insentec (RIC) feed bins and multiple animals (we
                  have assumed 'cows' for now) and generating a file containing
                  daily intake (kg) for each cow. In addition, data removals
@@ -51,6 +48,7 @@ mod_welcome_ui <- function(id){
                  "),
             br(),
 
+
             p("IntakeInspectR is an open-source R package developed by
                    David Innes, Lucas Alcantara and John Cant from The University of Guelph.",
               "It is written as an open-source R Package which contains
@@ -62,25 +60,44 @@ mod_welcome_ui <- function(id){
                 target="_blank", href="https://github.com/CNM-University-of-Guelph/IntakeInspectR")
             ),
 
+            br(),
+            p("Users should start with a subsection of data (e.g. 7 days) to explore their data.
+              This app is deployed on shinyapps.io and is not designed to handle large data sets.
+              ",
+              a("Click here to learn more about data security when using this app.", target="_blank",
+                href = "https://docs.posit.co/shinyapps.io/security-and-compliance.html")),
+
 
             # Add app features list
             br(),
-            h4("Key Features"),
-            HTML("<ul>
+
+            bslib::layout_columns(
+              col_widths = c(5,-1,2,-4),
+              bslib::card(
+                class = 'border-0',
+                fill = FALSE,
+                wrapper = NULL,
+                h4("Key Features"),
+                HTML("<ul>
                <li>Import .DAT, .CSV or .TXT files</li>
                <li>Multi-step data cleaning</li>
-               <li>Multiple interactive visualizations</li>
+               <li>Multiple interactive visualisations</li>
                <li>Export cleaned data and summarised data</li>
                <li>Save logs for easier reporting</li>
-             </ul>"),
+             </ul>")),
+
+             bslib::card(
+               class = 'border-0',
+               br(),
+               actionButton(ns("go_to_upload"), "Get Started", class = "btn-success btn-lg"),
+               br()
+               )
 
 
-            # Add button to navigate to first page of dashboard
-            br(),
-            actionButton(ns("go_to_upload"), "Get Started", class = "btn-success btn-lg"),
 
-            br(),br(),
-            # p("Check logos to use:"),
+
+            ),
+
             bslib::layout_columns(
 
               bslib::card_image(file=app_sys("app/www/absc_logo.png"), width  = '300px', height = '120px'),

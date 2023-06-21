@@ -241,7 +241,7 @@ f_step2 <- function(df_in,
 #' * prevEnd, prevStart, nextEnd, nextStart - used by check_end_weights and
 #' downstream functions
 #' * check_end_weights - error types as described above
-#' * corrected_end_weight - corrected end weights based on check_end_weights
+#' * corrected_end_weight_bybin - corrected end weights based on check_end_weights
 #' * category_end_weight - classification of errors (keep, replace, error)
 #'
 #' @export
@@ -365,7 +365,7 @@ f_step3 <-
     step3_corrected <-
       step3_check %>%  # step3_check is already lazy_dt()
       dplyr::mutate(
-        corrected_end_weight = dplyr::case_when(
+        corrected_end_weight_bybin = dplyr::case_when(
           stringr::str_detect(check_end_weights, 'replace') ~ nextStart,
           stringr::str_detect(check_end_weights, 'keep') ~ {{ col_end_weight }},
           stringr::str_detect(check_end_weights, 'error') ~ NA_real_,
@@ -376,9 +376,9 @@ f_step3 <-
         ),
         # used for counting and summarising output:
         category_end_weight = dplyr::case_when(
-          dplyr::near(.data$corrected_end_weight, {{ col_end_weight }}) ~ 'keep',
-          !dplyr::near(.data$corrected_end_weight, {{ col_end_weight }}) ~ 'replace',
-          is.na(.data$corrected_end_weight) ~ 'error',
+          dplyr::near(.data$corrected_end_weight_bybin, {{ col_end_weight }}) ~ 'keep',
+          !dplyr::near(.data$corrected_end_weight_bybin, {{ col_end_weight }}) ~ 'replace',
+          is.na(.data$corrected_end_weight_bybin) ~ 'error',
           TRUE ~ 'CHECK'
         )
       ) %>%
@@ -429,7 +429,7 @@ f_step3 <-
 #' @return The original data frame with the additional columns:
 #'  * prev_step3_check
 #'  * check_start_weights
-#'  * corrected_start_weight
+#'  * corrected_start_weight_bybin
 #' @export
 #'
 f_step4 <-
@@ -468,7 +468,7 @@ f_step4 <-
           TRUE ~ 'keep'
         ),
 
-        corrected_start_weight = dplyr::case_when(
+        corrected_start_weight_bybin = dplyr::case_when(
           stringr::str_detect(.data$check_start_weights, 'replace') ~ {{ col_prevEnd }},
           stringr::str_detect(.data$check_start_weights, 'keep') ~ {{ col_start_weight }},
           TRUE ~ -2000 # return extreme default for fault finding if case_when doesn't catch all cases
@@ -483,7 +483,7 @@ f_step4 <-
 
 #' By Bin - Step 5 - Correct intakes
 #'
-#' This function calculates a corrected intake as corrected_start_weight - corrected_end_weight.
+#' This function calculates a corrected intake as corrected_start_weight_bybin - corrected_end_weight_bybin.
 #' It also handles the situation where errors are produced by [f_step3()] which means a corrected
 #' intake cannot be calculated, and therefore it returns the original intake.
 #'
@@ -535,7 +535,7 @@ f_step5_correct_intakes <-
 #'   date-time) recorded by feed bin.
 
 #' @return The original data frame with the following additional columns:
-#' nextStartTime, is_end_time_error, corrected_end_time, corrected_feed_duration_diff, corrected_feed_duration_seconds
+#' nextStartTime, is_end_time_overlap_error, corrected_end_time, corrected_feed_duration_diff, corrected_feed_duration_seconds
 #' @export
 #'
 f_step6_correct_end_times <-
@@ -552,13 +552,13 @@ f_step6_correct_end_times <-
       dplyr::mutate(
         nextStartTime = data.table::shift({{ col_start_time}}, type = 'lead'),
         # is the end time later in time than the time of the next feeding event by the cow
-        is_end_time_error = dplyr::if_else(
+        is_end_time_overlap_error = dplyr::if_else(
           is.na(.data$nextStartTime), # check if NA - NA due to last event of day
           true = FALSE, # if last event of day, assume no error (i.e. FALSE)
           false = {{ col_end_time }} > .data$nextStartTime),
 
         corrected_end_time = dplyr::if_else(
-          .data$is_end_time_error,
+          .data$is_end_time_overlap_error,
           true = .data$nextStartTime - lubridate::seconds(10),
           false = {{ col_end_time }}),
 

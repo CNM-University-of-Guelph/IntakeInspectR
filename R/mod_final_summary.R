@@ -21,8 +21,8 @@ mod_final_summary_ui <- function(id){
             "1fr"
           ),
           col_sizes = c(
-            "0.5fr",
-            "1.5fr"
+            "0.2fr",
+            "0.8fr"
           ),
 
           gap_size = "5px",
@@ -30,9 +30,11 @@ mod_final_summary_ui <- function(id){
           ############################################### #
           # Inputs panel ----
           ################################################ #
-          gridlayout::grid_card(
-            area = 'user_input',
-            wrapper = bslib::card_body,
+          gridlayout:: grid_card(
+            area = "user_input",
+
+            wrapper = function(x) bslib::card_body(x, fill=FALSE, fillable=TRUE, class = "align-items-top"),
+
             h3("Downloads:"),
             shinyWidgets::radioGroupButtons(
               inputId = ns("download_filetype_selection"),
@@ -43,14 +45,13 @@ mod_final_summary_ui <- function(id){
               status = "success" # equive to  class = 'btn-success'
             ),
             br(),
-            br(),
-            #gap = '20px',
+
             downloadButton(ns("download_simplified"), "Cleaned data - simplified", class = 'btn-info'),
-            br(),
+            # br(),
             downloadButton(ns("download_full"), "Cleaned data - all columns", class = 'btn-info'),
-            br(),
+            # br(),
             downloadButton(ns('download_logs'), label = 'Log files (as single .txt file)', class = 'btn-info'),
-            br(),
+            # br(),
             p("Summarised data is available in the tabs to the right. These can be downloaded using the buttons above each table.")
           ),
 
@@ -139,8 +140,8 @@ mod_final_summary_ui <- function(id){
 
                   shinyWidgets::switchInput(inputId = ns("use_clean_intakes_d"),
                                             value = TRUE,
-                                            onLabel = "Clean", # TRUE
-                                            offLabel = "Raw", # FALSE
+                                            onLabel = "TRUE", # TRUE / clean
+                                            offLabel = "FALSE", # FALSE / raw
                                             label = "Use cleaned data?",
                                             labelWidth = '250px'),
                   span("Enter Dry Matter % to calculate DM intakes (100% is equal to as-fed values):",class = "align-right"),
@@ -197,7 +198,7 @@ mod_final_summary_server <- function(id, df_list_bybin, df_list_bycow){
         dplyr::rowwise() %>%
         dplyr::mutate(
           # overall flag for if anything was modified in the event
-          is_modified = any(.data$is_corrected_intake_bybin, .data$is_end_time_error, .data$is_outlier, na.rm=TRUE)
+          is_modified = any(.data$is_corrected_intake_bybin, .data$is_end_time_overlap_error, .data$is_outlier, na.rm=TRUE)
         ) %>%
         dplyr::ungroup()
     })

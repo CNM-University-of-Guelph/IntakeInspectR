@@ -59,7 +59,7 @@ mod_by_bin_vis_ui <- function(id){
                 inputId = ns("colour_aes"),
                 label = "Error column to view",
                 choices = list(
-                  is_end_time_error = 'is_end_time_error',
+                  is_end_time_overlap_error = 'is_end_time_overlap_error',
                   is_corrected_intake_bybin = 'is_corrected_intake_bybin',
                   check_end_weights = 'check_end_weights',
                   check_start_weights = 'check_start_weights'
@@ -179,7 +179,7 @@ mod_by_bin_vis_server <- function(id, df_list){
       if(selectedData() == "raw") {
 
         df() %>%
-          fct_plots_summary(
+          f_plot_summary(
             x = .data$feed_duration,
             y = .data$intake,
             type = input$plot_type_overall)
@@ -188,7 +188,7 @@ mod_by_bin_vis_server <- function(id, df_list){
 
       }else if(selectedData() == "corrected") {
         df() %>%
-          fct_plots_summary(
+          f_plot_summary(
             x = .data$corrected_feed_duration_seconds,
             y = .data$corrected_intake_bybin,
             type = input$plot_type_overall)
@@ -231,7 +231,7 @@ mod_by_bin_vis_server <- function(id, df_list){
         dplyr::group_by(.data$feed_bin_id) %>%
         dplyr::summarise(
           n_cor_weights = sum(.data$is_corrected_intake_bybin),
-          n_cor_time = sum(.data$is_end_time_error),
+          n_cor_time = sum(.data$is_end_time_overlap_error),
           n_errors = .data$n_cor_weights + .data$n_cor_time ) %>%
         dplyr::arrange(dplyr::desc(.data$n_errors))
 
@@ -355,8 +355,8 @@ mod_by_bin_vis_server <- function(id, df_list){
           plot_bin_timeline(
             .data$start_time,
             .data$corrected_end_time,
-            .data$corrected_start_weight,
-            .data$corrected_end_weight,
+            .data$corrected_start_weight_bybin,
+            .data$corrected_end_weight_bybin,
             col_colour = .data[[input$colour_aes]],
             col_hover_text = .data$tooltip)+
           labs(x = 'Time',

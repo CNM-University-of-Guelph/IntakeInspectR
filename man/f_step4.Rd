@@ -47,7 +47,7 @@ columns computed by [f_step3()]}
 The original data frame with the additional columns:
  * prev_step3_check
  * check_start_weights
- * corrected_start_weight
+ * corrected_start_weight_bybin
 }
 \description{
 Occasionally the start weights are recorded incorrectly and can be determined

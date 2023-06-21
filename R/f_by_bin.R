@@ -193,15 +193,15 @@ f_by_bin_clean <- function(
 
   step5 <- f_step5_correct_intakes(
     step4,
-    col_corrected_start_weight = .data$corrected_start_weight,
-    col_corrected_end_weight = .data$corrected_end_weight,
+    col_corrected_start_weight = .data$corrected_start_weight_bybin,
+    col_corrected_end_weight = .data$corrected_end_weight_bybin,
     col_intake = {{ col_intake }})
 
 
   if(log){
     logr::log_print("Total intakes corrected:")
     logr::log_print(f_count_errors(step5, .data$is_corrected_intake_bybin))
-    logr::log_print("NOTE: errors result in NA for `corrected_end_weight`. \n
+    logr::log_print("NOTE: errors result in NA for `corrected_end_weight_bybin`. \n
                     Therefore, errors return the value from  `col_intake` for `corrected_intake` and are counted as FALSE here.")
   }
 
@@ -224,7 +224,7 @@ f_by_bin_clean <- function(
 
   if(log){
     logr::log_print("Summary of end times corrected:")
-    logr::log_print(f_count_errors(step6, .data$is_end_time_error))
+    logr::log_print(f_count_errors(step6, .data$is_end_time_overlap_error))
   }
 
 

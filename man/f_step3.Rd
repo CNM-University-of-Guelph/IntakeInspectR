@@ -50,7 +50,7 @@ The original `df_step2` data frame, with the following additional
 * prevEnd, prevStart, nextEnd, nextStart - used by check_end_weights and
 downstream functions
 * check_end_weights - error types as described above
-* corrected_end_weight - corrected end weights based on check_end_weights
+* corrected_end_weight_bybin - corrected end weights based on check_end_weights
 * category_end_weight - classification of errors (keep, replace, error)
 }
 \description{

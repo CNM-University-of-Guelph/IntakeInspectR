@@ -3,7 +3,7 @@
 
 ## usethis namespace: start
 #' @import shiny
-#' @importFrom golem add_resource_path activate_js favicon bundle_resources
+#' @importFrom golem add_resource_path activate_js bundle_resources
 #' @import gridlayout
 #' @importFrom shiny NS tagList
 #' @importFrom rlang .data

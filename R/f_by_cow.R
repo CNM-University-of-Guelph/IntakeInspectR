@@ -325,7 +325,7 @@ f_flag_and_replace_outliers <-
       dtplyr::lazy_dt() %>%
       dplyr::mutate(
         # calculate predicted values for plotting regression
-        predicted_y = b_bis * {{ col_x }} + b0_bis,
+        predicted_y_bisector = b_bis * {{ col_x }} + b0_bis,
 
         # New x and y - with outliers given predicted values:
         new_y = dplyr::case_match(.data$outlier_pos_neg,
@@ -356,6 +356,7 @@ f_flag_and_replace_outliers <-
 #' @param nested_df A data fram nested by 'fitted' and 'data'
 #'
 #' @return a merged data frame
+#' @export
 f_merge_corrected_outlier_data <- function(nested_df){
   raw_data <- nested_df %>%
     dplyr::select(-"fitted") %>%
