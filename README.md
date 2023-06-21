@@ -11,8 +11,9 @@ IntakeInspectR is
 ## ShinyApp
 
 The ShinyApp within the `IntakeInspectR` package is currently hosted in
-2 locations on shinyapps.io: []()
-[](https://dave-innes-uog.shinyapps.io/IntakeInspectR/)
+2 locations on shinyapps.io:
+
+\-[afc]() -<https://dave-innes-uog.shinyapps.io/IntakeInspectR/>
 
 ## Installation
 
@@ -40,14 +41,6 @@ of the functions available in the ShinyApp.
 
 ``` r
 library(dplyr)
-#> 
-#> Attaching package: 'dplyr'
-#> The following objects are masked from 'package:stats':
-#> 
-#>     filter, lag
-#> The following objects are masked from 'package:base':
-#> 
-#>     intersect, setdiff, setequal, union
 library(ggplot2)
 ```
 

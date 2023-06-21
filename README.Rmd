@@ -23,8 +23,9 @@ IntakeInspectR is
 
 ## ShinyApp
 The ShinyApp within the `IntakeInspectR` package is currently hosted in 2 locations on shinyapps.io:
-[]()
-[](https://dave-innes-uog.shinyapps.io/IntakeInspectR/)
+
+-[afc]()
+-[https://dave-innes-uog.shinyapps.io/IntakeInspectR/](https://dave-innes-uog.shinyapps.io/IntakeInspectR/)
 
 
 ## Installation
@@ -49,7 +50,7 @@ It is also possible to access the functions that execute all of the cleaning ste
 The following is a step-by-step guide to replicate many of the functions available in the ShinyApp.
 
 
-```{r}
+```{r message=FALSE, warning=FALSE}
 library(dplyr)
 library(ggplot2)
 ```
@@ -343,7 +344,7 @@ merged_by_cow %>%
 ```
 
 #### Visualise some individual cows
-```{r fig.width=12}
+```{r fig.width=12, fig.height=9}
 merged_by_cow %>%
   filter(cow_id %in% c(2040,2043,2107,2007)) %>% 
   IntakeInspectR::fct_plot_by_cow(
