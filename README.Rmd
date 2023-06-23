@@ -16,17 +16,20 @@ knitr::opts_chunk$set(
 # IntakeInspectR
 
 <!-- badges: start -->
+
 <!-- badges: end -->
+
 IntakeInspectR is designed to help researchers analyse and visualise automatically collected raw feed intake data for ruminants. It has been developed to work with data from Insentec feed bins and contains a user friendly ShinyApp that is a great place to start.
 
 ## ShinyApp
+
 The ShinyApp within the `IntakeInspectR` package is currently hosted in 2 locations on shinyapps.io:
 
--[afc]()
--[https://dave-innes-uog.shinyapps.io/IntakeInspectR/](https://dave-innes-uog.shinyapps.io/IntakeInspectR/)
-
+> -   <https://agrifooddatacanada.shinyapps.io/IntakeInspectR/>
+> -   <https://dave-innes-uog.shinyapps.io/IntakeInspectR/>
 
 ## Installation
+
 You can install IntakeInspectR from [GitHub](https://github.com/) with:
 
 ``` r
@@ -35,6 +38,7 @@ remotes::install_github("CNM-University-of-Guelph/IntakeInspectR")
 ```
 
 ## Run ShinyApp locally
+
 When using RStudio you can also run the `IntakeInsepctR` app directly on your computer with:
 
 ``` r
@@ -45,37 +49,36 @@ IntakeInspectR::run_app()
 
 *This work was supported by the Canada First Research Excellence Fund (CFREF-2015-00004) under grant number THE2-020.*
 
-
 *This software was developed in part using data from the Ontario Dairy Research Centre, which is owned by the Agricultural Research Institute of Ontario and managed by the University of Guelph through the Ontario Agri-Food Innovation Alliance. The Government of Ontario does not provide any warranty of any kind regarding the accuracy, completeness, security or reliability of the material posted therein or provided through any sites linked directly or indirectly to the site.*
-
 
 # Manual analysis using built-in functions
 
-It is also possible to access the functions that execute all of the cleaning steps. 
-The following is a step-by-step guide to replicate many of the functions available in the ShinyApp.
-
+It is also possible to access the functions that execute all of the cleaning steps. The following is a step-by-step guide to replicate many of the functions available in the ShinyApp.
 
 ```{r message=FALSE, warning=FALSE}
 library(dplyr)
 library(ggplot2)
 ```
 
-
-
 ## 1. Upload Data
+
 Load demo data from package
+
 ```{r}
 df_uploaded <- IntakeInspectR::demo_insentec_data
 
 ```
 
 View data layout:
+
 ```{r}
 df_uploaded %>% glimpse()
 ```
 
 ### Initial plot
+
 Plot 30k rows of data for a quick look at data.
+
 ```{r}
 df_uploaded %>% 
   slice_head(n=30000) %>% 
@@ -93,9 +96,10 @@ df_uploaded %>%
   
 ```
 
-
 ### Filter data
+
 Get min and max dates for reference
+
 ```{r}
 min_date <- df_uploaded$date %>% min()
 max_date <- df_uploaded$date %>% max()
@@ -106,6 +110,7 @@ print(max_date)
 ```
 
 Filter data to include from `min_date` to 05 Jan 2021:
+
 ```{r}
 
 df_filtered <- 
@@ -117,15 +122,15 @@ df_filtered %>% dim()
 
 ```
 
-
 ## 2a. By Bin - Clean
-This function will return a list of data frames: 
 
- - 'df_0kg'
- - 'df_step2_errors' 
- - 'df_cleaned'
- 
- In addition, if log = TRUE 'log_path' is returned in the list, which is the temporary file path where the log is stored. When running interactively it also prints the logs to the console.
+This function will return a list of data frames:
+
+-   'df_0kg'
+-   'df_step2_errors'
+-   'df_cleaned'
+
+In addition, if log = TRUE 'log_path' is returned in the list, which is the temporary file path where the log is stored. When running interactively it also prints the logs to the console.
 
 ```{r echo=TRUE, results='hide'}
 
@@ -146,23 +151,21 @@ list_cleaned <-
 ```
 
 ### Added columns
-The classifications and changes made in 'By Bin - Clean' are added to the original data, minus the rows stored in `df_0kg` and `df_step2_errors`.
-Use the $ symbol to access individual elements of the output by name. 
 
-The columns ending in `_bybin` represent columns where corrections were made, as well `is_end_time_overlap_error`. These columns use the classifications to make corrections, e.g. If `check_end_weights` starts with `'replace: '` then `corrected_end_weight_bybin` will be given the value of the next row's start weight. Otherwise, it keeps the original `end_weight`. 
+The classifications and changes made in 'By Bin - Clean' are added to the original data, minus the rows stored in `df_0kg` and `df_step2_errors`. Use the \$ symbol to access individual elements of the output by name.
+
+The columns ending in `_bybin` represent columns where corrections were made, as well `is_end_time_overlap_error`. These columns use the classifications to make corrections, e.g. If `check_end_weights` starts with `'replace: '` then `corrected_end_weight_bybin` will be given the value of the next row's start weight. Otherwise, it keeps the original `end_weight`.
 
 ```{r}
 list_cleaned$df_cleaned %>% glimpse()
 ```
-
-
-
 
 ## 2b. By Bin - Visualise
 
 ### Overall Plots
 
 #### Regression (raw with classifications)
+
 ```{r fig.width=8}
 
 list_cleaned$df_cleaned %>% 
@@ -177,6 +180,7 @@ list_cleaned$df_cleaned %>%
 ```
 
 #### Histogram (raw)
+
 ```{r fig.width=8, warning=FALSE, message=FALSE}
 
 list_cleaned$df_cleaned %>% 
@@ -187,13 +191,11 @@ list_cleaned$df_cleaned %>%
 
 ```
 
-
 ### Individual bin plots
-These functions require data from only 1 feed bin.
-Various columns contain useful information about the cleaning, such as 'check_end_weights', 'is_end_time_error', 'check_start_weights', 'is_corrected_bybin'. These can be used for col_colour to colour the points in the plot.
+
+These functions require data from only 1 feed bin. Various columns contain useful information about the cleaning, such as 'check_end_weights', 'is_end_time_error', 'check_start_weights', 'is_corrected_bybin'. These can be used for col_colour to colour the points in the plot.
 
 These functions return static ggplot2 objects. But they can be made interactive using plotly.
-
 
 ```{r fig.width=8}
 p_bin_regression_raw <- 
@@ -221,7 +223,9 @@ p_bin_regression_raw
 ```
 
 ### Timeline (raw with classifications)
+
 These are better viewed interactively with plotly, or filter the dates to a smaller time frame to focus in on certain errors.
+
 ```{r fig.width=9}
 p_bin_timeline_raw <- 
   list_cleaned$df_cleaned %>% 
@@ -283,6 +287,7 @@ p_bin_timeline_clean
 ```
 
 ## 3a. By Cow - Clean
+
 This function takes the whole cleaned data frame, and splits by cow to iterate through regression functions.
 
 ```{r}
@@ -302,7 +307,6 @@ by_cow_list_out <-
 
 ```
 
-
 This data is returned as a nested data frame. This makes many operations easier but users may prefer a normal data frame:
 
 ```{r message=FALSE}
@@ -316,7 +320,9 @@ merged_by_cow %>% glimpse()
 ## 3b. By Cow - Vis
 
 ### Overall
+
 This shows all changes made at a per cow level but displayed together on this single plot for an overview.
+
 ```{r fig.width=8}
 
 merged_by_cow %>%
@@ -332,6 +338,7 @@ merged_by_cow %>%
 ### Individual cow
 
 #### Find some cows with errors
+
 ```{r}
 merged_by_cow %>% 
   dplyr::count(.data$cow_id, .data$outlier_pos_neg) %>% 
@@ -348,6 +355,7 @@ merged_by_cow %>%
 ```
 
 #### Visualise some individual cows
+
 ```{r fig.width=12, fig.height=9}
 merged_by_cow %>%
   filter(cow_id %in% c(2040,2043,2107,2007)) %>% 
@@ -362,10 +370,11 @@ merged_by_cow %>%
 ```
 
 ## 4. Final Output - Select errors to correct for
+
 Because all classifications and changes are stored in columns, users may correct data using any combination of corrections.
 
-
 ### Select most useful columns
+
 ```{r}
 
 df_all_steps <- 
@@ -405,8 +414,9 @@ df_all_steps %>% glimpse()
 ```
 
 ### Keep only corrected end weight and end time
-This is an example of selecting a final intake that ignores fixing start weight errors or outlier detection (By Cow), but does 
-correct for long durations where feeding events by a cow overlapped at different feed bins.
+
+This is an example of selecting a final intake that ignores fixing start weight errors or outlier detection (By Cow), but does correct for long durations where feeding events by a cow overlapped at different feed bins.
+
 ```{r}
 df_all_steps %>% 
   # calculate new intakes and durations:
@@ -423,6 +433,7 @@ df_all_steps %>%
 ```
 
 ### Keeping all corrections
+
 The columns `new_x` and `new_y` are automatically copied into columns with more meaningful names: `final_intake_kg` and `final_duration_sec`. In addition, we can add a column to check if anything was modified from pre-calcualted flags:
 
 ```{r}
@@ -444,9 +455,8 @@ simplified_final_df <-
 simplified_final_df %>% glimpse()
 ```
 
-
-
 ### Notes on By Cow outlier detection
+
 The By Cow functions require an x axis (duration) and y axis (intake) to be specified for it to use for fitting regressions.Therefore, it is not possible to exclude some error types from the By Bin cleaning after running the By Cow functions, instead users should re-run `f_iterate_cows` and specify the columns they wish to use. For example:
 
 ```{r eval=FALSE}
@@ -470,10 +480,10 @@ list_cleaned$df_cleaned %>%
   )
 ```
 
-
-
 ## 5. Daily Intakes
+
 Assuming we are using all corrections and the 'simplified' data frame we calculated, we can easily calculate daily intakes:
+
 ```{r message=FALSE}
 
 daily_intakes <- 
@@ -489,6 +499,7 @@ daily_intakes
 ```
 
 ### Visualise all daily intakes
+
 ```{r}
 daily_intakes %>% 
   ggplot(aes( x = date, y = daily_intake_kg_asfed, group = date))+
@@ -498,7 +509,9 @@ daily_intakes %>%
 ```
 
 ### Visualise per cow daily intake
+
 It can be useful to monitor daily feed intake over time and a low intake might be important to follow up on.
+
 ```{r}
 daily_intakes %>% 
   arrange(daily_intake_kg_asfed) %>% 
@@ -515,5 +528,3 @@ daily_intakes %>%
   ggplot2::ylim(c(0,NA))+
   theme_classic()
 ```
-
-

@@ -16,7 +16,8 @@ friendly ShinyApp that is a great place to start.
 The ShinyApp within the `IntakeInspectR` package is currently hosted in
 2 locations on shinyapps.io:
 
-\-[afc]() -<https://dave-innes-uog.shinyapps.io/IntakeInspectR/>
+> - <https://agrifooddatacanada.shinyapps.io/IntakeInspectR/>
+> - <https://dave-innes-uog.shinyapps.io/IntakeInspectR/>
 
 ## Installation
 
