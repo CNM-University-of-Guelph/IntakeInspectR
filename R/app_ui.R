@@ -34,7 +34,6 @@ app_ui <- function(request) {
                 if ($(".navbar-collapse").hasClass("collapse") || $(".navbar-collapse").hasClass("show")) {
                   // Condition met: navbar-collapse classes are active
                   clearInterval(interval); // Stop the interval
-                  console.log("Navbar toggle clicked!");
                   adjustLayoutOnResize();
                 }
               }, 100); // Interval delay in milliseconds

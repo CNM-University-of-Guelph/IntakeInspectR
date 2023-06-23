@@ -220,10 +220,13 @@ mod_by_bin_vis_server <- function(id, df_list){
       return(df)
     })
 
-    output$neg_table <- DT::renderDT({ df_neg() %>%
+    output$neg_table <- DT::renderDT({
+      req(df_neg())
+
+      df_neg() %>%
         fct_DT_nopages( scrollY = 400,
                         buttons_at_bottom = TRUE,
-                        fillContainer = TRUE)})
+                        fillContainer = FALSE)})
 
 
     # create table to count number of errors produced for each bin
@@ -242,10 +245,14 @@ mod_by_bin_vis_server <- function(id, df_list){
     })
 
     output$error_table <-
-      DT::renderDT({ df_error() %>%
+
+      DT::renderDT({
+        req(df_error())
+
+        df_error() %>%
           fct_DT_nopages( scrollY = 400,
                           buttons_at_bottom = TRUE,
-                          fillContainer = TRUE
+                          fillContainer = FALSE
                           )})
 
 

@@ -398,6 +398,11 @@ mod_final_summary_server <- function(id, df_list_bybin, df_list_bycow){
     ################################# #
     # Download data ----
     ################################# #
+    # Hide download buttons until after button pressed
+    observe({
+      shinyjs::toggleState("download_simplified", condition = input$recalculate_values > 0)
+      shinyjs::toggleState("download_full", condition = input$recalculate_values > 0)
+    })
 
     # select minimal columns to export for simplified version
     # Renamed some columns
@@ -542,6 +547,7 @@ mod_final_summary_server <- function(id, df_list_bybin, df_list_bycow){
         ggplot2::facet_wrap(ggplot2::vars(cow_id))+
         ggplot2::ylim(c(0,NA))+
         ggplot2::scale_x_date(date_breaks = 'day')+
+        ggplot2::scale_colour_viridis_d(option = 'H', begin = 0, end = 0.95, na.value = 'red')+
         ggplot2::theme_classic(base_size = 13)+
         ggplot2::ggtitle("Individual feed intake (as-fed kg) per day")
 
