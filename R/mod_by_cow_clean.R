@@ -84,7 +84,7 @@ mod_by_cow_clean_ui <- function(id){
                 )
               ),
               bslib::accordion_panel(
-                title = "Download raw output",
+                title = "Download function outputs",
                 div(
                   style = "display: flex; flex-direction: column; align-items: center;",
                   p("

@@ -105,10 +105,20 @@ mod_welcome_ui <- function(id){
               bslib::card_image(file=app_sys("app/www/DaG.png"), width  = '210px', height='120px')),
 
 
-            p(em("This work was supported by the Canada First Research Excellence Fund (CFREF-2015-00004) under grant number THE2-020.
-"))
-
-
+            p(em("
+                 This work was supported by the Canada First Research
+                 Excellence Fund (CFREF-2015-00004) under grant number
+                 THE2-020.")),
+            p(em("
+                 This software was developed in part using data from the
+                 Ontario Dairy Research Centre, which is owned by the
+                 Agricultural Research Institute of Ontario and managed by the
+                 University of Guelph through the Ontario Agri-Food Innovation
+                 Alliance. The Government of Ontario does not provide any
+                 warranty of any kind regarding the accuracy, completeness,
+                 security or reliability of the material posted therein or
+                 provided through any sites linked directly or indirectly to
+                 the site."))
 
           )
         )

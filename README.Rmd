@@ -17,9 +17,7 @@ knitr::opts_chunk$set(
 
 <!-- badges: start -->
 <!-- badges: end -->
-
-IntakeInspectR is
-
+IntakeInspectR is designed to help researchers analyse and visualise automatically collected raw feed intake data for ruminants. It has been developed to work with data from Insentec feed bins and contains a user friendly ShinyApp that is a great place to start.
 
 ## ShinyApp
 The ShinyApp within the `IntakeInspectR` package is currently hosted in 2 locations on shinyapps.io:
@@ -42,6 +40,13 @@ When using RStudio you can also run the `IntakeInsepctR` app directly on your co
 ``` r
 IntakeInspectR::run_app()
 ```
+
+## Acknowledgements
+
+*This work was supported by the Canada First Research Excellence Fund (CFREF-2015-00004) under grant number THE2-020.*
+
+
+*This software was developed in part using data from the Ontario Dairy Research Centre, which is owned by the Agricultural Research Institute of Ontario and managed by the University of Guelph through the Ontario Agri-Food Innovation Alliance. The Government of Ontario does not provide any warranty of any kind regarding the accuracy, completeness, security or reliability of the material posted therein or provided through any sites linked directly or indirectly to the site.*
 
 
 # Manual analysis using built-in functions
@@ -106,7 +111,6 @@ Filter data to include from `min_date` to 05 Jan 2021:
 df_filtered <- 
   df_uploaded %>% 
         dplyr::filter(date >= lubridate::ymd(min_date) &  date <= lubridate::ymd("2022-01-05")) 
-        # dplyr::filter(feed_bin_id %in% c(1,5,6,10,16))
 
 # Print dimensions of filtered data:
 df_filtered %>% dim()

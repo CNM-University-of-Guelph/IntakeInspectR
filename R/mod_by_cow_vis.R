@@ -15,18 +15,19 @@ mod_by_cow_vis_ui <- function(id){
     title = "3b. By Cow - Vis",
     div(class = 'resized-tab-container',
         gridlayout::grid_container(
-          layout = c(
-            "user_input Display"
-          ),
-          row_sizes = c(
-            "1fr" #fr = fraction 800px
-          ),
-          col_sizes = c(
-            "0.5fr",
-            "1.5fr"
-          ),
 
-          gap_size = "5px",
+          layout = gridlayout::new_gridlayout(c(
+            "1px    0.5fr       1.5fr",
+            "1fr    user_input  Display "
+          ),
+          alternate_layouts = list(
+            layout = c(
+              "1px       1fr     ",
+              "200px    user_input ",
+              "800px    Display"
+            ),
+            width_bounds = c(max = 900)
+          )),
 
 
           ################################################ #

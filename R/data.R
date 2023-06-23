@@ -18,4 +18,4 @@
 #'   \item{cow_id}{Fake cow identification number}
 #'   ...
 #' }
-#' @source Elora Dairy Research Facility
+#' @source Ontario Dairy Research Centre, which is owned by the Agricultural Research Institute of Ontario and managed by the University of Guelph through the Ontario Agri-Food Innovation Alliance. The Government of Ontario does not provide any warranty of any kind regarding the accuracy, completeness, security or reliability of the material posted therein or provided through any sites linked directly or indirectly to the site.

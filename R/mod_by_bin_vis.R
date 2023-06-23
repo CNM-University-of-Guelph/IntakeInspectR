@@ -36,6 +36,7 @@ mod_by_bin_vis_ui <- function(id){
           ################################################ #
           gridlayout::grid_card(
             area = "user_input",
+
             wrapper = function(x) bslib::card_body(x, fill=FALSE, fillable=FALSE),
 
               bslib::card_body(
