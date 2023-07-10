@@ -27,7 +27,6 @@ Imports:
     glue,
     golem (>= 0.3.5),
     grid,
-    gridlayout,
     htmlwidgets,
     logr,
     lubridate,
