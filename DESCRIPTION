@@ -10,7 +10,7 @@ License: MIT + file LICENSE
 URL: https://github.com/CNM-University-of-Guelph/IntakeInspectR
 BugReports: https://github.com/CNM-University-of-Guelph/IntakeInspectR/issues
 Depends: 
-    R (>= 2.10)
+    R (>= 3.5.0)
 Imports: 
     bit64,
     broom,
@@ -27,7 +27,6 @@ Imports:
     glue,
     golem (>= 0.3.5),
     grid,
-    gridlayout,
     htmlwidgets,
     logr,
     lubridate,
@@ -49,7 +48,8 @@ Imports:
     tidyr,
     tidyselect,
     tools,
-    utils
+    utils,
+    gridlayout (>= 0.2.0)
 Suggests: 
     spelling,
     testthat (>= 3.0.0)
@@ -58,3 +58,5 @@ Encoding: UTF-8
 Language: en-US
 LazyData: true
 RoxygenNote: 7.2.3
+Remotes:  
+    rstudio/gridlayout
