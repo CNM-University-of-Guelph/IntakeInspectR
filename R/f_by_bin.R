@@ -35,8 +35,9 @@ f_count_errors <- function(.df, ...){
 #' @param feedout_thresh Number. What threshold (kg) should be used to call an
 #'   increase in feed intake a feed out event? Default 10 kg
 #' @param col_bin_ID Name of column with feed bin ID.
-#' @param col_date Name of column with date (formatted as Date) of feeding event
-#' @param col_start_time Name of column with start time (formatted as POSIXct
+#' @param col_cow_ID Name of column with cow ID.
+#' @param col_date Name of column with date (formatted as Date) of feeding event.
+#' @param col_start_time,col_end_time Name of columns with start time and end time (formatted as POSIXct
 #'   date-time) recorded by feed bin.
 #' @param col_start_weight,col_end_weight Name of columns with start and end
 #'   weights (in kg) recorded by feed bin.
@@ -55,8 +56,10 @@ f_by_bin_clean <- function(
     zero_thresh = 0.3,
     feedout_thresh = 10,
     col_bin_ID = .data$feed_bin_id,
+    col_cow_ID = .data$cow_id,
     col_date = .data$date,
     col_start_time = .data$start_time,
+    col_end_time = .data$end_time,
     col_start_weight = .data$start_weight,
     col_end_weight = .data$end_weight,
     col_intake = .data$intake,
@@ -216,10 +219,10 @@ f_by_bin_clean <- function(
 
   step6 <- f_step6_correct_end_times(
     step5,
-    col_cow_ID = .data$cow_id,
-    col_date = .data$date,
-    col_start_time = .data$start_time,
-    col_end_time = .data$end_time
+    col_cow_ID = {{ col_cow_ID }},
+    col_date = {{ col_date }},
+    col_start_time = {{ col_start_time }},
+    col_end_time = {{ col_end_time }}
   )
 
   if(log){

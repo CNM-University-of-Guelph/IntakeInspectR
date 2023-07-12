@@ -9,8 +9,10 @@ f_by_bin_clean(
   zero_thresh = 0.3,
   feedout_thresh = 10,
   col_bin_ID = .data$feed_bin_id,
+  col_cow_ID = .data$cow_id,
   col_date = .data$date,
   col_start_time = .data$start_time,
+  col_end_time = .data$end_time,
   col_start_weight = .data$start_weight,
   col_end_weight = .data$end_weight,
   col_intake = .data$intake,
@@ -30,9 +32,11 @@ increase in feed intake a feed out event? Default 10 kg}
 
 \item{col_bin_ID}{Name of column with feed bin ID.}
 
-\item{col_date}{Name of column with date (formatted as Date) of feeding event}
+\item{col_cow_ID}{Name of column with cow ID.}
 
-\item{col_start_time}{Name of column with start time (formatted as POSIXct
+\item{col_date}{Name of column with date (formatted as Date) of feeding event.}
+
+\item{col_start_time, col_end_time}{Name of columns with start time and end time (formatted as POSIXct
 date-time) recorded by feed bin.}
 
 \item{col_start_weight, col_end_weight}{Name of columns with start and end

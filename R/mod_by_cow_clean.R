@@ -201,7 +201,7 @@ mod_by_cow_clean_server <- function(id, df_list){
                                    col_cow_id = cow_id,
                                    col_bin_id = feed_bin_id,
                                    col_date = date,
-                                   col_start_time =  start_time,
+                                   col_start_time = start_time,
                                    col_intake =  corrected_intake_bybin,
                                    col_duration = corrected_feed_duration_seconds,
                                    sd_thresh = input$sd_threshold, # default = 5

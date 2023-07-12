@@ -300,12 +300,12 @@ f_step3 <-
           # 2. re-check it here to return 'replace_end_weight', as long as 'intake' is negative
           nextStart < {{ col_end_weight }} &
             nextStart <= {{ col_start_weight }} &
-            intake <= (-1 * zero_thresh) ~ 'replace: negative intake',
+            {{ col_intake }} <= (-1 * zero_thresh) ~ 'replace: negative intake',
 
           # 3a. Opposite of 2 (i.e. >= zero_thresh)
           nextStart < {{ col_end_weight }} &
             nextStart <= {{ col_start_weight }} &
-            intake > (-1 * zero_thresh) &
+            {{ col_intake }} > (-1 * zero_thresh) &
             # i.e. it wasn't caught above as negative intake, therefore check
             # why nextStart != {{ col_end_weight }}
             # check how much was added:
@@ -314,7 +314,7 @@ f_step3 <-
           # 3b.
           nextStart < {{ col_end_weight }} &
             nextStart <= {{ col_start_weight }} &
-            intake > (-1 * zero_thresh) &
+            {{ col_intake }} > (-1 * zero_thresh) &
             # check how much was added:
             ({{ col_end_weight }} - nextStart) < zero_thresh ~ 'keep: feed removed: minor (< zero_thresh)',
 
@@ -324,12 +324,12 @@ f_step3 <-
           # 4a. Define feed out events as an increase in weight of > threshold (default 10 kg)
           nextStart > {{ col_end_weight }} &
             nextStart - {{ col_end_weight }} >= feedout_thresh &
-            intake <= (-1 * zero_thresh) ~ 'error: feed out event with neg intake',
+            {{ col_intake }} <= (-1 * zero_thresh) ~ 'error: feed out event with neg intake',
 
           # 4b. Feed out without negative intake
           nextStart > {{ col_end_weight }} &
             nextStart - {{ col_end_weight }} >= feedout_thresh &
-            intake > (-1 * zero_thresh) ~ 'keep: feed out event',
+            {{ col_intake }} > (-1 * zero_thresh) ~ 'keep: feed out event',
 
           # 5. Error when feed value increases between feedout_thresh and zero_thresh:
           nextStart > {{ col_end_weight }} &
@@ -347,10 +347,10 @@ f_step3 <-
           # Check last row of each day:
 
           # 7. if last row of the day, then it can be negative but next start weight isn't known
-          is.na(nextStart) & intake < 0 ~ 'error: negative last row',
+          is.na(nextStart) & {{ col_intake }} < 0 ~ 'error: negative last row',
 
           # 8. else, if last row and positive - then keep:
-          is.na(nextStart) & intake >= 0 ~ 'keep: last row',
+          is.na(nextStart) & {{ col_intake }} >= 0 ~ 'keep: last row',
 
           # 9. finally, if the nextStart == end weight, then keep. Note: dplyr::near is safer than using ==
           dplyr::near(nextStart, {{ col_end_weight }}) ~ 'keep',
