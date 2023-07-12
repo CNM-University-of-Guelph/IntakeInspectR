@@ -6,7 +6,7 @@ Authors@R:
     person("Dave", "Innes", , "innesd@uoguelph.ca", role = c("cre", "aut"))
 Description: A set of tools to help researchers clean their raw feed
     intake data by checking for common errors and visualise their data.
-License: MIT + file LICENSE
+License: MIT + file LICENSE.md
 URL: https://github.com/CNM-University-of-Guelph/IntakeInspectR
 BugReports: https://github.com/CNM-University-of-Guelph/IntakeInspectR/issues
 Depends: 

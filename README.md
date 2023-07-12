@@ -88,6 +88,58 @@ df_uploaded %>% glimpse()
 #> $ cow_id         <dbl> 2000, 2001, 2002, 2003, 2001, 2004, 2005, 2002, 2006, 2…
 ```
 
+### Custom data
+
+If using data stored in .DAT, .CSV or .TXT then some additional steps
+are required to ensure that the date/times are formatted correctly.
+
+#### Insentec DAT files
+
+Firstly, .DAT files from the Insentec system normally hold all data for
+a single day, with the date stored only in the file name. Normally they
+do not have column names either. The built in function
+`fct_import_DAT_default` can be used for importing these files, or
+inspect the code in this function to modify as-required. This function
+will also format dates/times.
+
+``` r
+list_of_paths_DAT <- list.files("./path_to/DAT files", pattern = ".DAT", full.names = TRUE)
+list_of_names_DAT <- list.files("./path_to/DAT files", pattern = ".DAT")
+
+example_import <- 
+  fct_import_DAT_default(.x = list_of_paths_DAT,
+                         .y = list_of_names_DAT)
+```
+
+#### Manually importing .csv files
+
+This code assumes you have some .csv files all in the same folder, which
+are then each imported into a list of data frames. This list is then
+bound into a single data frame (assumes all column names were the same),
+and then the start_time, end_time and date are formatted. This example
+assumes that the start_time and end_time are characters with the format
+HH:MM:SS or similar, which are concatenated with a date column that has
+the format YYYY-MM-DD or similar (see `?lubridate::ymd_hms` for more
+information about parsing formats).
+
+``` r
+# Get file paths to use for iterating 
+list_of_paths_CSV <- list.files("./path_to/CSV files", pattern = ".csv", full.names = TRUE)
+
+# give each file path to the fread function (or read_csv(), etc)
+list_of_dfs <- purrr::map(list_of_paths_CSV, ~data.table::fread(.x))
+
+df_uploaded_example <- 
+  list_of_dfs %>% 
+  # bind into 1 df:
+  purrr::list_rbind() %>%
+  # then, reformate date and times columns:
+  dplyr::mutate(
+    dplyr::across(c(start_time, end_time), ~ lubridate::ymd_hms(stringr::str_c(date, .x, sep = "_"))),
+    date = lubridate::ymd(date)
+    )
+```
+
 ### Initial plot
 
 Plot 30k rows of data for a quick look at data.
@@ -155,8 +207,10 @@ list_cleaned <-
           zero_thresh = 0.3, 
           feedout_thresh = 10, 
           col_bin_ID = feed_bin_id,
+          col_cow_ID = cow_id,
           col_date = date,
           col_start_time = start_time,
+          col_end_time = end_time,
           col_start_weight = start_weight,
           col_end_weight = end_weight,
           col_intake = intake,

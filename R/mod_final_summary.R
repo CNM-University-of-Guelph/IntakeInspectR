@@ -324,8 +324,8 @@ mod_final_summary_server <- function(id, df_list_bybin, df_list_bycow){
           # remove prev and next columns
           dplyr::select( !tidyselect::starts_with(c("prev", "next"))) %>%
           dplyr::mutate(
-            selected_final_intake_kg = final_intake_kg,
-            selected_final_duration_sec = final_duration_sec
+            selected_final_intake_kg = .data$final_intake_kg,
+            selected_final_duration_sec = .data$final_duration_sec
           )
 
       }  else {
@@ -539,19 +539,19 @@ mod_final_summary_server <- function(id, df_list_bybin, df_list_bycow){
 
 
       p <- df_daily_intakes() %>%
-        dplyr::filter(cow_id %in% input$cow_id_ind_plots) %>%
-        dplyr::mutate(cow_id = as.character(.data$cow_id)) %>%
+        dplyr::filter(.data$cow_id %in% input$cow_id_ind_plots) %>%
+        dplyr::mutate('cow_id' = as.character(.data$cow_id)) %>%
         ggplot2::ggplot(aes( x = .data$date, y = .data$`Selected as-fed intake kg/d`, colour = .data$cow_id))+
         ggplot2::geom_point(size = 1.5)+
         ggplot2::geom_line()+
-        ggplot2::facet_wrap(ggplot2::vars(cow_id))+
+        ggplot2::facet_wrap(facets = "cow_id")+
         ggplot2::ylim(c(0,NA))+
         ggplot2::scale_x_date(date_breaks = 'day')+
         ggplot2::scale_colour_viridis_d(option = 'H', begin = 0, end = 0.95, na.value = 'red')+
         ggplot2::theme_classic(base_size = 13)+
         ggplot2::ggtitle("Individual feed intake (as-fed kg) per day")
 
-      plotly::ggplotly(p, dynamicTicks = TRUE) %>% f_change_legend_on_resize
+      plotly::ggplotly(p, dynamicTicks = TRUE) %>% f_change_legend_on_resize()
 
     }) %>% bindEvent(input$generate_ind_plot, ignoreNULL=FALSE)
 
