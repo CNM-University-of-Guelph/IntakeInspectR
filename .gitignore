@@ -8,7 +8,5 @@
 .rds
 *.DAT
 *.rds
-renv.lock
-dev/
-renv/
 rsconnect/
+dev/visualise algo/
