@@ -3,8 +3,9 @@
 options(golem.app.prod = FALSE) # TRUE = production mode, FALSE = development mode
 
 # Comment this if you don't want the app to be served on a random port
-options(shiny.port = httpuv::randomPort())
+# options(shiny.port = httpuv::randomPort())
 #options(shiny.port = 14455)
+options(shiny.port = 48275)
 
 options(shiny.launch.browser = FALSE)
 
