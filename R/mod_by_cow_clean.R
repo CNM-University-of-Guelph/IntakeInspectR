@@ -127,28 +127,28 @@ mod_by_cow_clean_ui <- function(id){
             bslib::value_box(
               title = "Not outliers:",
               #Format to copy default value_box() value size:
-              value = textOutput(ns("n_not_error")) ,
+              value = p(textOutput(ns("n_not_error"), inline = TRUE), style = "font-size: 30px;") ,
               showcase = fct_cow_icon(col='white'),
               # theme_color = 'success',
               height='150px'
             ),
             bslib::value_box(
               title = "Durations replaced (neg residual):",
-              value = textOutput(ns("n_neg")) ,
+              value = p(textOutput(ns("n_neg"), inline = TRUE), style = "font-size: 30px;") ,
               showcase = bsicons::bs_icon('arrow-repeat'),
               theme_color = 'info',
               height='150px'
             ),
             bslib::value_box(
               title = "Negative intakes set to 0 kg:",
-              value = textOutput(ns("n_neg_intake")) ,
+              value = p(textOutput(ns("n_neg_intake"), inline = TRUE), style = "font-size: 30px;") ,
               showcase = bsicons::bs_icon('arrow-repeat'),
               theme_color = 'info',
               height='150px'
             ),
             bslib::value_box(
               title = "Intakes replaced (pos residual):",
-              value = textOutput(ns("n_pos")) ,
+              value = p(textOutput(ns("n_pos"), inline = TRUE), style = "font-size: 30px;") ,
               showcase = bsicons::bs_icon('arrow-repeat'),
               theme_color = 'info',
               height='150px'

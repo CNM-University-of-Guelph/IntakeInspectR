@@ -137,7 +137,7 @@ mod_by_bin_clean_ui <- function(id){
         ################################################ #
         gridlayout::grid_card(
           area = "summary_box",
-          wrapper = function(x) bslib::card_body(x, fill = FALSE, fillable=TRUE, class = "p-0 margin-top:0 margin-bottom:0"),
+          wrapper = function(x) bslib::card_body(x, fill = FALSE, fillable=FALSE, class = "p-0 margin-top:0 margin-bottom:0"),
           bslib::layout_columns(
             fill=FALSE,
             fillable=FALSE,
@@ -149,28 +149,28 @@ mod_by_bin_clean_ui <- function(id){
             bslib::value_box(
               title = "Feed weights replaced:",
               #Format to copy default value_box() value size:
-              value = textOutput(ns("n_weight_replaced")) ,
+              value = p(textOutput(ns("n_weight_replaced"),, inline = TRUE), style = "font-size: 30px;") ,
               showcase = bsicons::bs_icon('arrow-repeat'),
               theme_color = 'info',
               height = '150px'
             ),
             bslib::value_box(
               title = "Feed durations replaced:",
-              value = textOutput(ns("n_durations_replaced")) ,
+              value = p(textOutput(ns("n_durations_replaced"), inline = TRUE), style = "font-size: 30px;") ,
               showcase = bsicons::bs_icon('arrow-repeat'),
               theme_color = 'info',
               height = '150px'
             ),
             bslib::value_box(
               title = "Start weight errors:",
-              value = textOutput(ns("n_start_weight_errors")) ,
+              value = p(textOutput(ns("n_start_weight_errors"), inline = TRUE), style = "font-size: 30px;"),
               showcase = bsicons::bs_icon('exclamation-triangle'),
               theme_color = 'danger',
               height = '150px'
             ),
             bslib::value_box(
               title = "End weight errors:",
-              value = h5(textOutput(ns("n_end_weight_errors"))) ,
+              value = p(textOutput(ns("n_end_weight_errors"), inline = TRUE), style = "font-size: 30px;"),
               showcase = bsicons::bs_icon('exclamation-triangle'),
               theme_color = 'danger',
               height = '150px'
@@ -335,7 +335,7 @@ mod_by_bin_clean_server <- function(id, df){
     ################ #
     observe({
       # Read the SVG file
-      svgContent <- readLines(con = app_sys("app/www/by_bin_workflow.svg"), warn = FALSE)
+      svgContent <- readLines(con = app_sys("app/www/by_bin_workflow_v2.svg"), warn = FALSE)
 
       showModal(
         modalDialog(
