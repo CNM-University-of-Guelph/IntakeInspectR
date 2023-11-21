@@ -7,8 +7,8 @@
 app_server <- function(input, output, session) {
 
   ## Set maximum file size for upload to 100MB
-  options(shiny.maxRequestSize = 100*1024^2)
-  
+  options(shiny.maxRequestSize = 250*1024^2)
+
   mod_welcome_server("welcome_1", parent_session = session) # parent_session used for nav button
 
   df_uploaded <- mod_uploads_server("uploads_1")
