@@ -1,0 +1,469 @@
+---
+title: "Dev Pipeline"
+output: html_notebook
+---
+# Manual analaysis:
+
+```{r}
+library(dplyr)
+library(ggplot2)
+```
+
+
+
+## 1. Upload Data
+Load demo data from package
+```{r}
+df_uploaded <- IntakeInspectR::demo_insentec_data
+
+```
+
+View data layout:
+```{r}
+df_uploaded %>% glimpse()
+```
+
+### Initial plot
+Plot 30k rows of data for a quick look at data.
+```{r}
+df_uploaded %>% 
+  slice_head(n=30000) %>% 
+  IntakeInspectR::f_plot_summary(
+    x = feed_duration/60,
+    y = intake,
+    col_colour = NULL,
+    type = 'reg'
+  )+
+  labs(x = 'Feed Duration (min)',
+       y = 'Intake (kg as-fed)')+
+  geom_hline(aes(yintercept = 0), colour = 'darkred')
+
+
+  
+```
+
+
+### Filter data
+Get min and max dates for reference
+```{r}
+min_date <- df_uploaded$date %>% min()
+max_date <- df_uploaded$date %>% max()
+
+print(min_date)
+print(max_date)
+
+```
+
+Filter data to include from `min_date` to 05 Jan 2021:
+```{r}
+
+df_filtered <- 
+  df_uploaded %>% 
+        dplyr::filter(date >= lubridate::ymd(min_date) &  date <= lubridate::ymd("2022-01-05")) 
+        # dplyr::filter(feed_bin_id %in% c(1,5,6,10,16))
+
+# Print dimensions of filtered data:
+df_filtered %>% dim()
+
+```
+
+
+## 2a. By Bin - Clean
+This function will return a list of data frames: 
+
+ - 'df_0kg'
+ - 'df_step2_errors' 
+ - 'df_cleaned'
+ 
+ In addition, if log = TRUE 'log_path' is returned in the list, which is the temporary file path where the log is stored. When running interactively it also prints the logs to the console.
+
+```{r echo=TRUE, results='hide'}
+
+list_cleaned <-
+        IntakeInspectR::f_by_bin_clean(
+          df_filtered,
+          zero_thresh = 0.3, 
+          feedout_thresh = 10, 
+          col_bin_ID = feed_bin_id,
+          col_date = date,
+          col_start_time = start_time,
+          col_start_weight = start_weight,
+          col_end_weight = end_weight,
+          col_intake = intake,
+          log = FALSE
+          )
+
+```
+
+### Added columns
+The classifications and changes made in 'By Bin - Clean' are added to the original data, minus the rows stored in `df_0kg` and `df_step2_errors`.
+Use the $ symbol to access individual elements of the output by name. 
+
+The columns ending in `_bybin` represent columns where corrections were made, as well `is_end_time_overlap_error`. These columns use the classifications to make corrections, e.g. If `check_end_weights` starts with `'replace: '` then `corrected_end_weight_bybin` will be given the value of the next row's start weight. Otherwise, it keeps the original `end_weight`. 
+
+```{r}
+list_cleaned$df_cleaned %>% glimpse()
+```
+
+
+
+
+## 2b. By Bin - Visualise
+
+### Overall Plots
+
+#### Regression (raw with classifications)
+```{r fig.width=8}
+
+list_cleaned$df_cleaned %>% 
+  f_plot_summary(
+    x = feed_duration,
+    y = intake,
+    type = 'reg')+
+  ggplot2::labs(
+    x = 'Feed duration (sec)',
+    y = 'Intake (kg)')
+
+```
+
+#### Histogram (raw)
+```{r fig.width=8, warning=FALSE, message=FALSE}
+
+list_cleaned$df_cleaned %>% 
+  f_plot_summary(
+     x = feed_duration,
+    y = intake,
+    type = 'hist')
+
+```
+
+
+### Individual bin plots
+These functions require data from only 1 feed bin.
+Various columns contain useful information about the cleaning, such as 'check_end_weights', 'is_end_time_error', 'check_start_weights', 'is_corrected_bybin'. These can be used for col_colour to colour the points in the plot.
+
+These functions return static ggplot2 objects. But they can be made interactive using plotly.
+
+
+```{r fig.width=8}
+p_bin_regression_raw <- 
+  list_cleaned$df_cleaned %>% 
+  dplyr::filter(feed_bin_id == 16) %>% 
+  dplyr::mutate(
+    tooltip = paste('cow_id:', .data$cow_id,
+                    '\nstart_time', .data$start_time)
+  ) %>% 
+  IntakeInspectR::plot_bin_regression(
+    x = feed_duration,
+    y = intake,
+    col_colour = check_end_weights,
+    col_hover_text = .data$tooltip)+
+  # add custom labels:
+  ggplot2::labs(
+    x = 'Feed duration (sec)',
+    y = 'Intake (kg)',
+    title = 'Feed Bin 16')
+  
+
+  
+ # plotly::ggplotly(p_bin_regression_raw)
+p_bin_regression_raw
+```
+
+### Timeline (raw with classifications)
+These are better viewed interactively with plotly, or filter the dates to a smaller time frame to focus in on certain errors.
+```{r fig.width=9}
+p_bin_timeline_raw <- 
+  list_cleaned$df_cleaned %>% 
+  # filter to specific dates if not using interactively
+  dplyr::filter(date == lubridate::ymd("2022-01-02")) %>%
+  dplyr::filter(feed_bin_id == 16) %>% 
+  dplyr::mutate(
+    # For plotly when hovering over a point
+    tooltip = paste('cow_id:', .data$cow_id,
+                    '\nstart_time', .data$start_time)
+  ) %>% 
+  IntakeInspectR::plot_bin_timeline(
+    col_start_time = start_time,
+    col_end_time = end_time,
+    col_start_weight = start_weight,
+    col_end_weight = end_weight,
+    col_colour = check_end_weights,
+    col_hover_text = .data$tooltip)+
+  # add custom labels:
+  ggplot2::labs(
+    x = 'Time',
+     y = 'Bin Weight (kg)',
+    title = 'Feed Bin 16')
+
+  
+# plotly::ggplotly(p_bin_timeline_raw)
+p_bin_timeline_raw
+```
+
+### Timeline (cleaned with classifications)
+
+```{r fig.width=8}
+p_bin_timeline_clean <- 
+  list_cleaned$df_cleaned %>% 
+  dplyr::filter(feed_bin_id == 16) %>% 
+  # filter to specific dates if not using interactively
+  dplyr::filter(date == lubridate::ymd("2022-01-02")) %>%
+  dplyr::mutate(
+    # For plotly when hovering over a point
+    tooltip = paste('cow_id:', .data$cow_id,
+                    '\nstart_time', .data$start_time)
+  ) %>% 
+  IntakeInspectR::plot_bin_timeline(
+    col_start_time = start_time,
+    col_end_time = corrected_end_time,
+    col_start_weight = corrected_start_weight_bybin,
+    col_end_weight = corrected_end_weight_bybin,
+    col_colour = check_end_weights,
+    col_hover_text = .data$tooltip)+
+  # add custom labels:
+  ggplot2::labs(
+    x = 'Time',
+     y = 'Bin Weight (kg)',
+    title = 'Feed Bin 16 - Cleaned')
+
+  
+# plotly::ggplotly(p_bin_timeline_clean)
+p_bin_timeline_clean
+```
+
+## 3a. By Cow - Clean
+This function takes the whole cleaned data frame, and splits by cow to iterate through regression functions.
+
+```{r}
+by_cow_list_out <- 
+  f_iterate_cows(
+    list_cleaned$df_cleaned,
+    col_cow_id = cow_id,
+    col_bin_id = feed_bin_id,
+    col_date = date,
+    col_start_time =  start_time,
+    col_intake =  corrected_intake_bybin,
+    col_duration = corrected_feed_duration_seconds,
+    sd_thresh = 5, 
+    shiny.session = NULL, # use NULL if not inside a shiny app
+    log = FALSE
+  )
+
+```
+
+
+This data is returned as a nested data frame. This makes many operations easier but users may prefer a normal data frame:
+
+```{r message=FALSE}
+merged_by_cow <- 
+  by_cow_list_out$nested_out %>% 
+  IntakeInspectR:::f_merge_corrected_outlier_data()
+
+merged_by_cow %>% glimpse()
+```
+
+## 3b. By Cow - Vis
+
+### Overall
+This shows all changes made at a per cow level but displayed together on this single plot for an overview.
+```{r fig.width=8}
+
+merged_by_cow %>%
+   IntakeInspectR:::fct_plot_by_cow_overall(
+    col_intake = corrected_intake_bybin,
+    col_duration = corrected_feed_duration_seconds,
+    pt_size = 3)+
+  labs(x = 'Corrected Feed Duration (seconds)',
+       y = 'Corrected Feed Intake (kg)')
+
+```
+
+### Individual cow
+
+#### Find some cows with errors
+```{r}
+merged_by_cow %>% 
+  dplyr::count(.data$cow_id, .data$outlier_pos_neg) %>% 
+  dplyr::mutate(dplyr::across('outlier_pos_neg', ~tidyr::replace_na(.x, 'not_error'))) %>%
+  tidyr::pivot_wider(names_from = 'outlier_pos_neg', values_from = 'n') %>%
+        dplyr::rowwise() %>%
+        dplyr::mutate(total_outliers = sum(
+          dplyr::c_across(colnames(.)[colnames(.) %in% c('neg', 'neg_intake' , 'neg_duration', 'pos')] # sum only the cols available
+          ), na.rm = TRUE)) %>%
+        dplyr::ungroup() %>%
+        dplyr::arrange(dplyr::desc(.data$total_outliers))
+
+
+```
+
+#### Visualise some individual cows
+```{r fig.width=12}
+merged_by_cow %>%
+  filter(cow_id %in% c(2040,2043,2107,2007)) %>% 
+  IntakeInspectR::fct_plot_by_cow(
+    col_intake = .data$corrected_intake_bybin,
+    col_duration = .data$corrected_feed_duration_seconds,
+    pt_size = 3)+
+  labs(x = 'Corrected Feed Duration (seconds)',
+       y = 'Corrected Feed Intake (kg)')  +
+  facet_wrap(vars(cow_id), scales = 'free')
+
+```
+
+## 4. Final Output - Select errors to correct for
+Because all classifications and changes are stored in columns, users may correct data using any combination of corrections.
+
+
+### Select most useful columns
+```{r}
+
+df_all_steps <- 
+  merged_by_cow %>% 
+  dplyr::select(
+    feed_bin_id,
+    cow_id,
+    date,
+    start_time,
+    end_time,
+    feed_duration,
+    start_weight,
+    end_weight,
+    
+    # By Bin - End weight:
+    check_end_weights,
+    category_end_weight,
+    corrected_end_weight_bybin,
+    
+    # By Bin - Start weight:
+    check_start_weights,
+    corrected_start_weight_bybin,
+    
+    # By Bin - Overlapping end times:
+    is_end_time_overlap_error,
+    corrected_end_time,
+    corrected_feed_duration_seconds,
+    
+    # By Cow - Outlier detection
+    is_outlier,
+    outlier_pos_neg,
+    new_x,
+    new_y
+  )
+
+df_all_steps %>% glimpse()
+```
+
+### Keep only corrected end weight and end time
+This is an example of selecting a final intake that ignores fixing start weight errors or outlier detection (By Cow), but does 
+correct for long durations where feeding events by a cow overlapped at different feed bins.
+```{r}
+df_all_steps %>% 
+  # calculate new intakes and durations:
+  mutate(
+    selected_final_intake_kg = start_weight - corrected_end_weight_bybin,
+    selected_final_duration_sec = corrected_end_time - start_time
+  ) %>% 
+  # remove unwanted columns:
+  dplyr::select(
+    feed_bin_id, cow_id, date, start_time, corrected_end_time, start_weight, corrected_end_weight_bybin,
+    selected_final_intake_kg, selected_final_duration_sec
+  ) %>% 
+  glimpse()
+```
+
+### Keeping all corrections
+The columns `new_x` and `new_y` are automatically copied into columns with more meaningful names: `final_intake_kg` and `final_duration_sec`. In addition, we can add a column to check if anything was modified from pre-calcualted flags:
+
+```{r}
+simplified_final_df <- 
+  merged_by_cow %>% 
+  dplyr::rowwise() %>%
+  dplyr::mutate(
+    # overall flag for if anything was modified in the event
+    is_modified = any(is_corrected_intake_bybin, is_end_time_overlap_error, is_outlier, na.rm=TRUE)
+  ) %>% 
+  dplyr::ungroup() %>% 
+  dplyr::select(
+    feed_bin_id, cow_id, date, start_time, corrected_end_time, start_weight, corrected_end_weight_bybin,
+    final_intake_kg, 
+    final_duration_sec, 
+    is_modified
+  )
+
+simplified_final_df %>% glimpse()
+```
+
+
+
+### Notes on By Cow outlier detection
+The By Cow functions require an x axis (duration) and y axis (intake) to be specified for it to use for fitting regressions.Therefore, it is not possible to exclude some error types from the By Bin cleaning after running the By Cow functions, instead users should re-run `f_iterate_cows` and specify the columns they wish to use. For example:
+
+```{r eval=FALSE}
+list_cleaned$df_cleaned %>% 
+  mutate(
+    selected_intake_kg_bybin = start_weight - corrected_end_weight_bybin,
+    # Notice time diff is converted to a number with as.numeric():
+    selected_duration_sec_bybin =   as.numeric(corrected_end_time - start_time) 
+  ) %>% 
+  # Re-run with new columns:
+  f_iterate_cows(
+    col_cow_id = cow_id,
+    col_bin_id = feed_bin_id,
+    col_date = date,
+    col_start_time =  start_time,
+    col_intake =  selected_intake_kg_bybin, # NEW column
+    col_duration = selected_duration_sec_bybin, # NEW column
+    sd_thresh = 5, 
+    shiny.session = NULL, # use NULL if not inside a shiny app
+    log = FALSE
+  )
+```
+
+
+
+## 5. Daily Intakes
+Assuming we are using all corrections and the 'simplified' data frame we calculated, we can easily calculate daily intakes:
+```{r message=FALSE}
+
+daily_intakes <- 
+  simplified_final_df  %>% 
+  group_by( cow_id, date ) %>% 
+  summarise(
+    daily_intake_kg_asfed = sum(final_intake_kg, na.rm=TRUE)
+  )
+
+daily_intakes
+
+
+```
+
+### Visualise all daily intakes
+```{r}
+daily_intakes %>% 
+  ggplot(aes( x = date, y = daily_intake_kg_asfed, group = date))+
+  geom_violin(colour='orange',linewidth=1.5)+
+  geom_jitter(alpha=0.5, width=0.2)+
+  theme_classic()
+```
+
+### Visualise per cow daily intake
+It can be useful to monitor daily feed intake over time and a low intake might be important to follow up on.
+```{r}
+daily_intakes %>% 
+  arrange(daily_intake_kg_asfed) %>% 
+  head(10)
+```
+
+```{r}
+daily_intakes %>% 
+  filter(cow_id %in% c(2126, 2072, 2121, 2100)) %>% 
+  ggplot(aes( x = date, y = daily_intake_kg_asfed))+
+  geom_point()+
+  geom_line()+
+  facet_wrap(vars(cow_id))+
+  ggplot2::ylim(c(0,NA))+
+  theme_classic()
+```
+
+

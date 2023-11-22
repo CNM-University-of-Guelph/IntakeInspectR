@@ -222,10 +222,25 @@ f_flag_and_replace_outliers <-
     # Fit robust linear model to detect outliers
     ############################################# #
 
+    # Set negative intakes and long durations (> 60 min) as outliers prior to first regression
+    # This helps to maintain a more robust linear model, as very negative intakes or very long durations will still
+    # skew the rlm().
+    df_in <- df_in %>%
+      dplyr::mutate(
+        initial_outlier_check = {{ col_intake }} < 0
+      )
+
+    # split data into 2 dataframes based on initial flag.
+    # Data removed here is re-attached to df after rlm() step
+    df_in_rlm <- df_in %>% dplyr::filter(!.data$initial_outlier_check)
+
+    df_in_initial_outliers <- df_in %>% dplyr::filter(.data$initial_outlier_check)
+
+
     # INTERCEPT FIXED THROUGH 0:
     rlm_out  <- MASS::rlm(
       rlang::inject(!!col_y ~ 0+!!col_x),
-      data = df_in,
+      data = df_in_rlm,
       psi = MASS::psi.huber,
       method = "MM",
       maxit = 250)
@@ -233,23 +248,37 @@ f_flag_and_replace_outliers <-
     # value from model used as 'sd' for outlier detection
     scale_num <-  rlm_out$s
 
-
     resid_df_outliers <-
       broom::augment(rlm_out, newdata = stats::model.frame(rlm_out))  %>%
       dplyr::bind_cols(
-        df_in %>%
+        df_in_rlm %>%
           dplyr::select(
             #all_of returns an error if some are missing, but requires char vector, hence the enquo(), as_name() + bang-bang
             tidyselect::all_of(
-            c(
-              !!c_cow_id,
-              !!c_bin_id,
-              !!c_start_time,
-              !!c_date
+              c(
+                !!c_cow_id,
+                !!c_bin_id,
+                !!c_start_time,
+                !!c_date
+              )
             )
           )
-          )
       )  %>%
+      # Add initial outliers back in:
+      dplyr::bind_rows(
+        df_in_initial_outliers %>%
+          dplyr::select(
+            tidyselect::all_of(
+              c(
+                !!c_y,
+                !!c_x,
+                !!c_cow_id,
+                !!c_bin_id,
+                !!c_start_time,
+                !!c_date
+              )
+            )
+          )) |>
       dtplyr::lazy_dt() %>%
       dplyr::mutate(
         is_outlier = abs(.data$.resid) >= sd_thresh * scale_num | {{ col_intake }} < 0,
