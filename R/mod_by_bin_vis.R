@@ -147,7 +147,7 @@ mod_by_bin_vis_ui <- function(id){
                   These plots are interactive, hover over points for more information,
                   click and drag to zoom, click on legend items and see menu that appears top right of plot."),
                 bslib::card(
-                  plotly::plotlyOutput(outputId = ns("p_timeline"), height = "500px") %>%  shinycssloaders::withSpinner(),
+                  plotly::plotlyOutput(outputId = ns("p_timeline"), height = "600px") %>%  shinycssloaders::withSpinner(),
                   full_screen = TRUE
                 )
               )
@@ -387,6 +387,19 @@ mod_by_bin_vis_server <- function(id, df_list){
     output$p_timeline <-  plotly::renderPlotly({
       plotly::ggplotly(p_out()$p_timeline,
                        dynamicTicks = TRUE)%>%
+        plotly::layout(
+          xaxis = list(
+            rangeslider = list(visible = TRUE),
+            rangeselector = list(
+              buttons = list(
+                list(count = 1, label = "1 day", step = "day", stepmode = "backward"),
+                list(count = 1, label = "1 week", step = "week", stepmode = "backward"),
+                list(count = 1, label = "All", step = "all")
+              )
+            )
+          ),
+          yaxis = list(fixedrange = FALSE)
+        ) %>%
         f_change_legend_on_resize()
     })
 
