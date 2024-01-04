@@ -4,7 +4,7 @@
 \alias{plot_bin_regression}
 \title{plot_bin_regression function}
 \usage{
-plot_bin_regression(df_in, x, y, col_colour, col_hover_text)
+plot_bin_regression(df_in, x, y, col_colour, col_hover_text = NA_character_)
 }
 \arguments{
 \item{df_in}{Dataframe that has been filtered via user input (`input$bin_id`) to only include 1 feed bin.}

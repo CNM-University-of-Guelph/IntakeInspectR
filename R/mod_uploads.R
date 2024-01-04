@@ -58,7 +58,7 @@ mod_uploads_ui <- function(id){
 
           gridlayout::grid_card(
             area = "user_input",
-             wrapper = function(x) bslib::card_body(x, fill=FALSE, fillable=FALSE),
+             wrapper = function(x) bslib::card_body(x, fill=TRUE, fillable=FALSE),
             fileInput(ns("DAT_in"),
                       "Upload File/s (.DAT, .CSV, .TXT):",
                       multiple = TRUE,

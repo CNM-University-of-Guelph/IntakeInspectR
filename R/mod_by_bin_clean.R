@@ -57,7 +57,7 @@ mod_by_bin_clean_ui <- function(id){
         ################################################ #
         gridlayout:: grid_card(
           area = "user_input",
-          wrapper = function(x) bslib::card_body(x, fill=FALSE, fillable=TRUE ),
+          wrapper = function(x) bslib::card_body(x, fill=TRUE, fillable=TRUE ),
 
 
           actionButton(ns('execute_clean'), label = "Clean data", class = c("btn-lg btn-success")),

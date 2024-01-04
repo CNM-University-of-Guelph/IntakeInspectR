@@ -53,7 +53,7 @@ plot_bin_timeline <-
 #'
 #' @export
 
-plot_bin_regression <-  function(df_in, x, y, col_colour, col_hover_text){
+plot_bin_regression <-  function(df_in, x, y, col_colour, col_hover_text = NA_character_){
   n_colour <-  df_in %>% dplyr::pull({{ col_colour }}) %>% dplyr::n_distinct()
 
   p <-  df_in %>%

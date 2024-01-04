@@ -37,7 +37,7 @@ mod_by_bin_vis_ui <- function(id){
           gridlayout::grid_card(
             area = "user_input",
 
-            wrapper = function(x) bslib::card_body(x, fill=FALSE, fillable=FALSE),
+            wrapper = function(x) bslib::card_body(x, fill=TRUE, fillable=FALSE),
 
               bslib::card_body(
                 fill=FALSE,
@@ -48,7 +48,7 @@ mod_by_bin_vis_ui <- function(id){
 
               bslib::card_body(
               id = ns("toggle_plot_inputs"), # name needed for toggle to unhide
-              fill=FALSE, #card won't change size inside of parent
+              fill=TRUE, #card won't change size inside of parent
               fillable=TRUE, #contents of card will fill out
               selectInput(
                 inputId = ns('bin_id'),
@@ -131,9 +131,20 @@ mod_by_bin_vis_ui <- function(id){
               bslib::nav_panel(
                 title = "Plot: Duration vs Intake",
                 value = 'regression', #for accessing input$ details
-                p("Visualise feed duration vs intake for individual feed bins, coloured by the error type selected by user.
+
+                bslib::accordion(
+                  id = ns('accordian_duration_intake'), # must have ID to work
+                  open = FALSE,
+                  bslib::accordion_panel(
+                    title = "Plot description:",
+                    icon = bsicons::bs_icon('info-circle'),
+                    h5("Duration vs Intake Plot"),
+                    p("Visualise feed duration vs intake for individual feed bins. Each point is an individual feeding event coloured by the error type selected in left panel.
                   These plots are interactive, hover over points for more information,
                   click and drag to zoom, click on legend items and see menu that appears top right of plot."),
+                  strong("Hover over bottom right of screen to show 'full screen' button.")
+                  )),
+
                 bslib::card(
                   plotly::plotlyOutput(outputId = ns("p_duration_intake"),
                                        height = "500px") %>%  shinycssloaders::withSpinner(),
@@ -143,9 +154,21 @@ mod_by_bin_vis_ui <- function(id){
               bslib::nav_panel(
                 title = "Plot: Timeline",
                 value = 'timeline', #for accessing input$ details
-                p("Visualise the change in feed bin weight over time. An individual feeding event is drawn as a single line with dots on each end, representing the start and end of the event.
+                bslib::accordion(
+                  id = ns('accordian_timeline'), # must have ID to work
+                  open = FALSE,
+                  bslib::accordion_panel(
+                    title = "Plot description:",
+                    icon = bsicons::bs_icon('info-circle'),
+                    h5("Timeline Plot"),
+                    p("Visualise the change in feed bin weight over time. An individual
+                      feeding event is drawn as a single line with dots on each end,
+                      representing the start and end of the event.
                   These plots are interactive, hover over points for more information,
-                  click and drag to zoom, click on legend items and see menu that appears top right of plot."),
+                  click and drag to zoom, click on legend items and see menu that appears top right of plot.
+                  Use the buttons and lower panel to focus on shorter time periods. "),
+                  strong("Hover over bottom right of screen to show 'full screen' button.")
+                  )),
                 bslib::card(
                   plotly::plotlyOutput(outputId = ns("p_timeline"), height = "600px") %>%  shinycssloaders::withSpinner(),
                   full_screen = TRUE
