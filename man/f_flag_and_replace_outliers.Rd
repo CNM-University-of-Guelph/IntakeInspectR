@@ -6,37 +6,99 @@
 \usage{
 f_flag_and_replace_outliers(
   df_in,
-  col_intake,
-  col_duration,
-  col_cow_id,
-  col_bin_id,
-  col_start_time,
-  col_date,
-  sd_thresh = 5
+  col_intake = .data$corrected_intake_bybin,
+  col_duration = .data$corrected_feed_duration_seconds,
+  col_cow_id = .data$cow_id,
+  col_bin_id = .data$feed_bin_id,
+  col_start_time = .data$start_time,
+  col_date = .data$date,
+  max_duration_min = 60,
+  min_intake_rate_kg_min = 0.05,
+  max_intake_rate_kg_min = 1.5,
+  outlier_exemption_max_duration = 1,
+  outlier_exemption_max_intake = 0.2,
+  sd_thresh = Inf
 )
 }
 \arguments{
 \item{df_in}{data frame of one cow to be cleaned.}
 
-\item{col_intake}{name of column with intake data to use, normally the corrected intake from 'by bin' functions}
+\item{col_intake}{name of column with intake data to use, normally the
+corrected intake from 'by bin' functions}
 
-\item{col_duration}{name of column with duration data to use, normally the corrected duration from 'by bin' functions}
+\item{col_duration}{name of column with duration data to use, normally the
+corrected duration from 'by bin' functions. Must be numbers of seconds.}
 
-\item{col_cow_id, col_bin_id, col_start_time, col_date}{Column names for cow_id, feed_bin_id, start_time and date from df_in. Used for ID.}
+\item{col_cow_id, col_bin_id, col_start_time, col_date}{Column names for cow_id,
+feed_bin_id, start_time and date from df_in. Used for ID.}
 
-\item{sd_thresh}{number to use as threshold for +/- scale (SD) of fitted bisector regression}
+\item{max_duration_min}{number of minutes. Events with a duration longer than
+this will be classed as a 'manual outlier'}
+
+\item{min_intake_rate_kg_min, max_intake_rate_kg_min}{number (kg/min). Events
+with a rate of intake (i.e. intake / duration) greater than the
+`max_intake_rate_kg_min` and less than the `min_intake_rate_kg_min` will be
+classed as a 'manual outlier'}
+
+\item{outlier_exemption_max_duration, outlier_exemption_max_intake}{number (kg
+or min). Events below this `outlier_exemption_max_intake` (kg) & with a
+duration less than `outlier_exemption_max_duration` (min) are exempt from
+other outlier detection methods.}
+
+\item{sd_thresh}{number to use as threshold for +/- scale (SD) of fitted
+bisector regression}
 }
 \value{
-A nested data frame with a column called `data` that is the original data given to equation, and `fitted` which contains
-the output from the fitting processes. These can be merged easily into a flat data frame using `f_merge_corrected_outlier_data()`
+A nested data frame with a column called `data` that is the original
+  data given to equation, and `fitted` which contains the output from the
+  fitting processes. These can be merged easily into a flat data frame using
+  `f_merge_corrected_outlier_data()`
 }
 \description{
-This function executes a 2 step process for outlier detection: \cr\cr
-1) A robust linear model is fit using `MASS::rlm` which produces a rough regression
-that is not sensitive to large outliers. The `sd_thresh` set in this function (default of 5 SD)
-is used to identify points with a residual >= this threshold and marks them as 'outliers'. \cr
-2) Then, a bisector regression is fit to the data that does not include the flagged outliers. This is a
-symmetrical linear model and can be used to predict both the x- and y- axis. Therefore, the outliers points
-that have a positive residual are re-fitted using this equation to provide a new intake (y value). Likewise,
-outliers with a negative residual are re-fitted to provide a new duration (x value).
+This function executes a 3 step process for outlier detection: \cr\cr 1)
+User-defined 'manual outliers': Firstly, individual feeding events that are
+less than or equal to the `outlier_exemption_max_duration` and
+`outlier_exemption_max_intake` are classified as 'exempt' from further
+outlier detection. This is useful as many events occur with low intakes (e.g.
+< 0.3 kg) and short durations (e.g. < 1 min) that may otherwise be flagged as
+an outlier when in reality it may be preferable to leave them as-is,
+particularly as they have a relatively minor influence on total daily
+intakes. Then, the rates of intake for each point (intake/duration, kg/min)
+are used to flag biologically unrealistic feeding events by setting a
+`min_intake_rate_kg_min` and `max_intake_rate_kg_min`. For most users the max
+intake rate is most important, as events with a higher rate of intake than
+`max_intake_rate_kg_min` will have a new (lower) intake estimated based on
+the measured duration. Whereas, events that have a rate of intake lower than
+the `min_intake_kg_min` will have a new (shorter) duration estimated from the
+measured feed intake. This change in duration is less relevant for most
+users, and it is also important to remember that it is theortically possible
+that cows can eat very slowly, but there will always be an upper limit to how
+fast they can eat. Finally, some very long durations may also have a high
+enough intake that they are not flagged by the `min_intake_kg_min` but are
+likely not a realistic duration. Therefore, any events with a duration that
+were not previously flagged and have a duration longer than
+`max_duration_min` are flagged to get a new (lower) duration estimated from
+the measured intake.
+Overall, this step provides a way of filtering feeding events based on
+biologically relevant limitations to what a cow might be expected to normally
+do.\cr
+}
+\details{
+2) As durations get longer, the range of possible feed intakes increases, so
+it might be important for some users to still use a residual SD outlier
+detection method to flag potential outliers from what a cow 'normally' does.
+This should be done with caution as animals can behave in 'abnormal' ways for
+very valid reasons. For example, a cow might consume a larger meal at a
+relatively fast rate of intake if it has been previously been restricted for
+some reason, such as an experimental treatment. Due to potentially large
+outliers, a robust linear model is fit first using `MASS::rlm` The
+`sd_thresh` set in this function is then used to identify points with a
+residual >=  this threshold and marks them as 'outliers'. \cr
+
+3) To estimate new values for outliers, a bisector regression is fit to the
+data that does not include the flagged outliers. This is a symmetrical linear
+model and can be used to predict both the x- and y- axis. Therefore, the
+outliers points that have a positive residual are re-fitted using this
+equation to provide a new intake (y value). Likewise, outliers with a
+negative residual are re-fitted to provide a new duration (x value).
 }

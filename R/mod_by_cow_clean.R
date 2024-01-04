@@ -40,9 +40,10 @@ mod_by_cow_clean_ui <- function(id){
             full_screen = FALSE,
             strong("Clean data - grouped by cow ID"),
             p("
-          This step of the cleaning identifies outliers by fitting a robust
-          linear model to the duration vs intake data for each cow. Outliers
-          are temporarily removed to fit a bisector regression, then new
+          This step of the cleaning identifies outliers based on user defined max
+          and min rates of intake (kg/min). Then, further outliers can be flagged
+          by fitting a robust linear model to the duration vs intake data for each cow.
+          All outliers are temporarily removed to fit a bisector regression, then new
           duration or intake values are estimated for each outlier.
           ")
           ),
@@ -54,7 +55,7 @@ mod_by_cow_clean_ui <- function(id){
           ################################################ #
           gridlayout:: grid_card(
             area = "user_input",
-            wrapper = function(x) bslib::card_body(x, fill=FALSE, fillable=TRUE ),
+            wrapper = function(x) bslib::card_body(x, fill=TRUE, fillable=TRUE ),
 
 
             actionButton(ns('execute_detect_outliers'), label = "Execute Outlier Detection", class = "btn-lg btn-success"),
@@ -67,12 +68,58 @@ mod_by_cow_clean_ui <- function(id){
               id = ns('accordian'), # must have ID to work
               open = FALSE,
               bslib::accordion_panel(
-                title = "Advanced: Change outlier threshold",
-                numericInput(inputId = ns("sd_threshold"),
-                             label = "Enter residual SD threshold to define 'outliers':",
-                             value = 5,
+                title = "Advanced: Set Outlier Thresholds",
+                strong("Manual Outliers - biologically relevant limits"),
+                p("Outlier Exemption means that values with a duration and intake <= the following values are not classified as outliers or modified."),
+
+                numericInput(inputId = ns("outlier_exemption_max_duration"),
+                             label = "Enter outlier exemption maximum duration (minutes):",
+                             value = 1,
                              min = 0,
-                             step = 0.5)
+                             step = 1),
+
+                numericInput(inputId = ns("outlier_exemption_max_intake"),
+                             label = "Enter outlier exemption maximum intake (kg):",
+                             value = 0.2,
+                             min = 0,
+                             step = 0.01),
+
+                p("Manual outliers are based on the user entered min and max rate of intake (kg/min).
+                  These are for individual events and should be more extreme than what is 'normal' for a cow.
+                  Events with a rate of intake < min specified will have a new duration estimated from linear model."),
+
+                numericInput(inputId = ns("min_intake_rate_kg_min"),
+                             label = "Enter minimum intake rate (kg/min):",
+                             value = 0.05,
+                             min = 0,
+                             step = 0.01),
+
+                p('Events with a rate of intake > than the max specified will have a new intake estimated from linear model.'),
+                numericInput(inputId = ns("max_intake_rate_kg_min"),
+                             label = "Enter maximum intake rate (kg/min):",
+                             value = 1.5,
+                             min = 0,
+                             step = 0.1),
+
+                p("Events not caught by min rate of intake that are > this max duration will also get a new duration estimated."),
+                numericInput(inputId = ns("max_duration_min"),
+                             label = "Enter maximum duration (minutes):",
+                             value = 60,
+                             min = 0,
+                             step = 1),
+
+
+                strong("Statistical outlier based on linear model"),
+                p("This should be used to flag unusual outliers not caught by biologically relevant thresholds above.
+                  Please check visualisations to ensure it is not too stringent. Set to a very high number to override. "),
+                numericInput(inputId = ns("sd_threshold"),
+                             label = "Enter residual SD threshold:",
+                             value = 20,
+                             min = 1,
+                             max = Inf,
+                             step = 1),
+
+
 
               ),
               bslib::accordion_panel(
@@ -99,64 +146,65 @@ mod_by_cow_clean_ui <- function(id){
             )
           ),
 
-        ################################################ #
-        # Display panel ----
-        ################################################ #
-        gridlayout::grid_card(
-          area = "Display",
-          full_screen = TRUE,
-          strong("Log and data structure"),
-          verbatimTextOutput(ns("dynamic_glimpse"), placeholder=TRUE)
+          ################################################ #
+          # Display panel ----
+          ################################################ #
+          gridlayout::grid_card(
+            area = "Display",
+            full_screen = TRUE,
+            strong("Log and data structure"),
+            verbatimTextOutput(ns("dynamic_glimpse"), placeholder=TRUE)
 
-        ),
+          ),
 
-        ################################################ #
-        # Summary boxes ----
-        ################################################ #
-        gridlayout::grid_card(
-          area = "summary_box",
-          wrapper = function(x) bslib::card_body(x, fill = FALSE, fillable=TRUE, class = "p-0 margin-top:0 margin-bottom:0"),
-          bslib::layout_columns(
-            fill=FALSE,
-            fillable=FALSE,
+          ################################################ #
+          # Summary boxes ----
+          ################################################ #
+          gridlayout::grid_card(
+            area = "summary_box",
+            wrapper = function(x) bslib::card_body(x, fill = FALSE, fillable=TRUE, class = "p-0 margin-top:0 margin-bottom:0"),
+            bslib::layout_columns(
+              fill=FALSE,
+              fillable=FALSE,
 
-            row_heights = 1, # Set individual value box heights, and then layout_columns can change to fit grid_card when it wraps
+              row_heights = 1, # Set individual value box heights, and then layout_columns can change to fit grid_card when it wraps
 
-            gap="4px",
+              gap="4px",
 
-            bslib::value_box(
-              title = "Not outliers:",
-              #Format to copy default value_box() value size:
-              value = p(textOutput(ns("n_not_error"), inline = TRUE), style = "font-size: 30px;") ,
-              showcase = fct_cow_icon(col='white'),
-              # theme_color = 'success',
-              height='150px'
-            ),
-            bslib::value_box(
-              title = "Durations replaced (neg residual):",
-              value = p(textOutput(ns("n_neg"), inline = TRUE), style = "font-size: 30px;") ,
-              showcase = bsicons::bs_icon('arrow-repeat'),
-              theme_color = 'info',
-              height='150px'
-            ),
-            bslib::value_box(
-              title = "Negative intakes set to 0 kg:",
-              value = p(textOutput(ns("n_neg_intake"), inline = TRUE), style = "font-size: 30px;") ,
-              showcase = bsicons::bs_icon('arrow-repeat'),
-              theme_color = 'info',
-              height='150px'
-            ),
-            bslib::value_box(
-              title = "Intakes replaced (pos residual):",
-              value = p(textOutput(ns("n_pos"), inline = TRUE), style = "font-size: 30px;") ,
-              showcase = bsicons::bs_icon('arrow-repeat'),
-              theme_color = 'info',
-              height='150px'
+              bslib::value_box(
+                title = "Not outliers:",
+                #Format to copy default value_box() value size:
+                value = p(textOutput(ns("n_not_error"), inline = TRUE), style = "font-size: 30px;") ,
+                showcase = fct_cow_icon(col='white'),
+                # theme_color = 'success',
+                height='150px'
+              ),
+              bslib::value_box(
+                title = "Negative intakes set to 0 kg:",
+                value = p(textOutput(ns("n_neg_intake"), inline = TRUE), style = "font-size: 30px;") ,
+                showcase = bsicons::bs_icon('arrow-repeat'),
+                theme_color = 'info',
+                height='150px'
+              ),
+              bslib::value_box(
+                title = "Durations replaced (duration too long):",
+                value = p(textOutput(ns("n_neg"), inline = TRUE), style = "font-size: 30px;") ,
+                showcase = bsicons::bs_icon('arrow-repeat'),
+                theme_color = 'info',
+                height='150px'
+              ),
+
+              bslib::value_box(
+                title = "Intakes replaced (intake too high):",
+                value = p(textOutput(ns("n_pos"), inline = TRUE), style = "font-size: 30px;") ,
+                showcase = bsicons::bs_icon('arrow-repeat'),
+                theme_color = 'info',
+                height='150px'
+              )
             )
           )
         )
     )
-  )
   )
 }
 
@@ -204,7 +252,18 @@ mod_by_cow_clean_server <- function(id, df_list){
                                    col_start_time = start_time,
                                    col_intake =  corrected_intake_bybin,
                                    col_duration = corrected_feed_duration_seconds,
-                                   sd_thresh = input$sd_threshold, # default = 5
+
+                                   max_duration_min = input$max_duration_min,
+                                   min_intake_rate_kg_min = input$min_intake_rate_kg_min,
+                                   max_intake_rate_kg_min = input$max_intake_rate_kg_min,
+
+
+                                   outlier_exemption_max_duration  = input$outlier_exemption_max_duration,
+                                   outlier_exemption_max_intake = input$outlier_exemption_max_intake,
+
+                                   # zero_thresh = input$zero_thresh,
+
+                                   sd_thresh = input$sd_threshold, # default = 20
                                    shiny.session = session,
                                    log = TRUE
         )
@@ -372,13 +431,23 @@ mod_by_cow_clean_server <- function(id, df_list){
       contentType = "text/csv"
     )
 
+    user_inputs_to_parse_to_vis <- reactive({
+      list(
+        max_duration_min = input$max_duration_min,
+        min_intake_rate_kg_min = input$min_intake_rate_kg_min,
+        max_intake_rate_kg_min = input$max_intake_rate_kg_min,
+        outlier_exemption_max_duration  = input$outlier_exemption_max_duration,
+        outlier_exemption_max_intake = input$outlier_exemption_max_intake
+      )
 
+    })
 
 
 
     return(reactive({ list(nested_df = df_outliers_nested_by_cow(),
                            merged_df = df_outliers_merged(),
-                           log_path = list_outlier_detection()$log_path)
+                           log_path = list_outlier_detection()$log_path,
+                           user_inputs_to_parse_to_vis = user_inputs_to_parse_to_vis())
     }))
   })
 }

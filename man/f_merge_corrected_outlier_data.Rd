@@ -2,16 +2,16 @@
 % Please edit documentation in R/f_by_cow.R
 \name{f_merge_corrected_outlier_data}
 \alias{f_merge_corrected_outlier_data}
-\title{Unnest and merge nested df from f_flag_and_replace_outliers}
+\title{Unnest and merge nested df from `f_flag_and_replace_outliers`}
 \usage{
 f_merge_corrected_outlier_data(nested_df)
 }
 \arguments{
-\item{nested_df}{A data fram nested by 'fitted' and 'data'}
+\item{nested_df}{A data frame nested by 'fitted' and 'data'}
 }
 \value{
-a merged data frame
+a single, unnested data frame of fitted and original data
 }
 \description{
-Unnest and merge nested df from f_flag_and_replace_outliers
+Unnest and merge nested df from `f_flag_and_replace_outliers`
 }

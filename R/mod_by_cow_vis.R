@@ -23,7 +23,7 @@ mod_by_cow_vis_ui <- function(id){
           alternate_layouts = list(
             layout = c(
               "1px       1fr     ",
-              "200px    user_input ",
+              "300px    user_input ",
               "800px    Display"
             ),
             width_bounds = c(max = 900)
@@ -35,7 +35,7 @@ mod_by_cow_vis_ui <- function(id){
           ################################################ #
           gridlayout::grid_card(
             area = "user_input",
-            wrapper = function(x) bslib::card_body(x, fill=FALSE, fillable=FALSE),
+            wrapper = function(x) bslib::card_body(x, fill=TRUE, fillable=FALSE),
 
             bslib::card_body(
               fill=FALSE,
@@ -45,7 +45,7 @@ mod_by_cow_vis_ui <- function(id){
 
               bslib::card_body(
                 id = ns("toggle_plot_inputs"), # name needed for toggle to unhide
-                fill=FALSE,
+                fill=TRUE,
                 fillable = TRUE,
                 selectInput(
                   inputId = ns('cow_id'),
@@ -84,10 +84,11 @@ mod_by_cow_vis_ui <- function(id){
 
           gridlayout:: grid_card(
             area = "Display",
-            wrapper = bslib::card_body(class = "p-0", fillable = FALSE, fill = FALSE), # this removes the padding around edges
+            wrapper = bslib::card_body(class = "p-0", fillable = TRUE, fill = TRUE), # this removes the padding around edges
             full_screen = FALSE,
             bslib::navset_card_tab( # a card with nav tabs:
               id = ns('display_tabs'), #used for input$ to see active tab
+              # wrapper = bslib::card_body(fill = TRUE, fillable = TRUE),
 
               bslib::nav_panel(
                 title = "Overall Plots",
@@ -119,8 +120,21 @@ mod_by_cow_vis_ui <- function(id){
               bslib::nav_panel(
                 title = "Plot: Duration vs Intake",
                 value = 'plot_regression', #for accessing input$ details
-                p("Visualise feed duration vs intake for individual cows. Outlier
-                  points are shown twice, with an arrow pointing from original value to new fitted value."),
+                bslib::accordion(
+                  id = ns('accordian_duration_intake'), # must have ID to work
+                  open = FALSE,
+                  bslib::accordion_panel(
+                    title = "Plot description:",
+                    icon = bsicons::bs_icon('info-circle'),
+                    h5("Duration vs Intake Plot"),
+                    p("Visualise feed duration vs intake for individual cows. Each point is an individual feeding event. Outlier
+                  points are shown twice, with an arrow pointing from original value to new fitted value. The outlier classifications are based on
+                  values selected when cleaned. Outlier type refers to negative (neg) or positive (pos) residual from fitted regression.
+                  Boundary lines are the max and min rates of intake selected when cleaning to define outliers.
+                  The red box represents the user-defined region where values are 'exempt' from outlier detection.
+                  Select 'interactive' plot on left to allow more data on hover or to zoom in and out. "),
+                  strong("Hover over bottom right of screen to show 'full screen' button.")
+                  )),
                 bslib::card(
                   #make dynamically created as either interactive or not:
                   uiOutput(ns('selected_plot')),
@@ -131,8 +145,14 @@ mod_by_cow_vis_ui <- function(id){
               bslib::nav_panel(
                 title = "Plot: Feeding Durations",
                 value = 'plot_bins', #for accessing input$ details
-                bslib::card(
-                  p('
+                bslib::accordion(
+                  id = ns('accordian_long_durations'), # must have ID to work
+                  open = FALSE,
+                  bslib::accordion_panel(
+                    title = "Plot description:",
+                    icon = bsicons::bs_icon('info-circle'),
+                    h5("Long Durations Plot"),
+                    p('
                     The bars on this plot show the start and original (un-corrected) end
                     time of individual feeding events. Very long bars (i.e.
                     long durations) might be errors. The tooltip that shows up
@@ -142,7 +162,11 @@ mod_by_cow_vis_ui <- function(id){
                     Durations that do not overlap another event may have been
                     corrected by outlier detection.
                     '),
-                  p("Filter by date in side-bar and use controls on top right of plot to zoom in closer."),
+                    p("Filter by date in side-bar and use controls on top right of plot to zoom in closer."),
+                  strong("Hover over bottom right of screen to show 'full screen' button.")
+                  )),
+
+                bslib::card(
                   ggiraph::girafeOutput(outputId = ns("p_bins_duration"), height = '500px') %>%  shinycssloaders::withSpinner(type=7),
                   full_screen = TRUE
                 )
@@ -238,8 +262,8 @@ mod_by_cow_vis_server <- function(id, df_list){
 
       cols_names <- c(
         `Cow ID` = 'cow_id',
-        `Count outliers (pos residual)` = 'pos',
-        `Count outliers (neg residual)` = 'neg',
+        `Count outliers (intake too high)` = 'pos',
+        `Count outliers (duration too long)` = 'neg',
         `Count negative intakes` = 'neg_intake',
         `Count negative durations` = 'neg_duration',
         `Count not error` = 'not_error',
@@ -388,9 +412,14 @@ mod_by_cow_vis_server <- function(id, df_list){
       } else {
         #make plot object:
         p <- data_to_plot() %>%
-          fct_plot_by_cow(col_intake = .data$corrected_intake_bybin,
-                          col_duration = .data$corrected_feed_duration_seconds,
-                          pt_size = 5)+
+          fct_plot_by_cow(
+            max_intake_rate_kg_min = df_list()$user_inputs_to_parse_to_vis$max_intake_rate_kg_min,
+            min_intake_rate_kg_min = df_list()$user_inputs_to_parse_to_vis$min_intake_rate_kg_min,
+            outlier_exemption_max_duration = df_list()$user_inputs_to_parse_to_vis$outlier_exemption_max_duration,
+            outlier_exemption_max_intake = df_list()$user_inputs_to_parse_to_vis$outlier_exemption_max_intake,
+            col_intake = .data$corrected_intake_bybin,
+            col_duration = .data$corrected_feed_duration_seconds,
+            pt_size = 5)+
           labs(x = 'Corrected Feed Duration (seconds)',
                y = 'Corrected Feed Intake (kg)')
       }
@@ -406,7 +435,10 @@ mod_by_cow_vis_server <- function(id, df_list){
       } else if(input$plot_type == 'plotly'){
 
         output$p_inter <- plotly::renderPlotly({
-          plotly::ggplotly(p+ggplot2::theme_classic(base_size = 12), dynamicTicks = TRUE) %>%
+          plotly::ggplotly(p+ggplot2::theme_classic(base_size = 12),
+                           dynamicTicks = TRUE
+                           ) %>%
+            plotly::layout(yaxis = list(autorange = FALSE)) |> # allows coord_cartesian to work when dynamicTicks is TRUE
             f_change_legend_on_resize() })
 
         return(plotly::plotlyOutput(ns("p_inter"), height = '500px') %>% shinycssloaders::withSpinner())
