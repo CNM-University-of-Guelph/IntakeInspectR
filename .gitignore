@@ -3,10 +3,7 @@
 .Rdata
 .httr-oauth
 .DS_Store
-.DAT
-.Rds
-.rds
 *.DAT
 *.rds
 rsconnect/
-dev/visualise algo/
+dev_ignored
