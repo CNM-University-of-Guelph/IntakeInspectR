@@ -438,7 +438,7 @@ mod_by_cow_vis_server <- function(id, df_list){
           plotly::ggplotly(p+ggplot2::theme_classic(base_size = 12),
                            dynamicTicks = TRUE
                            ) %>%
-            plotly::layout(yaxis = list(autorange = FALSE)) |> # allows coord_cartesian to work when dynamicTicks is TRUE
+            plotly::layout(yaxis = list(autorange = FALSE)) %>% # allows coord_cartesian to work when dynamicTicks is TRUE
             f_change_legend_on_resize() })
 
         return(plotly::plotlyOutput(ns("p_inter"), height = '500px') %>% shinycssloaders::withSpinner())

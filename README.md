@@ -426,9 +426,24 @@ by_cow_list_out <-
     col_intake =  corrected_intake_bybin,
     col_duration = corrected_feed_duration_seconds,
     sd_thresh = 5, 
+    max_duration_min = 60,
+    min_intake_rate_kg_min = 0.05,
+    max_intake_rate_kg_min = 1.5,
+    outlier_exemption_max_duration = 1,
+    outlier_exemption_max_intake = 0.2,
     shiny.session = NULL, # use NULL if not inside a shiny app
     log = FALSE
   )
+#> [1] "only 166 sets, so all sets will be tried"
+#> [1] "only 138 sets, so all sets will be tried"
+#> [1] "only 132 sets, so all sets will be tried"
+#> [1] "only 129 sets, so all sets will be tried"
+#> Warning: There were 4 warnings in `dplyr::mutate()`.
+#> The first warning was:
+#> ℹ In argument: `fitted = purrr::imap(data, ~.f_outlier_iterate(.x, .y))`.
+#> Caused by warning in `lqs.default()`:
+#> ! only 166 sets, so all sets will be tried
+#> ℹ Run `dplyr::last_dplyr_warnings()` to see the 3 remaining warnings.
 ```
 
 This data is returned as a nested data frame. This makes many operations
@@ -441,7 +456,7 @@ merged_by_cow <-
 
 merged_by_cow %>% glimpse()
 #> Rows: 60,056
-#> Columns: 44
+#> Columns: 48
 #> $ transponder_id                  <int64> 13052339, 13052339, 13052339, 130523…
 #> $ feed_bin_id                     <int> 7, 8, 8, 9, 9, 9, 8, 7, 7, 8, 8, 7, 7,…
 #> $ start_time                      <dttm> 2022-01-01 00:03:10, 2022-01-01 00:05…
@@ -474,16 +489,20 @@ merged_by_cow %>% glimpse()
 #> $ corrected_end_time              <dttm> 2022-01-01 00:05:08, 2022-01-01 00:09…
 #> $ corrected_feed_duration_diff    <drtn> 118 secs, 243 secs, 208 secs, 299 sec…
 #> $ corrected_feed_duration_seconds <dbl> 118, 243, 208, 299, 87, 315, 179, 338,…
-#> $ .fitted                         <dbl> 0.3925220, 0.8083291, 0.6919031, 0.994…
-#> $ .resid                          <dbl> 0.107478049, 0.391670898, 0.008096900,…
+#> $ .fitted                         <dbl> 0.3930550, 0.8094268, 0.6928427, 0.995…
+#> $ .resid                          <dbl> 0.106945009, 0.390573196, 0.007157303,…
+#> $ manual_outlier_classification   <chr> "Not Outlier", "Not Outlier", "Not Out…
+#> $ is_manual_outlier               <lgl> FALSE, FALSE, FALSE, FALSE, FALSE, FAL…
+#> $ instant_rate_of_intake_kg_min   <dbl> 0.25423729, 0.29629630, 0.20192308, 0.…
 #> $ is_outlier                      <lgl> FALSE, FALSE, FALSE, FALSE, FALSE, FAL…
-#> $ rate_g_min                      <dbl> 254.23729, 296.29630, 201.92308, 200.6…
+#> $ predicted_y_bisector            <dbl> 0.3940568, 0.8114898, 0.6946085, 0.998…
+#> $ residual_y_bisector             <dbl> 0.105943247, 0.388510246, 0.005391486,…
 #> $ outlier_pos_neg                 <chr> NA, NA, NA, NA, NA, NA, NA, NA, "neg_i…
-#> $ predicted_y_bisector            <dbl> 0.4181082, 0.8355412, 0.7186600, 1.022…
 #> $ new_y                           <dbl> 0.5, 1.2, 0.7, 1.0, 0.2, 0.7, 0.5, 1.0…
 #> $ new_x                           <dbl> 118, 243, 208, 299, 87, 315, 179, 338,…
-#> $ intercept                       <dbl> 0.02405149, 0.02405149, 0.02405149, 0.…
+#> $ intercept                       <dbl> 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,…
 #> $ slope                           <dbl> 0.003339464, 0.003339464, 0.003339464,…
+#> $ outlier_classification          <chr> "Not Outlier", "Not Outlier", "Not Out…
 #> $ final_intake_kg                 <dbl> 0.5, 1.2, 0.7, 1.0, 0.2, 0.7, 0.5, 1.0…
 #> $ final_duration_sec              <dbl> 118, 243, 208, 299, 87, 315, 179, 338,…
 ```
@@ -526,17 +545,17 @@ merged_by_cow %>%
 #> # A tibble: 133 × 6
 #>    cow_id   neg neg_intake   pos not_error total_outliers
 #>     <dbl> <int>      <int> <int>     <int>          <int>
-#>  1   2052    NA         23    NA       386             23
-#>  2   2016    21          1    NA       782             22
-#>  3   2040     6         10     5       801             21
-#>  4   2090     2         13     4       425             19
-#>  5   2007     4         12     1       641             17
-#>  6   2017     5          8     3       587             16
-#>  7   2037     1         10     5       399             16
-#>  8   2027    11          4    NA       487             15
-#>  9   2107    NA          6     9       317             15
-#> 10   2089     6          6     2       962             14
-#> # … with 123 more rows
+#>  1   2052     5         23    NA       381             28
+#>  2   2090     6         13     4       421             23
+#>  3   2128    18          2    NA       310             20
+#>  4   2040     4         10     5       803             19
+#>  5   2037     2         10     6       397             18
+#>  6   2095     4          3    10       516             17
+#>  7   2107    NA          6    11       315             17
+#>  8   2126    12          1     4       302             17
+#>  9   2017     5          8     3       587             16
+#> 10   2106     2          7     7       474             16
+#> # ℹ 123 more rows
 ```
 
 #### Visualise some individual cows
@@ -551,6 +570,8 @@ merged_by_cow %>%
   labs(x = 'Corrected Feed Duration (seconds)',
        y = 'Corrected Feed Intake (kg)')  +
   facet_wrap(vars(cow_id), scales = 'free')
+#> Warning in ggplot2::geom_point(aes(colour = .data$outlier_pos_neg, fill =
+#> .data$outlier_classification, : Ignoring unknown aesthetics: text
 ```
 
 <img src="man/figures/README-unnamed-chunk-19-1.png" width="100%" />
@@ -751,7 +772,7 @@ daily_intakes
 #>  8   2001 2022-01-03                  56.0
 #>  9   2001 2022-01-04                  54.6
 #> 10   2001 2022-01-05                  44.3
-#> # … with 649 more rows
+#> # ℹ 649 more rows
 ```
 
 ### Visualise all daily intakes
@@ -780,7 +801,7 @@ daily_intakes %>%
 #>    cow_id date       daily_intake_kg_asfed
 #>     <dbl> <date>                     <dbl>
 #>  1   2018 2022-01-04                  13.1
-#>  2   2126 2022-01-02                  19.0
+#>  2   2126 2022-01-02                  19  
 #>  3   2072 2022-01-03                  19.2
 #>  4   2128 2022-01-02                  21.1
 #>  5   2128 2022-01-01                  21.3

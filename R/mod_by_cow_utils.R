@@ -180,15 +180,15 @@ fct_plot_by_cow <- function(df,
   df_outliers <- df %>%  dplyr::filter(.data$is_outlier)
 
   # used to prevent lines breaking when plotting .fitted
-  df_noNA <- df |> dplyr::filter(!is.na(.data$.fitted))
+  df_noNA <- df %>% dplyr::filter(!is.na(.data$.fitted))
 
   # for setting coord-cartesian
-  max_intake <- df |> dplyr::pull({{ col_intake }}) |> max()
-  max_duration <- df |> dplyr::pull({{ col_duration }}) |> max()
+  max_intake <- df %>% dplyr::pull({{ col_intake }}) %>% max()
+  max_duration <- df %>% dplyr::pull({{ col_duration }}) %>% max()
 
 
   df_rates_of_intake_bounds <-
-    data.frame(x_duration = seq(0, max_duration, by = 10)) |>
+    data.frame(x_duration = seq(0, max_duration, by = 10)) %>%
     dplyr::mutate(
       upper_line = max_intake_rate_kg_min/60 * .data$x_duration,
       lower_line = min_intake_rate_kg_min/60 * .data$x_duration
@@ -275,7 +275,7 @@ fct_plot_by_cow <- function(df,
       linetype = "Fitted Line Type")+
 
     # NA values are from outlier_pos_neg (if NA it means it wasn't an outlier)
-    ggplot2::scale_colour_viridis_d("Outlier correction type", option = 'D',
+    ggplot2::scale_colour_viridis_d("Outlier Correction Type", option = 'D',
                                     end = 0.8, na.value = "grey60")+
     ggplot2::scale_fill_viridis_d("Outlier Classification", option = 'H',
                                   end = 0.8, na.value = "grey60")+
@@ -302,6 +302,7 @@ fct_plot_by_cow <- function(df,
 #' @param pt_size point size to use (for ggplot2)
 #'
 #' @return a ggplot2
+#' @export
 fct_plot_by_cow_overall <- function(df,
                                     col_intake,
                                     col_duration,

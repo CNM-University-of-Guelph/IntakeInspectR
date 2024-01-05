@@ -252,17 +252,11 @@ mod_by_cow_clean_server <- function(id, df_list){
                                    col_start_time = start_time,
                                    col_intake =  corrected_intake_bybin,
                                    col_duration = corrected_feed_duration_seconds,
-
                                    max_duration_min = input$max_duration_min,
                                    min_intake_rate_kg_min = input$min_intake_rate_kg_min,
                                    max_intake_rate_kg_min = input$max_intake_rate_kg_min,
-
-
                                    outlier_exemption_max_duration  = input$outlier_exemption_max_duration,
                                    outlier_exemption_max_intake = input$outlier_exemption_max_intake,
-
-                                   # zero_thresh = input$zero_thresh,
-
                                    sd_thresh = input$sd_threshold, # default = 20
                                    shiny.session = session,
                                    log = TRUE

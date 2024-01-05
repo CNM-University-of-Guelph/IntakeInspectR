@@ -340,6 +340,11 @@ by_cow_list_out <-
     col_intake =  corrected_intake_bybin,
     col_duration = corrected_feed_duration_seconds,
     sd_thresh = 5, 
+    max_duration_min = 60,
+    min_intake_rate_kg_min = 0.05,
+    max_intake_rate_kg_min = 1.5,
+    outlier_exemption_max_duration = 1,
+    outlier_exemption_max_intake = 0.2,
     shiny.session = NULL, # use NULL if not inside a shiny app
     log = FALSE
   )

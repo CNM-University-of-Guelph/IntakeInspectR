@@ -47,7 +47,7 @@ f_iterate_cows <-
            max_intake_rate_kg_min = 1.5,
            outlier_exemption_max_duration  = 1,
            outlier_exemption_max_intake = 0.2,
-           sd_thresh = 5,
+           sd_thresh = Inf,
            shiny.session = NULL,
            log = TRUE){
 
@@ -112,7 +112,16 @@ f_iterate_cows <-
                                        sd_thresh = sd_thresh)
         },
         # catch warnings from f_flag_and_replace_outliers and re-write to the logr file
-        warning = function(cnd) logr::log_print(conditionMessage(cnd))
+        warning = function(cnd) {
+
+          #Print warnings to log, but not if it is the warning from lqs.default as this is irrelevant.
+          if(log & !any(grepl("lqs.default", conditionCall(cnd)))){
+            logr::log_print(conditionMessage(cnd))
+          } else {
+            print(conditionMessage(cnd))
+          }
+
+          }
       )
 
 
@@ -323,13 +332,13 @@ f_iterate_cows <-
 
 
      df_in <-
-       df_in |>
+       df_in %>%
        dplyr::mutate(instant_rate_of_intake_kg_s = {{ col_intake }} / {{ col_duration }},
-                     instant_rate_of_intake_kg_min = .data$instant_rate_of_intake_kg_s * 60) |>
-       dplyr::arrange(dplyr::desc(.data$instant_rate_of_intake_kg_s)) |>
+                     instant_rate_of_intake_kg_min = .data$instant_rate_of_intake_kg_s * 60) %>%
+       dplyr::arrange(dplyr::desc(.data$instant_rate_of_intake_kg_s)) %>%
 
        # ???
-       # dplyr::filter(.data$instant_rate_of_intake_kg_min >= 0) |>
+       # dplyr::filter(.data$instant_rate_of_intake_kg_min >= 0) %>%
 
        dplyr::mutate(
          manual_outlier_classification = dplyr::case_when(
@@ -407,7 +416,7 @@ f_iterate_cows <-
                  "instant_rate_of_intake_kg_min"
                )
              )
-           )) |>
+           )) %>%
        dtplyr::lazy_dt() %>%
        dplyr::mutate(
          is_outlier = abs(.data$.resid) >= sd_thresh * scale_num | {{ col_intake }} < 0 | .data$is_manual_outlier == TRUE
@@ -504,7 +513,7 @@ f_iterate_cows <-
          slope = b_bis,
 
        ) %>%
-       dplyr::as_tibble() |>  # required to collect lazy_dt()
+       dplyr::as_tibble() %>%  # required to collect lazy_dt()
        dplyr::mutate(
          #add final classification of all outliers
          outlier_classification = dplyr::case_when(
@@ -531,11 +540,11 @@ f_iterate_cows <-
 f_merge_corrected_outlier_data <- function(nested_df){
   raw_data <- nested_df %>%
     dplyr::select(-"fitted") %>%
-    tidyr::unnest(.data$data)
+    tidyr::unnest("data")
 
   fitted_data <- nested_df %>%
     dplyr::select(-"data") %>%
-    tidyr::unnest(.data$fitted)
+    tidyr::unnest("fitted")
 
   merged_data <- dplyr::left_join(raw_data, fitted_data) %>%
     dplyr::select(-"cow_id_nest") %>%
