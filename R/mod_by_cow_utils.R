@@ -24,9 +24,11 @@ fct_Rd_to_HTML = function(Rd_filepath){
   tools::Rd2HTML(tools::parse_Rd(file = Rd_filepath),
                  out = tmp,
                  no_links = TRUE,
+                 standalone = FALSE,
                  package = "IntakeInspectR")
 
-    return( includeHTML(tmp) )
+    return( htmltools::includeHTML(tmp) )
+
 }
 
 
@@ -334,60 +336,6 @@ fct_plot_by_animal_overall <- function(df,
                   y = "Corrected intake (kg)")
 
 }
-
-
-
-# fct_plot_by_animal_ggiraph <- function(df,
-#                                     col_intake,
-#                                     col_duration,
-#                                     pt_size = 3){
-#
-#   df_outliers <- df %>%  dplyr::filter(!is.na(.data$outlier_pos_neg))
-#
-#   p <- df %>%
-#     ggplot(aes(x = {{ col_duration }}, y = {{ col_intake }}))+
-#     ggiraph::geom_point_interactive(aes(shape = .data$is_outlier, colour = .data$outlier_pos_neg), size = pt_size)+
-#     ggiraph::geom_line_interactive(aes(y = .data$predicted_y_bisector, linetype = 'Bisector Regression'),
-#                                    colour = 'blue', linewidth = 1)+
-#
-#
-#     # add points for outliers only:
-#     ggiraph::geom_point_interactive(aes(x = .data$new_x, y = .data$new_y, colour = .data$outlier_pos_neg), size = pt_size,
-#                                     data = df_outliers)+
-#
-#     # Draw line between points that changed (inherits x and y from ggplot call):
-#     ggiraph::geom_segment_interactive(aes(xend = .data$new_x, yend = .data$new_y, colour = .data$outlier_pos_neg),
-#                                       alpha = 0.75,
-#                                       linewidth = 0.8,
-#                                       data = df_outliers,
-#                                       arrow = grid::arrow(angle = 20, length = ggplot2::unit(0.6, 'cm')),
-#                                       linejoin = 'mitre')+
-#     # rename labels and format:
-#     ggplot2::labs(title = paste(unique(df$animal_id)),
-#                   linetype = 'Fitted line')+
-#     # NA values are from outlier_pos_neg (if NA it means it wasn't an outlier)
-#     ggplot2::scale_colour_viridis_d("Outlier type", option = 'D',
-#                                     end = 0.8, na.value = "grey60")+
-#     ggplot2::theme_classic(base_size = 18)+
-#     ggplot2::theme(axis.text = ggplot2::element_text(colour = 'black'))
-#
-#   # make girafe plot:
-#
-#   g_p <- ggiraph::girafe(ggobj = p, width = 12, height = 7) %>%
-#     ggiraph::girafe_options(
-#       ggiraph::opts_tooltip(opacity = .7),
-#       ggiraph::opts_zoom(min = .5, max = 4),
-#
-#       ggiraph::opts_sizing(rescale = TRUE),
-#       ggiraph::opts_hover(css = "fill:red;stroke:orange;r:3pt;")
-#       # ggiraph::opts_selection(type = "multiple", only_shiny = FALSE, css = "fill:red;stroke:gray;r:3pt;") )
-#     )
-#
-#   return(ggiraph::renderGirafe(g_p))
-#
-# }
-
-
 
 
 # NOTE: this one returns the actuale girafe() object, and then is rendered inside server()

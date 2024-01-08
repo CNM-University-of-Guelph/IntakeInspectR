@@ -30,7 +30,7 @@ fct_show_modal_bin_functions <- function(doc, output, session){
                      'f_outlier_func' = "f_flag_and_replace_outliers.Rd")
 
   output$tmp_output <- renderUI({
-    fct_Rd_to_HTML(Rd_filepath = paste0("./man/", filename))
+    fct_Rd_to_HTML(Rd_filepath = app_sys(paste0("man/", filename)))
   })
 
   #show .Rd file in modal:
