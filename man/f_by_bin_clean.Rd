@@ -8,13 +8,13 @@ f_by_bin_clean(
   df_in,
   zero_thresh = 0.3,
   feedout_thresh = 10,
-  col_bin_ID = .data$feed_bin_id,
-  col_cow_ID = .data$cow_id,
+  col_bin_ID = .data$bin_id,
+  col_animal_id = .data$animal_id,
   col_date = .data$date,
   col_start_time = .data$start_time,
   col_end_time = .data$end_time,
-  col_start_weight = .data$start_weight,
-  col_end_weight = .data$end_weight,
+  col_start_weight_kg = .data$start_weight_kg,
+  col_end_weight_kg = .data$end_weight_kg,
   col_intake = .data$intake,
   log = TRUE
 )
@@ -32,18 +32,18 @@ increase in feed intake a feed out event? Default 10 kg}
 
 \item{col_bin_ID}{Name of column with feed bin ID.}
 
-\item{col_cow_ID}{Name of column with cow ID.}
+\item{col_animal_id}{Name of column with cow ID.}
 
 \item{col_date}{Name of column with date (formatted as Date) of feeding event.}
 
 \item{col_start_time, col_end_time}{Name of columns with start time and end time (formatted as POSIXct
 date-time) recorded by feed bin.}
 
-\item{col_start_weight, col_end_weight}{Name of columns with start and end
+\item{col_start_weight_kg, col_end_weight_kg}{Name of columns with start and end
 weights (in kg) recorded by feed bin.}
 
 \item{col_intake}{Name of column with the feed intake (kg) for the feeding
-event, normally calculated as end_weight - start_weight.}
+event, normally calculated as end_weight_kg - start_weight_kg.}
 
 \item{log}{Boolean. Should log files be generated?}
 }

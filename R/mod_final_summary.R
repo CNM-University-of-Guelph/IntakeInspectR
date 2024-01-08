@@ -218,7 +218,7 @@ mod_final_summary_ui <- function(id){
                 gap="4px",
 
                 shinyWidgets::pickerInput(
-                  inputId = ns("cow_id_ind_plots"),
+                  inputId = ns("animal_id_ind_plots"),
                   label = "Select cow/s to plot",
                   choices = NULL,
                   options = list(
@@ -335,14 +335,14 @@ mod_final_summary_server <- function(id, df_list_bybin, df_list_bycow){
             selected_final_intake_kg = dplyr::case_when(
               "replace intake outliers" %in% input$selected_error_types_by_cow ~ new_y,
               all(c('correct end weight', 'correct start weight') %in% input$selected_error_types_by_bin) ~ corrected_intake_bybin,
-              'correct end weight' %in% input$selected_error_types_by_bin ~ (start_weight - corrected_end_weight_bybin),
-              'correct start weight' %in% input$selected_error_types_by_bin ~ (corrected_start_weight_bybin - end_weight),
+              'correct end weight' %in% input$selected_error_types_by_bin ~ (start_weight_kg - corrected_end_weight_kg_bybin),
+              'correct start weight' %in% input$selected_error_types_by_bin ~ (corrected_start_weight_kg_bybin - end_weight_kg),
               TRUE ~ intake
             ),
             selected_final_duration_sec = dplyr::case_when(
               "replace duration outliers" %in% input$selected_error_types_by_cow ~ new_x,
-              "correct overlapping end times" %in% input$selected_error_types_by_bin ~ corrected_feed_duration_seconds,
-              TRUE ~ feed_duration
+              "correct overlapping end times" %in% input$selected_error_types_by_bin ~ corrected_duration_sec_seconds,
+              TRUE ~ duration_sec
             )
           ) %>%
           dplyr::select( !tidyselect::starts_with(c("prev", "next")))
@@ -361,14 +361,14 @@ mod_final_summary_server <- function(id, df_list_bybin, df_list_bycow){
       # prepare simplified data
         final_data_full() %>%
         dplyr::select(
-          "feed_bin_id",
-          "cow_id",
+          "bin_id",
+          "animal_id",
           "date",
           original_start_time = "start_time",
           original_end_time = "end_time",
-          original_feed_duration = "feed_duration",
-          original_start_weight = "start_weight",
-          original_end_weight = "end_weight",
+          original_duration_sec = "duration_sec",
+          original_start_weight_kg = "start_weight_kg",
+          original_end_weight_kg = "end_weight_kg",
           original_intake = "intake",
 
           "selected_final_intake_kg",
@@ -377,7 +377,7 @@ mod_final_summary_server <- function(id, df_list_bybin, df_list_bycow){
         ) %>%
         dplyr::mutate(
           is_modified_intake = !dplyr::near(.data$selected_final_intake_kg, .data$original_intake),
-          is_modified_duration = !dplyr::near(.data$selected_final_duration_sec, .data$original_feed_duration),
+          is_modified_duration = !dplyr::near(.data$selected_final_duration_sec, .data$original_duration_sec),
         )
     })
 
@@ -476,7 +476,7 @@ mod_final_summary_server <- function(id, df_list_bybin, df_list_bycow){
     df_daily_intakes <- reactive({
 
       final_data_full() %>%
-        dplyr::group_by(.data$cow_id, .data$date) %>%
+        dplyr::group_by(.data$animal_id, .data$date) %>%
         # summarise data using either raw or cleaned data:
         dplyr::summarise(
           `Selected as-fed intake kg/d` = sum(.data$selected_final_intake_kg, na.rm=TRUE),
@@ -525,13 +525,13 @@ mod_final_summary_server <- function(id, df_list_bybin, df_list_bycow){
 
     observe({
       vec_bins <- df_daily_intakes()   %>%
-        dplyr::select("cow_id") %>%
+        dplyr::select("animal_id") %>%
         dplyr::distinct(.keep_all = TRUE) %>%
-        dplyr::arrange(.data$cow_id) %>%
-        dplyr::pull(.data$cow_id)
+        dplyr::arrange(.data$animal_id) %>%
+        dplyr::pull(.data$animal_id)
 
-      freezeReactiveValue(input, 'cow_id_ind_plots') # doesn't evaluate on load when no data available
-      shinyWidgets::updatePickerInput(session = session, inputId = 'cow_id_ind_plots', choices = vec_bins, selected = vec_bins[1:4])
+      freezeReactiveValue(input, 'animal_id_ind_plots') # doesn't evaluate on load when no data available
+      shinyWidgets::updatePickerInput(session = session, inputId = 'animal_id_ind_plots', choices = vec_bins, selected = vec_bins[1:4])
     })
 
     output$plot_ind_cows <- plotly::renderPlotly({
@@ -539,12 +539,12 @@ mod_final_summary_server <- function(id, df_list_bybin, df_list_bycow){
 
 
       p <- df_daily_intakes() %>%
-        dplyr::filter(.data$cow_id %in% input$cow_id_ind_plots) %>%
-        dplyr::mutate('cow_id' = as.character(.data$cow_id)) %>%
-        ggplot2::ggplot(aes( x = .data$date, y = .data$`Selected as-fed intake kg/d`, colour = .data$cow_id))+
+        dplyr::filter(.data$animal_id %in% input$animal_id_ind_plots) %>%
+        dplyr::mutate('animal_id' = as.character(.data$animal_id)) %>%
+        ggplot2::ggplot(aes( x = .data$date, y = .data$`Selected as-fed intake kg/d`, colour = .data$animal_id))+
         ggplot2::geom_point(size = 1.5)+
         ggplot2::geom_line()+
-        ggplot2::facet_wrap(facets = "cow_id")+
+        ggplot2::facet_wrap(facets = "animal_id")+
         ggplot2::ylim(c(0,NA))+
         ggplot2::scale_x_date(date_breaks = 'day')+
         ggplot2::scale_colour_viridis_d(option = 'H', begin = 0, end = 0.95, na.value = 'red')+
@@ -568,7 +568,7 @@ mod_final_summary_server <- function(id, df_list_bybin, df_list_bycow){
         dplyr::mutate(
           selected_slop_kg_sec = .data$selected_final_intake_kg / .data$selected_final_duration_sec
         ) %>%
-        dplyr::group_by(.data$cow_id) %>%
+        dplyr::group_by(.data$animal_id) %>%
         dplyr::summarise(selected_slope_kg_sec = mean(.data$selected_slop_kg_sec , na.rm=TRUE),
                          selected_final_duration_sec = mean(.data$selected_final_duration_sec, na.rm=TRUE)) %>%
         dplyr::mutate(selected_slope_g_min = .data$selected_slope_kg_sec*1000*60 %>% round(2),
@@ -596,7 +596,7 @@ mod_final_summary_server <- function(id, df_list_bybin, df_list_bycow){
 
     output$intake_rate_table <- DT::renderDT({
       summary_table() %>%
-        dplyr::select('cow_id', 'selected_slope_g_min') %>%
+        dplyr::select('animal_id', 'selected_slope_g_min') %>%
         dplyr::mutate(selected_slope_g_min = .data$selected_slope_g_min %>% round(1)) %>%
         dplyr::arrange(dplyr::desc(.data$selected_slope_g_min)) %>%
         fct_DT_nopages(scrollY = 300)
@@ -627,7 +627,7 @@ mod_final_summary_server <- function(id, df_list_bybin, df_list_bycow){
 
     output$duration_table <- DT::renderDT({
       summary_table() %>%
-        dplyr::select('cow_id', 'selected_final_duration_min') %>%
+        dplyr::select('animal_id', 'selected_final_duration_min') %>%
         dplyr::mutate(selected_final_duration_min = .data$selected_final_duration_min %>% round(2)) %>%
         dplyr::arrange(dplyr::desc(.data$selected_final_duration_min)) %>%
         fct_DT_nopages(scrollY = 300)

@@ -21,8 +21,8 @@ mod_uploads_ui <- function(id){
             c(
               "2px       0.25fr     0.75fr",
               "0.12fr    button_box button_box",
-              "0.2fr     user_input summary",
-              "0.68fr    user_input display_data "
+              "0.25fr     user_input summary",
+              "0.63fr    user_input display_data "
             ),
 
           alternate_layouts = list(
@@ -102,7 +102,7 @@ mod_uploads_ui <- function(id){
 
                 # Cow IDs
                 selectInput(
-                  inputId = ns('cow_id'),
+                  inputId = ns('animal_id'),
                   label = "Select Cow ID/s (caution: see instructions):",
                   multiple = TRUE,
                   selectize = FALSE, # so that it stays in a list format
@@ -134,18 +134,21 @@ mod_uploads_ui <- function(id){
                 #Format to copy default value_box() value size:
                 value = textOutput(ns("bin_n")),
                 showcase = bsicons::bs_icon("basket2"),
-                height = "140px"
+                height = "150px",
+                theme = "primary"
               ),
               bslib::value_box(
                 title = "Number of cows:",
                 value = textOutput(ns("cow_n")) ,
                 showcase = fct_cow_icon('white'),
-                height = "140px"
+                height = "150px",
+                theme = "primary"
               ),
               bslib::value_box(
                 title = "Histogram of intake events",
                 value = "",
                 showcase = plotly::plotlyOutput(ns("hist_events")),
+                theme = "primary",
                 showcase_layout = bslib::showcase_left_center(
                   width = 0.5,
                    # max_height = "100px",
@@ -153,7 +156,7 @@ mod_uploads_ui <- function(id){
                 ),
                 full_screen = TRUE,
                 p("Click to expand"),
-                height = "140px"
+                 height = "150px"
               )
               )
             ),
@@ -198,7 +201,7 @@ mod_uploads_server <- function(id){
      filetype <- fct_check_filetypes(input$DAT_in$name)
 
 
-      print('DEV: Recalculating intake as start_weight - end_weight')
+      print('DEV: Recalculating intake as start_weight_kg - end_weight_kg')
 
       shinybusy::show_modal_spinner(spin = 'orbit', text = 'Processing files...')
 
@@ -261,15 +264,15 @@ mod_uploads_server <- function(id){
     observe({
 
       vec_cows <- full_data() %>%
-        dplyr::pull(.data$cow_id) %>% unique() %>% sort()
+        dplyr::pull(.data$animal_id) %>% unique() %>% sort()
 
       vec_bins <- full_data() %>%
-                dplyr::pull(.data$feed_bin_id) %>% unique() %>% sort()
+                dplyr::pull(.data$bin_id) %>% unique() %>% sort()
 
-      freezeReactiveValue(input, 'cow_id') # doesn't evaluate on load when no data available
+      freezeReactiveValue(input, 'animal_id') # doesn't evaluate on load when no data available
       freezeReactiveValue(input, 'bin_id')
 
-      updateSelectInput(inputId = 'cow_id', choices = vec_cows, selected = vec_cows)
+      updateSelectInput(inputId = 'animal_id', choices = vec_cows, selected = vec_cows)
       updateSelectInput(inputId = 'bin_id', choices = vec_bins, selected = vec_bins)
     })
 
@@ -292,8 +295,8 @@ mod_uploads_server <- function(id){
       sub_out <-
         isolate(full_data()) %>%
         dplyr::filter(.data$date >= lubridate::ymd(input$dateRange[1]) &  .data$date <= lubridate::ymd(input$dateRange[2])) %>%
-        dplyr::filter(.data$cow_id %in% input$cow_id) %>%
-        dplyr::filter(.data$feed_bin_id %in% input$bin_id)
+        dplyr::filter(.data$animal_id %in% input$animal_id) %>%
+        dplyr::filter(.data$bin_id %in% input$bin_id)
 
       variable_out$current_df <- tibble::as_tibble(sub_out)
 
@@ -332,7 +335,7 @@ mod_uploads_server <- function(id){
 
       if(tibble::is_tibble(variable_out$current_df)){
         variable_out$current_df %>%
-          dplyr::pull(.data$feed_bin_id) %>%
+          dplyr::pull(.data$bin_id) %>%
           dplyr::n_distinct()
       } else { "ERROR" }
     })
@@ -342,7 +345,7 @@ mod_uploads_server <- function(id){
 
       if(tibble::is_tibble(variable_out$current_df)){
         variable_out$current_df %>%
-          dplyr::pull(.data$cow_id) %>%
+          dplyr::pull(.data$animal_id) %>%
           dplyr::n_distinct()
       } else { "ERROR" }
 

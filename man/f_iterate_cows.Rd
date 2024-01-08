@@ -6,18 +6,18 @@
 \usage{
 f_iterate_cows(
   df_in,
-  col_cow_id = .data$cow_id,
-  col_bin_id = .data$feed_bin_id,
+  col_animal_id = .data$animal_id,
+  col_bin_id = .data$bin_id,
   col_date = .data$date,
   col_start_time = .data$start_time,
   col_intake = .data$corrected_intake,
-  col_duration = .data$feed_duration,
+  col_duration = .data$duration_sec,
   max_duration_min = 60,
   min_intake_rate_kg_min = 0.05,
   max_intake_rate_kg_min = 1.5,
   outlier_exemption_max_duration = 1,
   outlier_exemption_max_intake = 0.2,
-  sd_thresh = 5,
+  sd_thresh = Inf,
   shiny.session = NULL,
   log = TRUE
 )
@@ -26,7 +26,7 @@ f_iterate_cows(
 \item{df_in}{A data frame, typically that has been processed by
 [f_by_bin_clean()]}
 
-\item{col_cow_id, col_duration, col_bin_id, col_date, col_start_time, col_intake, }{Column names for the columns in df_in that contain cow ID, intake (kg),
+\item{col_animal_id, col_duration, col_bin_id, col_date, col_start_time, col_intake, }{Column names for the columns in df_in that contain cow ID, intake (kg),
 duration (sec), feed bin ID, date and feeding event start time.}
 
 \item{max_duration_min}{number of minutes. Events with a duration longer than

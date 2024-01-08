@@ -8,14 +8,14 @@
 #' A data frame with 94,026 rows and 11 columns:
 #' \describe{
 #'   \item{transponder_id}{Fake transponder identification number}
-#'   \item{feed_bin_id}{Feed bin ID}
+#'   \item{bin_id}{Feed bin ID}
 #'   \item{start_time, end_time}{Start and end date and time of feeding event}
-#'   \item{feed_duration}{Duration of feed event in seconds}
-#'   \item{start_weight, end_weight}{Start and end weight of feeding event, kg}
+#'   \item{duration_sec}{Duration of feed event in seconds}
+#'   \item{start_weight_kg, end_weight_kg}{Start and end weight of feeding event, kg}
 #'   \item{diet}{name of diet assigned to feed bin}
 #'   \item{intake}{amount of feed eaten during event, kg}
 #'   \item{date}{date of feeding event}
-#'   \item{cow_id}{Fake cow identification number}
+#'   \item{animal_id}{Fake cow identification number}
 #'   ...
 #' }
 #' @source Ontario Dairy Research Centre, which is owned by the Agricultural Research Institute of Ontario and managed by the University of Guelph through the Ontario Agri-Food Innovation Alliance. The Government of Ontario does not provide any warranty of any kind regarding the accuracy, completeness, security or reliability of the material posted therein or provided through any sites linked directly or indirectly to the site.

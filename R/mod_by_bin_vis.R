@@ -62,10 +62,10 @@ mod_by_bin_vis_ui <- function(id){
                 choices = list(
                   is_end_time_overlap_error = 'is_end_time_overlap_error',
                   is_corrected_intake_bybin = 'is_corrected_intake_bybin',
-                  check_end_weights = 'check_end_weights',
-                  check_start_weights = 'check_start_weights'
+                  check_end_weight_kgs = 'check_end_weight_kgs',
+                  check_start_weight_kgs = 'check_start_weight_kgs'
                 ),
-                selected = 'check_end_weights'
+                selected = 'check_end_weight_kgs'
               )
             ),
 
@@ -204,7 +204,7 @@ mod_by_bin_vis_server <- function(id, df_list){
 
         df() %>%
           f_plot_summary(
-            x = .data$feed_duration,
+            x = .data$duration_sec,
             y = .data$intake,
             type = input$plot_type_overall)
 
@@ -213,7 +213,7 @@ mod_by_bin_vis_server <- function(id, df_list){
       }else if(selectedData() == "corrected") {
         df() %>%
           f_plot_summary(
-            x = .data$corrected_feed_duration_seconds,
+            x = .data$corrected_duration_sec_seconds,
             y = .data$corrected_intake_bybin,
             type = input$plot_type_overall)
 
@@ -231,7 +231,7 @@ mod_by_bin_vis_server <- function(id, df_list){
     # create df in reactive first so that it can be accessed downstream
     df_neg <- reactive({
       df <- df() %>%
-          dplyr::group_by(.data$feed_bin_id) %>%
+          dplyr::group_by(.data$bin_id) %>%
           dplyr::summarise(
             n_neg = sum(.data$intake<0),
             sum_neg_kg = sum(.data$intake[.data$intake<0])
@@ -255,7 +255,7 @@ mod_by_bin_vis_server <- function(id, df_list){
     # create table to count number of errors produced for each bin
     df_error <- reactive({
        df <- df() %>%
-        dplyr::group_by(.data$feed_bin_id) %>%
+        dplyr::group_by(.data$bin_id) %>%
         dplyr::summarise(
           n_cor_weights = sum(.data$is_corrected_intake_bybin),
           n_cor_time = sum(.data$is_end_time_overlap_error),
@@ -329,10 +329,10 @@ mod_by_bin_vis_server <- function(id, df_list){
     # Therefore, we can 'update' the UI to include these values
     observe({
       vec_bins <- df() %>%
-          dplyr::select("feed_bin_id") %>%
+          dplyr::select("bin_id") %>%
           dplyr::distinct(.keep_all = TRUE) %>%
-          dplyr::arrange(.data$feed_bin_id) %>%
-          dplyr::pull(.data$feed_bin_id)
+          dplyr::arrange(.data$bin_id) %>%
+          dplyr::pull(.data$bin_id)
 
       freezeReactiveValue(input, 'bin_id') # doesn't evaluate on load when no data available
       updateSelectInput(inputId = 'bin_id', choices = vec_bins)
@@ -342,16 +342,16 @@ mod_by_bin_vis_server <- function(id, df_list){
     # each user input should generate a new graph on-click.
     p_out <- reactive({
       # filter data
-      .df <- df() %>% dplyr::filter(.data$feed_bin_id %in% input$bin_id) %>%
+      .df <- df() %>% dplyr::filter(.data$bin_id %in% input$bin_id) %>%
         # add extra data for hover tooltip
         dplyr::mutate(
-          tooltip = paste('cow_id:', .data$cow_id)
+          tooltip = paste('animal_id:', .data$animal_id)
         )
 
       if(input$data_type == "raw") {
         # Regression:
         p_duration_intake <- .df %>%
-          plot_bin_regression(x = .data$feed_duration,
+          plot_bin_regression(x = .data$duration_sec,
                                   y = .data$intake,
                                   col_colour = .data[[input$colour_aes]],
                                   col_hover_text = .data$tooltip)+ # this format because it comes in as a string
@@ -364,8 +364,8 @@ mod_by_bin_vis_server <- function(id, df_list){
           .df %>% plot_bin_timeline(
             .data$start_time,
             .data$end_time,
-            .data$start_weight,
-            .data$end_weight,
+            .data$start_weight_kg,
+            .data$end_weight_kg,
             col_colour = .data[[input$colour_aes]],
             col_hover_text = .data$tooltip)+
           labs(x = 'Time',
@@ -374,7 +374,7 @@ mod_by_bin_vis_server <- function(id, df_list){
       } else if(input$data_type == "corrected"){
         # Regression:
         p_duration_intake <- .df %>%
-          plot_bin_regression( x = .data$corrected_feed_duration_seconds,
+          plot_bin_regression( x = .data$corrected_duration_sec_seconds,
                                    y = .data$corrected_intake_bybin,
                                    col_colour =  .data[[input$colour_aes]])+
           labs(x = 'Corrected Feed Duration (seconds)',
@@ -386,8 +386,8 @@ mod_by_bin_vis_server <- function(id, df_list){
           plot_bin_timeline(
             .data$start_time,
             .data$corrected_end_time,
-            .data$corrected_start_weight_bybin,
-            .data$corrected_end_weight_bybin,
+            .data$corrected_start_weight_kg_bybin,
+            .data$corrected_end_weight_kg_bybin,
             col_colour = .data[[input$colour_aes]],
             col_hover_text = .data$tooltip)+
           labs(x = 'Time',

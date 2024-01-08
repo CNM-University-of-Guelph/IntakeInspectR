@@ -7,13 +7,13 @@
 f_step4(
   df_step3,
   zero_thresh = 0.3,
-  col_bin_ID = .data$feed_bin_id,
+  col_bin_ID = .data$bin_id,
   col_date = .data$date,
   col_start_time = .data$start_time,
-  col_start_weight = .data$start_weight,
-  col_end_weight = .data$end_weight,
+  col_start_weight_kg = .data$start_weight_kg,
+  col_end_weight_kg = .data$end_weight_kg,
   col_intake = .data$intake,
-  col_check_end_weights = .data$check_end_weights,
+  col_check_end_weight_kgs = .data$check_end_weight_kgs,
   col_prevEnd,
   col_prevStart,
   col_nextStart
@@ -34,30 +34,30 @@ kg.}
 \item{col_start_time}{Name of column with start time (formatted as POSIXct
 date-time) recorded by feed bin.}
 
-\item{col_start_weight, col_end_weight}{Name of columns with start and end
+\item{col_start_weight_kg, col_end_weight_kg}{Name of columns with start and end
 weights (in kg) recorded by feed bin.}
 
 \item{col_intake}{Name of column with the feed intake (kg) for the feeding
-event, normally calculated as end_weight - start_weight.}
+event, normally calculated as end_weight_kg - start_weight_kg.}
 
-\item{col_check_end_weights, col_prevEnd, col_prevStart, col_nextStart}{Names of
+\item{col_check_end_weight_kgs, col_prevEnd, col_prevStart, col_nextStart}{Names of
 columns computed by [f_step3()]}
 }
 \value{
 The original data frame with the additional columns:
  * prev_step3_check
- * check_start_weights
- * corrected_start_weight_bybin
+ * check_start_weight_kgs
+ * corrected_start_weight_kg_bybin
 }
 \description{
 Occasionally the start weights are recorded incorrectly and can be determined
 using similar logic to [f_step3()].
 }
 \details{
-If there is an abnormality, the column check_start_weights will classify as
+If there is an abnormality, the column check_start_weight_kgs will classify as
 either: `'keep: WARNING: start and end weight > prevEnd'` or
 `'replace: start weight too high'`. Both of these flags check that
-`prevEnd - start_weight is < 10 kg and > 0.3kg`, based on [f_step2()] thresholds.
+`prevEnd - start_weight_kg is < 10 kg and > 0.3kg`, based on [f_step2()] thresholds.
  Then, they also both check that the end weight is ~ equal to following start
  weight (using the `zero_thresh` to determine equality). Therefore, the difference
  between the 'keep' and the 'replace' is based on the check of the end weight

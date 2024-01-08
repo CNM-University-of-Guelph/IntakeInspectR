@@ -57,7 +57,7 @@ fct_DT_nopages <- function(x, scrollY = 350, buttons_at_bottom = FALSE, rownames
 #' @export
 
 
-f_plot_summary <-  function(df_in, x, y = NULL, col_colour = .data$check_end_weights, type){
+f_plot_summary <-  function(df_in, x, y = NULL, col_colour = .data$check_end_weight_kgs, type){
 
   .fct_hist <- function(){
     list(

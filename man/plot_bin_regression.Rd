@@ -13,12 +13,12 @@ plot_bin_regression(df_in, x, y, col_colour, col_hover_text = NA_character_)
 
 \item{col_colour}{column name to use for `aes(colour = )`}
 
-\item{col_hover_text}{column name of extra text for tooltip. Usually from adding a column with paste, e.g. `paste('cow_id:', cow_id)`}
+\item{col_hover_text}{column name of extra text for tooltip. Usually from adding a column with paste, e.g. `paste('animal_id:', animal_id)`}
 }
 \value{
 A ggplot2 object
 }
 \description{
-A function to plot feed_duration vs feed_intake scatter plot.
+A function to plot duration_sec vs feed_intake scatter plot.
 This doesn't include an actual regression function because this is best done per cow, not per bin.
 }

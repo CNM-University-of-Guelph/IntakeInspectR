@@ -11,7 +11,7 @@
 #'
 #' @param df_in A data frame, typically that has been processed by
 #'   [f_by_bin_clean()]
-#' @param col_cow_id,col_duration,col_bin_id,col_date,col_start_time,col_intake,
+#' @param col_animal_id,col_duration,col_bin_id,col_date,col_start_time,col_intake,
 #'   Column names for the columns in df_in that contain cow ID, intake (kg),
 #'   duration (sec), feed bin ID, date and feeding event start time.
 #' @param max_duration_min number of minutes. Events with a duration longer than
@@ -36,12 +36,12 @@
 
 f_iterate_cows <-
   function(df_in,
-           col_cow_id = .data$cow_id,
-           col_bin_id = .data$feed_bin_id,
+           col_animal_id = .data$animal_id,
+           col_bin_id = .data$bin_id,
            col_date = .data$date,
            col_start_time = .data$start_time,
            col_intake = .data$corrected_intake,
-           col_duration = .data$feed_duration,
+           col_duration = .data$duration_sec,
            max_duration_min = 60,
            min_intake_rate_kg_min = 0.05,
            max_intake_rate_kg_min = 1.5,
@@ -63,12 +63,12 @@ f_iterate_cows <-
 
 
   df_nested <-  df_in %>%
-    dplyr::mutate(cow_id_nest = {{ col_cow_id }} ) %>%
-    tidyr::nest(.by = .data$cow_id_nest)
+    dplyr::mutate(animal_id_nest = {{ col_animal_id }} ) %>%
+    tidyr::nest(.by = .data$animal_id_nest)
 
 
   # get number of iterations required:
-  max_i <- length(df_nested$cow_id_nest)
+  max_i <- length(df_nested$animal_id_nest)
 
   if(log){
     logr::log_print(paste("Number of cows to iterate through:", max_i))
@@ -100,7 +100,7 @@ f_iterate_cows <-
                 f_flag_and_replace_outliers(.x,
                                        col_intake = {{ col_intake }},
                                        col_duration = {{ col_duration }},
-                                       col_cow_id = {{ col_cow_id }},
+                                       col_animal_id = {{ col_animal_id }},
                                        col_bin_id = {{ col_bin_id }},
                                        col_start_time = {{ col_start_time }},
                                        col_date = {{ col_date }},
@@ -216,8 +216,8 @@ f_iterate_cows <-
 #'   corrected intake from 'by bin' functions
 #' @param col_duration name of column with duration data to use, normally the
 #'   corrected duration from 'by bin' functions. Must be numbers of seconds.
-#' @param col_cow_id,col_bin_id,col_start_time,col_date Column names for cow_id,
-#'   feed_bin_id, start_time and date from df_in. Used for ID.
+#' @param col_animal_id,col_bin_id,col_start_time,col_date Column names for animal_id,
+#'   bin_id, start_time and date from df_in. Used for ID.
 #' @param max_duration_min number of minutes. Events with a duration longer than
 #'   this will be classed as a 'manual outlier'
 #' @param min_intake_rate_kg_min,max_intake_rate_kg_min number (kg/min). Events
@@ -243,9 +243,9 @@ f_iterate_cows <-
  f_flag_and_replace_outliers <-
    function(df_in,
             col_intake = .data$corrected_intake_bybin,
-            col_duration = .data$corrected_feed_duration_seconds, # must be seconds
-            col_cow_id = .data$cow_id,
-            col_bin_id = .data$feed_bin_id,
+            col_duration = .data$corrected_duration_sec_seconds, # must be seconds
+            col_animal_id = .data$animal_id,
+            col_bin_id = .data$bin_id,
             col_start_time = .data$start_time,
             col_date = .data$date,
             max_duration_min = 60,
@@ -261,7 +261,7 @@ f_iterate_cows <-
      c_y <- rlang::enquo(col_intake) %>% rlang::as_name()
      c_x <- rlang::enquo(col_duration) %>% rlang::as_name()
 
-     c_cow_id <- rlang::enquo(col_cow_id) %>% rlang::as_name()
+     c_animal_id <- rlang::enquo(col_animal_id) %>% rlang::as_name()
      c_bin_id <- rlang::enquo( col_bin_id ) %>% rlang::as_name()
      c_start_time <- rlang::enquo( col_start_time ) %>% rlang::as_name()
      c_date <- rlang::enquo( col_date ) %>% rlang::as_name()
@@ -278,7 +278,7 @@ f_iterate_cows <-
      # 2. that more than 3 rows of data are included for regression
      ############################################# #
 
-     n_cows <- df_in %>% dplyr::pull({{ col_cow_id }}) %>% dplyr::n_distinct()
+     n_cows <- df_in %>% dplyr::pull({{ col_animal_id }}) %>% dplyr::n_distinct()
      if(n_cows > 1){
        warning("More than 1 cow detected in df_in. This function requires 1 cow at a time, see f_iterate_cows().")
        return(NULL)
@@ -288,7 +288,7 @@ f_iterate_cows <-
      if(n_row < 5){
        warning(paste0(
          "Less than 5 events for current cow. Aborting regression fit and keeping original intakes & durations. Cow number:\n",
-         df_in %>% dplyr::pull({{ col_cow_id}}) %>% unique(),
+         df_in %>% dplyr::pull({{ col_animal_id}}) %>% unique(),
          "\nNumber of rows:\n",
          n_row
        ))
@@ -303,7 +303,7 @@ f_iterate_cows <-
          dplyr::select( tidyselect::all_of(
            #all_of returns an error if some are missing, but requires char vector, hence the enquo(), as_name() + bang-bang
            c(
-             !!c_cow_id,
+             !!c_animal_id,
              !!c_bin_id,
              !!c_start_time,
              !!c_date,
@@ -388,7 +388,7 @@ f_iterate_cows <-
              #all_of returns an error if some are missing, but requires char vector, hence the enquo(), as_name() + bang-bang
              tidyselect::all_of(
                c(
-                 !!c_cow_id,
+                 !!c_animal_id,
                  !!c_bin_id,
                  !!c_start_time,
                  !!c_date,
@@ -407,7 +407,7 @@ f_iterate_cows <-
                c(
                  !!c_y,
                  !!c_x,
-                 !!c_cow_id,
+                 !!c_animal_id,
                  !!c_bin_id,
                  !!c_start_time,
                  !!c_date,
@@ -547,7 +547,7 @@ f_merge_corrected_outlier_data <- function(nested_df){
     tidyr::unnest("fitted")
 
   merged_data <- dplyr::left_join(raw_data, fitted_data) %>%
-    dplyr::select(-"cow_id_nest") %>%
+    dplyr::select(-"animal_id_nest") %>%
     # copy columns with more meaningful names:
     dplyr::mutate(
       final_intake_kg = .data$new_y,

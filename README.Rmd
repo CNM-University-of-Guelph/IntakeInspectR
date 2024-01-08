@@ -120,7 +120,7 @@ Plot 30k rows of data for a quick look at data.
 df_uploaded %>% 
   slice_head(n=30000) %>% 
   IntakeInspectR::f_plot_summary(
-    x = feed_duration/60,
+    x = duration_sec/60,
     y = intake,
     col_colour = NULL,
     type = 'reg'
@@ -176,13 +176,13 @@ list_cleaned <-
           df_filtered,
           zero_thresh = 0.3, 
           feedout_thresh = 10, 
-          col_bin_ID = feed_bin_id,
-          col_cow_ID = cow_id,
+          col_bin_ID = bin_id,
+          col_animal_id = animal_id,
           col_date = date,
           col_start_time = start_time,
           col_end_time = end_time,
-          col_start_weight = start_weight,
-          col_end_weight = end_weight,
+          col_start_weight_kg = start_weight_kg,
+          col_end_weight_kg = end_weight_kg,
           col_intake = intake,
           log = FALSE
           )
@@ -193,7 +193,7 @@ list_cleaned <-
 
 The classifications and changes made in 'By Bin - Clean' are added to the original data, minus the rows stored in `df_0kg` and `df_step2_errors`. Use the \$ symbol to access individual elements of the output by name.
 
-The columns ending in `_bybin` represent columns where corrections were made, as well `is_end_time_overlap_error`. These columns use the classifications to make corrections, e.g. If `check_end_weights` starts with `'replace: '` then `corrected_end_weight_bybin` will be given the value of the next row's start weight. Otherwise, it keeps the original `end_weight`.
+The columns ending in `_bybin` represent columns where corrections were made, as well `is_end_time_overlap_error`. These columns use the classifications to make corrections, e.g. If `check_end_weight_kgs` starts with `'replace: '` then `corrected_end_weight_kg_bybin` will be given the value of the next row's start weight. Otherwise, it keeps the original `end_weight_kg`.
 
 ```{r}
 list_cleaned$df_cleaned %>% glimpse()
@@ -209,7 +209,7 @@ list_cleaned$df_cleaned %>% glimpse()
 
 list_cleaned$df_cleaned %>% 
   IntakeInspectR::f_plot_summary(
-    x = feed_duration,
+    x = duration_sec,
     y = intake,
     type = 'reg')+
   ggplot2::labs(
@@ -224,7 +224,7 @@ list_cleaned$df_cleaned %>%
 
 list_cleaned$df_cleaned %>% 
   IntakeInspectR::f_plot_summary(
-     x = feed_duration,
+     x = duration_sec,
     y = intake,
     type = 'hist')
 
@@ -232,22 +232,22 @@ list_cleaned$df_cleaned %>%
 
 ### Individual bin plots
 
-These functions require data from only 1 feed bin. Various columns contain useful information about the cleaning, such as 'check_end_weights', 'is_end_time_error', 'check_start_weights', 'is_corrected_bybin'. These can be used for col_colour to colour the points in the plot.
+These functions require data from only 1 feed bin. Various columns contain useful information about the cleaning, such as 'check_end_weight_kgs', 'is_end_time_error', 'check_start_weight_kgs', 'is_corrected_bybin'. These can be used for col_colour to colour the points in the plot.
 
 These functions return static ggplot2 objects. But they can be made interactive using plotly.
 
 ```{r fig.width=8}
 p_bin_regression_raw <- 
   list_cleaned$df_cleaned %>% 
-  dplyr::filter(feed_bin_id == 16) %>% 
+  dplyr::filter(bin_id == 16) %>% 
   dplyr::mutate(
-    tooltip = paste('cow_id:', .data$cow_id,
+    tooltip = paste('animal_id:', .data$animal_id,
                     '\nstart_time', .data$start_time)
   ) %>% 
   IntakeInspectR::plot_bin_regression(
-    x = feed_duration,
+    x = duration_sec,
     y = intake,
-    col_colour = check_end_weights,
+    col_colour = check_end_weight_kgs,
     col_hover_text = .data$tooltip)+
   # add custom labels:
   ggplot2::labs(
@@ -270,18 +270,18 @@ p_bin_timeline_raw <-
   list_cleaned$df_cleaned %>% 
   # filter to specific dates if not using interactively
   dplyr::filter(date == lubridate::ymd("2022-01-02")) %>%
-  dplyr::filter(feed_bin_id == 16) %>% 
+  dplyr::filter(bin_id == 16) %>% 
   dplyr::mutate(
     # For plotly when hovering over a point
-    tooltip = paste('cow_id:', .data$cow_id,
+    tooltip = paste('animal_id:', .data$animal_id,
                     '\nstart_time', .data$start_time)
   ) %>% 
   IntakeInspectR::plot_bin_timeline(
     col_start_time = start_time,
     col_end_time = end_time,
-    col_start_weight = start_weight,
-    col_end_weight = end_weight,
-    col_colour = check_end_weights,
+    col_start_weight_kg = start_weight_kg,
+    col_end_weight_kg = end_weight_kg,
+    col_colour = check_end_weight_kgs,
     col_hover_text = .data$tooltip)+
   # add custom labels:
   ggplot2::labs(
@@ -299,20 +299,20 @@ p_bin_timeline_raw
 ```{r fig.width=8}
 p_bin_timeline_clean <- 
   list_cleaned$df_cleaned %>% 
-  dplyr::filter(feed_bin_id == 16) %>% 
+  dplyr::filter(bin_id == 16) %>% 
   # filter to specific dates if not using interactively
   dplyr::filter(date == lubridate::ymd("2022-01-02")) %>%
   dplyr::mutate(
     # For plotly when hovering over a point
-    tooltip = paste('cow_id:', .data$cow_id,
+    tooltip = paste('animal_id:', .data$animal_id,
                     '\nstart_time', .data$start_time)
   ) %>% 
   IntakeInspectR::plot_bin_timeline(
     col_start_time = start_time,
     col_end_time = corrected_end_time,
-    col_start_weight = corrected_start_weight_bybin,
-    col_end_weight = corrected_end_weight_bybin,
-    col_colour = check_end_weights,
+    col_start_weight_kg = corrected_start_weight_kg_bybin,
+    col_end_weight_kg = corrected_end_weight_kg_bybin,
+    col_colour = check_end_weight_kgs,
     col_hover_text = .data$tooltip)+
   # add custom labels:
   ggplot2::labs(
@@ -333,13 +333,13 @@ This function takes the whole cleaned data frame, and splits by cow to iterate t
 by_cow_list_out <- 
  IntakeInspectR::f_iterate_cows(
     list_cleaned$df_cleaned,
-    col_cow_id = cow_id,
-    col_bin_id = feed_bin_id,
+    col_animal_id = animal_id,
+    col_bin_id = bin_id,
     col_date = date,
     col_start_time =  start_time,
     col_intake =  corrected_intake_bybin,
-    col_duration = corrected_feed_duration_seconds,
-    sd_thresh = 5, 
+    col_duration = corrected_duration_sec_seconds,
+    sd_thresh = 20, 
     max_duration_min = 60,
     min_intake_rate_kg_min = 0.05,
     max_intake_rate_kg_min = 1.5,
@@ -372,7 +372,7 @@ This shows all changes made at a per cow level but displayed together on this si
 merged_by_cow %>%
    IntakeInspectR:::fct_plot_by_cow_overall(
     col_intake = corrected_intake_bybin,
-    col_duration = corrected_feed_duration_seconds,
+    col_duration = corrected_duration_sec_seconds,
     pt_size = 3)+
   labs(x = 'Corrected Feed Duration (seconds)',
        y = 'Corrected Feed Intake (kg)')
@@ -385,7 +385,7 @@ merged_by_cow %>%
 
 ```{r}
 merged_by_cow %>% 
-  dplyr::count(.data$cow_id, .data$outlier_pos_neg) %>% 
+  dplyr::count(.data$animal_id, .data$outlier_pos_neg) %>% 
   dplyr::mutate(dplyr::across('outlier_pos_neg', ~tidyr::replace_na(.x, 'not_error'))) %>%
   tidyr::pivot_wider(names_from = 'outlier_pos_neg', values_from = 'n') %>%
         dplyr::rowwise() %>%
@@ -402,14 +402,14 @@ merged_by_cow %>%
 
 ```{r fig.width=12, fig.height=9}
 merged_by_cow %>%
-  filter(cow_id %in% c(2040,2043,2107,2007)) %>% 
+  filter(animal_id %in% c(2040,2043,2107,2007)) %>% 
   IntakeInspectR::fct_plot_by_cow(
     col_intake = .data$corrected_intake_bybin,
-    col_duration = .data$corrected_feed_duration_seconds,
+    col_duration = .data$corrected_duration_sec_seconds,
     pt_size = 3)+
   labs(x = 'Corrected Feed Duration (seconds)',
        y = 'Corrected Feed Intake (kg)')  +
-  facet_wrap(vars(cow_id), scales = 'free')
+  facet_wrap(vars(animal_id), scales = 'free')
 
 ```
 
@@ -424,30 +424,34 @@ Because all classifications and changes are stored in columns, users may correct
 df_all_steps <- 
   merged_by_cow %>% 
   dplyr::select(
-    feed_bin_id,
-    cow_id,
+    bin_id,
+    animal_id,
     date,
     start_time,
     end_time,
-    feed_duration,
-    start_weight,
-    end_weight,
+    duration_sec,
+    start_weight_kg,
+    end_weight_kg,
     
     # By Bin - End weight:
-    check_end_weights,
-    category_end_weight,
-    corrected_end_weight_bybin,
+    check_end_weight_kgs,
+    category_end_weight_kg,
+    corrected_end_weight_kg_bybin,
     
     # By Bin - Start weight:
-    check_start_weights,
-    corrected_start_weight_bybin,
+    check_start_weight_kgs,
+    corrected_start_weight_kg_bybin,
+    
+    is_corrected_intake_bybin,
     
     # By Bin - Overlapping end times:
     is_end_time_overlap_error,
     corrected_end_time,
-    corrected_feed_duration_seconds,
+    corrected_duration_sec_seconds,
     
     # By Cow - Outlier detection
+    is_manual_outlier,
+    manual_outlier_classification,
     is_outlier,
     outlier_pos_neg,
     new_x,
@@ -465,12 +469,12 @@ This is an example of selecting a final intake that ignores fixing start weight 
 df_all_steps %>% 
   # calculate new intakes and durations:
   mutate(
-    selected_final_intake_kg = start_weight - corrected_end_weight_bybin,
+    selected_final_intake_kg = start_weight_kg - corrected_end_weight_kg_bybin,
     selected_final_duration_sec = corrected_end_time - start_time
   ) %>% 
   # remove unwanted columns:
   dplyr::select(
-    feed_bin_id, cow_id, date, start_time, corrected_end_time, start_weight, corrected_end_weight_bybin,
+    bin_id, animal_id, date, start_time, corrected_end_time, start_weight_kg, corrected_end_weight_kg_bybin,
     selected_final_intake_kg, selected_final_duration_sec
   ) %>% 
   glimpse()
@@ -490,7 +494,7 @@ simplified_final_df <-
   ) %>% 
   dplyr::ungroup() %>% 
   dplyr::select(
-    feed_bin_id, cow_id, date, start_time, corrected_end_time, start_weight, corrected_end_weight_bybin,
+    bin_id, animal_id, date, start_time, corrected_end_time, start_weight_kg, corrected_end_weight_kg_bybin,
     final_intake_kg, 
     final_duration_sec, 
     is_modified
@@ -506,14 +510,14 @@ The By Cow functions require an x axis (duration) and y axis (intake) to be spec
 ```{r eval=FALSE}
 list_cleaned$df_cleaned %>% 
   mutate(
-    selected_intake_kg_bybin = start_weight - corrected_end_weight_bybin,
+    selected_intake_kg_bybin = start_weight_kg - corrected_end_weight_kg_bybin,
     # Notice time diff is converted to a number with as.numeric():
     selected_duration_sec_bybin =   as.numeric(corrected_end_time - start_time) 
   ) %>% 
   # Re-run with new columns:
  IntakeInspectR::f_iterate_cows(
-    col_cow_id = cow_id,
-    col_bin_id = feed_bin_id,
+    col_animal_id = animal_id,
+    col_bin_id = bin_id,
     col_date = date,
     col_start_time =  start_time,
     col_intake =  selected_intake_kg_bybin, # NEW column
@@ -532,7 +536,7 @@ Assuming we are using all corrections and the 'simplified' data frame we calcula
 
 daily_intakes <- 
   simplified_final_df  %>% 
-  group_by( cow_id, date ) %>% 
+  group_by( animal_id, date ) %>% 
   summarise(
     daily_intake_kg_asfed = sum(final_intake_kg, na.rm=TRUE)
   )
@@ -564,11 +568,11 @@ daily_intakes %>%
 
 ```{r}
 daily_intakes %>% 
-  filter(cow_id %in% c(2126, 2072, 2121, 2100)) %>% 
+  filter(animal_id %in% c(2126, 2072, 2121, 2100)) %>% 
   ggplot(aes( x = date, y = daily_intake_kg_asfed))+
   geom_point()+
   geom_line()+
-  facet_wrap(vars(cow_id))+
+  facet_wrap(vars(animal_id))+
   ggplot2::ylim(c(0,NA))+
   theme_classic()
 ```

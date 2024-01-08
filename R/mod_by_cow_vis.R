@@ -48,7 +48,7 @@ mod_by_cow_vis_ui <- function(id){
                 fill=TRUE,
                 fillable = TRUE,
                 selectInput(
-                  inputId = ns('cow_id'),
+                  inputId = ns('animal_id'),
                   label = "Select Cow ID to view:",
                   # selected = 1,
                   choices = NULL # This is updated by server
@@ -219,7 +219,7 @@ mod_by_cow_vis_server <- function(id, df_list){
         .df %>%
           dplyr::slice_head(n = 80000) %>%
           fct_plot_by_cow_overall(col_intake = .data$corrected_intake_bybin,
-                                  col_duration = .data$corrected_feed_duration_seconds,
+                                  col_duration = .data$corrected_duration_sec_seconds,
                                   pt_size = 3)
 
       }else if(input$plot_type_overall == "hist") {
@@ -250,7 +250,7 @@ mod_by_cow_vis_server <- function(id, df_list){
       df <- df_list()$nested_df %>%
         dplyr::select(-'data') %>%
         tidyr::unnest(.data$fitted) %>%
-        dplyr::count(.data$cow_id, .data$outlier_pos_neg) %>%
+        dplyr::count(.data$animal_id, .data$outlier_pos_neg) %>%
         dplyr::mutate(dplyr::across('outlier_pos_neg', ~tidyr::replace_na(.x, 'not_error'))) %>%
         tidyr::pivot_wider(names_from = 'outlier_pos_neg', values_from = 'n') %>%
         dplyr::rowwise() %>%
@@ -261,7 +261,7 @@ mod_by_cow_vis_server <- function(id, df_list){
         dplyr::arrange(dplyr::desc(.data$total_outliers))
 
       cols_names <- c(
-        `Cow ID` = 'cow_id',
+        `Cow ID` = 'animal_id',
         `Count outliers (intake too high)` = 'pos',
         `Count outliers (duration too long)` = 'neg',
         `Count negative intakes` = 'neg_intake',
@@ -289,8 +289,8 @@ mod_by_cow_vis_server <- function(id, df_list){
       df <- df_list()$merged_df %>%
         # the 2 ways a duration could be an error:
         dplyr::filter(.data$is_end_time_overlap_error | .data$is_outlier) %>%
-        dplyr::select('start_time', 'cow_id', 'feed_bin_id', 'feed_duration', 'final_duration_sec', 'is_end_time_overlap_error', 'outlier_pos_neg') %>%
-        dplyr::arrange(dplyr::desc(.data$feed_duration)) %>%
+        dplyr::select('start_time', 'animal_id', 'bin_id', 'duration_sec', 'final_duration_sec', 'is_end_time_overlap_error', 'outlier_pos_neg') %>%
+        dplyr::arrange(dplyr::desc(.data$duration_sec)) %>%
         dplyr::slice_head(n=1000)
 
       colnames(df) <- c('Event start time','Cow ID', 'Feed Bin ID', 'Original duration (sec)', 'Final Duration (sec)', 'Is duration error from "by bin"?', 'Is positive or negative outlier "by cow" ?' )
@@ -368,13 +368,13 @@ mod_by_cow_vis_server <- function(id, df_list){
 
     observe({
       vec_cows <- df_list()$nested_df %>%
-        dplyr::select("cow_id_nest") %>%
+        dplyr::select("animal_id_nest") %>%
         dplyr::distinct(.keep_all = TRUE) %>%
-        dplyr::arrange(.data$cow_id_nest) %>%
-        dplyr::pull(.data$cow_id_nest)
+        dplyr::arrange(.data$animal_id_nest) %>%
+        dplyr::pull(.data$animal_id_nest)
 
-      freezeReactiveValue(input, 'cow_id') # doesn't evaluate on load when no data available
-      updateSelectInput(inputId = 'cow_id', choices = vec_cows)
+      freezeReactiveValue(input, 'animal_id') # doesn't evaluate on load when no data available
+      updateSelectInput(inputId = 'animal_id', choices = vec_cows)
     })
 
     # Filter data frame based on selected bin and produce ggplots based on selected plot type
@@ -385,7 +385,7 @@ mod_by_cow_vis_server <- function(id, df_list){
 
       # extra table from nested df for 1 cow and plot:
       isolate(df_list()$nested_df) %>%
-        dplyr::filter(.data$cow_id_nest == input$cow_id) %>%
+        dplyr::filter(.data$animal_id_nest == input$animal_id) %>%
         dplyr::pull(.data$fitted) %>%
         magrittr::extract2(1) %>%
         dplyr::filter(.data$date >= lubridate::ymd(input$dateRange[1]) &  .data$date <= lubridate::ymd(input$dateRange[2]))
@@ -402,9 +402,9 @@ mod_by_cow_vis_server <- function(id, df_list){
         # No regression line available, so use different function:
         p <- data_to_plot() %>%
           fct_plot_by_cow_overall(col_intake = .data$corrected_intake_bybin,
-                          col_duration = .data$corrected_feed_duration_seconds,
+                          col_duration = .data$corrected_duration_sec_seconds,
                           pt_size = 5)+
-          labs(title = paste(unique(data_to_plot()$cow_id)),
+          labs(title = paste(unique(data_to_plot()$animal_id)),
                x = 'Corrected Feed Duration (seconds)',
                y = 'Corrected Feed Intake (kg)')
 
@@ -418,7 +418,7 @@ mod_by_cow_vis_server <- function(id, df_list){
             outlier_exemption_max_duration = df_list()$user_inputs_to_parse_to_vis$outlier_exemption_max_duration,
             outlier_exemption_max_intake = df_list()$user_inputs_to_parse_to_vis$outlier_exemption_max_intake,
             col_intake = .data$corrected_intake_bybin,
-            col_duration = .data$corrected_feed_duration_seconds,
+            col_duration = .data$corrected_duration_sec_seconds,
             pt_size = 5)+
           labs(x = 'Corrected Feed Duration (seconds)',
                y = 'Corrected Feed Intake (kg)')
@@ -459,7 +459,7 @@ mod_by_cow_vis_server <- function(id, df_list){
       req(df_list())
 
       df_list()$merged_df %>%
-        dplyr::filter(.data$cow_id == input$cow_id) %>%
+        dplyr::filter(.data$animal_id == input$animal_id) %>%
         dplyr::filter(.data$date >= lubridate::ymd(input$dateRange[1]) &  .data$date <= lubridate::ymd(input$dateRange[2])) %>%
         fct_plot_cow_bins(col_end_time = .data$end_time, subtitle = NULL)
 

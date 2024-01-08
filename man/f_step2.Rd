@@ -9,8 +9,8 @@ f_step2(
   col_bin_ID,
   col_date,
   col_start_time,
-  col_start_weight,
-  col_end_weight,
+  col_start_weight_kg,
+  col_end_weight_kg,
   col_intake
 )
 }
@@ -24,11 +24,11 @@ f_step2(
 \item{col_start_time}{Name of column with start time (formatted as POSIXct
 date-time) recorded by feed bin.}
 
-\item{col_start_weight, col_end_weight}{Name of columns with start and end
+\item{col_start_weight_kg, col_end_weight_kg}{Name of columns with start and end
 weights (in kg) recorded by feed bin.}
 
 \item{col_intake}{Name of column with the feed intake (kg) for the feeding
-event, normally calculated as end_weight - start_weight.}
+event, normally calculated as end_weight_kg - start_weight_kg.}
 }
 \value{
 A list of 3 data frames is returned. 1) `step2_full` - with no rows

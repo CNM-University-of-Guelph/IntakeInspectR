@@ -30,10 +30,10 @@ fct_import_DAT_default <- function(.x, .y){
   .fread_DAT <- function(.x, .y){
     data.table::fread(.x,
                     select = 1:10, # column numbers to keep
-                    col.names = c('transponder_id', 'cow_id',
-                                  'feed_bin_id', 'start_time',
-                                  'end_time', 'feed_duration',
-                                  'start_weight', 'end_weight',
+                    col.names = c('transponder_id', 'animal_id',
+                                  'bin_id', 'start_time',
+                                  'end_time', 'duration_sec',
+                                  'start_weight_kg', 'end_weight_kg',
                                   'diet', 'intake'))%>%
     dplyr::mutate(filename = .y)
   }
@@ -52,7 +52,7 @@ fct_import_DAT_default <- function(.x, .y){
       dplyr::select(-'filename') %>%
 
       # re-calculate intake column to mimick raw files not (FR)
-      dplyr::mutate(intake = .data$start_weight - .data$end_weight)
+      dplyr::mutate(intake = .data$start_weight_kg - .data$end_weight_kg)
 
   })
 }
@@ -78,8 +78,8 @@ fct_import_csv_txt <- function(.x){
   print('DEV: checking column names for matches')
 
   # 1. Select columns by name and check they are present
-  required_columns <- c('cow_id', 'feed_bin_id', 'start_time',
-                        'end_time', 'feed_duration', 'start_weight', 'end_weight',
+  required_columns <- c('animal_id', 'bin_id', 'start_time',
+                        'end_time', 'duration_sec', 'start_weight_kg', 'end_weight_kg',
                         'date')
 
   if(all(required_columns %in% colnames(df_imported))){
@@ -91,7 +91,7 @@ fct_import_csv_txt <- function(.x){
         dplyr::mutate(dplyr::across(c('start_time', 'end_time'), ~ lubridate::ymd_hms(stringr::str_c(.data$date, .x, sep = "_"))),
                       date = lubridate::ymd(.data$date)) %>%
         # re-calculate intake column to mimick raw files not (FR)
-        dplyr::mutate(intake = .data$start_weight - .data$end_weight)
+        dplyr::mutate(intake = .data$start_weight_kg - .data$end_weight_kg)
       )
     })
 
@@ -103,13 +103,13 @@ fct_import_csv_txt <- function(.x){
     })
     # return an empty data frame so that app doesn't crash
     df_out <- data.frame(
-      cow_id = integer(),
-      feed_bin_id = integer(),
+      animal_id = integer(),
+      bin_id = integer(),
       start_time = character(),
       end_time = character(),
-      feed_duration = integer(),
-      start_weight = numeric(),
-      end_weight = numeric(),
+      duration_sec = integer(),
+      start_weight_kg = numeric(),
+      end_weight_kg = numeric(),
       date = character(),
       stringsAsFactors = FALSE
     )
@@ -338,8 +338,8 @@ fct_modal_content_uploads_instructions <- function() {
 
     HTML(paste("<ul>",
                paste("<li>",
-                     c('transponder_id', 'cow_id', 'feed_bin_id', 'start_time',
-                       'end_time', 'feed_duration', 'start_weight', 'end_weight',
+                     c('transponder_id', 'animal_id', 'bin_id', 'start_time',
+                       'end_time', 'duration_sec', 'start_weight_kg', 'end_weight_kg',
                        'diet', 'intake'
                      ), "</li>", sep = "", collapse = ""),
                "</ul>", sep = "")),
@@ -359,8 +359,8 @@ fct_modal_content_uploads_instructions <- function() {
 
     HTML(paste("<ul>",
                paste("<li>",
-                     c('cow_id', 'feed_bin_id', 'start_time',
-                       'end_time', 'feed_duration', 'start_weight', 'end_weight',
+                     c('animal_id', 'bin_id', 'start_time',
+                       'end_time', 'duration_sec', 'start_weight_kg', 'end_weight_kg',
                        'date'
                      ), "</li>", sep = "", collapse = ""),
                "</ul>", sep = "")),
@@ -379,7 +379,7 @@ fct_modal_content_uploads_instructions <- function() {
     p("If using .csv or .txt files you can upload additional columns beyond the required ones and they will
       be retained throughout analysis. If there is an `intake` column among the
       additional columns, it will be ignored as intake is calculated based on
-      the provided `start_weight` and `end_weight` columns."),
+      the provided `start_weight_kg` and `end_weight_kg` columns."),
 
     strong("Filtering feed bin and cow IDs"),
     br(),

@@ -133,7 +133,7 @@ mod_by_bin_clean_ui <- function(id){
         ),
 
         ################################################ #
-        # Summary boxes ----
+        # Summary boxes ----va
         ################################################ #
         gridlayout::grid_card(
           area = "summary_box",
@@ -151,28 +151,28 @@ mod_by_bin_clean_ui <- function(id){
               #Format to copy default value_box() value size:
               value = p(textOutput(ns("n_weight_replaced"),, inline = TRUE), style = "font-size: 30px;") ,
               showcase = bsicons::bs_icon('arrow-repeat'),
-              theme_color = 'info',
+              theme = 'info',
               height = '150px'
             ),
             bslib::value_box(
               title = "Feed durations replaced:",
               value = p(textOutput(ns("n_durations_replaced"), inline = TRUE), style = "font-size: 30px;") ,
               showcase = bsicons::bs_icon('arrow-repeat'),
-              theme_color = 'info',
+              theme = 'info',
               height = '150px'
             ),
             bslib::value_box(
               title = "Start weight errors:",
-              value = p(textOutput(ns("n_start_weight_errors"), inline = TRUE), style = "font-size: 30px;"),
+              value = p(textOutput(ns("n_start_weight_kg_errors"), inline = TRUE), style = "font-size: 30px;"),
               showcase = bsicons::bs_icon('exclamation-triangle'),
-              theme_color = 'danger',
+              theme = 'danger',
               height = '150px'
             ),
             bslib::value_box(
               title = "End weight errors:",
-              value = p(textOutput(ns("n_end_weight_errors"), inline = TRUE), style = "font-size: 30px;"),
+              value = p(textOutput(ns("n_end_weight_kg_errors"), inline = TRUE), style = "font-size: 30px;"),
               showcase = bsicons::bs_icon('exclamation-triangle'),
-              theme_color = 'danger',
+              theme = 'danger',
               height = '150px'
             )
           )
@@ -210,11 +210,11 @@ mod_by_bin_clean_server <- function(id, df){
         f_by_bin_clean(df_uploaded(),
                        zero_thresh = input$zero_threshold, # default 0.3
                        feedout_thresh = input$feedout_threshold, # default 10
-                       col_bin_ID = .data$feed_bin_id,
+                       col_bin_ID = .data$bin_id,
                        col_date = .data$date,
                        col_start_time = .data$start_time,
-                       col_start_weight = .data$start_weight,
-                       col_end_weight = .data$end_weight,
+                       col_start_weight_kg = .data$start_weight_kg,
+                       col_end_weight_kg = .data$end_weight_kg,
                        col_intake = .data$intake,
                        log = TRUE)
 
@@ -280,24 +280,24 @@ mod_by_bin_clean_server <- function(id, df){
 
 
     # end weight errors
-    output$n_end_weight_errors <- renderText({
+    output$n_end_weight_kg_errors <- renderText({
 
       req(list_cleaned_data())
 
       fct_check_for_valuebox_bin(
         list_cleaned_data()$df_cleaned,
-        .data$category_end_weight,
+        .data$category_end_weight_kg,
         "error"
       )
     })
 
 
-    output$n_start_weight_errors <- renderText({
+    output$n_start_weight_kg_errors <- renderText({
       req(list_cleaned_data())
 
       fct_check_for_valuebox_bin(
         list_cleaned_data()$df_cleaned,
-        .data$check_start_weights,
+        .data$check_start_weight_kgs,
         "error"
       )
 

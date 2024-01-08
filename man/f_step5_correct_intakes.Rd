@@ -6,20 +6,20 @@
 \usage{
 f_step5_correct_intakes(
   df_step4,
-  col_corrected_end_weight,
-  col_corrected_start_weight,
+  col_corrected_end_weight_kg,
+  col_corrected_start_weight_kg,
   col_intake
 )
 }
 \arguments{
 \item{df_step4}{Data frame produced by [f_step4()]}
 
-\item{col_corrected_end_weight}{Name of column with corrected end weight (normally produced by [f_step3()])}
+\item{col_corrected_end_weight_kg}{Name of column with corrected end weight (normally produced by [f_step3()])}
 
-\item{col_corrected_start_weight}{Name of column with corrected start weight (normally produced by [f_step4()])}
+\item{col_corrected_start_weight_kg}{Name of column with corrected start weight (normally produced by [f_step4()])}
 
 \item{col_intake}{Name of column with the feed intake (kg) for the feeding
-event, normally calculated as end_weight - start_weight.}
+event, normally calculated as end_weight_kg - start_weight_kg.}
 }
 \value{
 data frame of df_step4 with the following additional columns:
@@ -27,7 +27,7 @@ data frame of df_step4 with the following additional columns:
 * is_corrected_intake_bybin = boolean indicating if intake was corrected at all
 }
 \description{
-This function calculates a corrected intake as corrected_start_weight_bybin - corrected_end_weight_bybin.
+This function calculates a corrected intake as corrected_start_weight_kg_bybin - corrected_end_weight_kg_bybin.
 It also handles the situation where errors are produced by [f_step3()] which means a corrected
 intake cannot be calculated, and therefore it returns the original intake.
 }

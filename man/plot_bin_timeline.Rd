@@ -8,8 +8,8 @@ plot_bin_timeline(
   df_in,
   col_start_time,
   col_end_time,
-  col_start_weight,
-  col_end_weight,
+  col_start_weight_kg,
+  col_end_weight_kg,
   col_colour,
   col_hover_text
 )
@@ -17,9 +17,9 @@ plot_bin_timeline(
 \arguments{
 \item{df_in}{Data frame that has been filtered via user input (`input$bin_id`) to only include 1 feed bin.}
 
-\item{col_start_time, col_end_time, col_start_weight, col_end_weight, col_colour}{Column names used for plotting}
+\item{col_start_time, col_end_time, col_start_weight_kg, col_end_weight_kg, col_colour}{Column names used for plotting}
 
-\item{col_hover_text}{column name of extra text for tooltip. Usually from adding a column with paste, e.g. `paste('cow_id:', cow_id)`}
+\item{col_hover_text}{column name of extra text for tooltip. Usually from adding a column with paste, e.g. `paste('animal_id:', animal_id)`}
 }
 \value{
 A ggplot2 object

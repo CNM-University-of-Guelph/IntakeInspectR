@@ -6,7 +6,7 @@
 \usage{
 f_step6_correct_end_times(
   df_step5,
-  col_cow_ID = .data$cow_id,
+  col_animal_id = .data$animal_id,
   col_date = .data$date,
   col_start_time = .data$start_time,
   col_end_time = .data$end_time
@@ -15,7 +15,7 @@ f_step6_correct_end_times(
 \arguments{
 \item{df_step5}{Data frame produced by [f_step5()]}
 
-\item{col_cow_ID}{Name of column with cow ID.}
+\item{col_animal_id}{Name of column with cow ID.}
 
 \item{col_date}{Name of column with date (formatted as Date) of feeding event}
 
@@ -24,7 +24,7 @@ date-time) recorded by feed bin.}
 }
 \value{
 The original data frame with the following additional columns:
-nextStartTime, is_end_time_overlap_error, corrected_end_time, corrected_feed_duration_diff, corrected_feed_duration_seconds
+nextStartTime, is_end_time_overlap_error, corrected_end_time, corrected_duration_sec_diff, corrected_duration_sec_seconds
 }
 \description{
 This function checks for errors in the time recorded by the feed bin without making

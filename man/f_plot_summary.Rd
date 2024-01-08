@@ -4,7 +4,13 @@
 \alias{f_plot_summary}
 \title{Summary plots}
 \usage{
-f_plot_summary(df_in, x, y = NULL, col_colour = .data$check_end_weights, type)
+f_plot_summary(
+  df_in,
+  x,
+  y = NULL,
+  col_colour = .data$check_end_weight_kgs,
+  type
+)
 }
 \arguments{
 \item{df_in}{data frame to plot}

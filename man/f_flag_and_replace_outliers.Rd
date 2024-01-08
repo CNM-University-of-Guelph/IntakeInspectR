@@ -7,9 +7,9 @@
 f_flag_and_replace_outliers(
   df_in,
   col_intake = .data$corrected_intake_bybin,
-  col_duration = .data$corrected_feed_duration_seconds,
-  col_cow_id = .data$cow_id,
-  col_bin_id = .data$feed_bin_id,
+  col_duration = .data$corrected_duration_sec_seconds,
+  col_animal_id = .data$animal_id,
+  col_bin_id = .data$bin_id,
   col_start_time = .data$start_time,
   col_date = .data$date,
   max_duration_min = 60,
@@ -29,8 +29,8 @@ corrected intake from 'by bin' functions}
 \item{col_duration}{name of column with duration data to use, normally the
 corrected duration from 'by bin' functions. Must be numbers of seconds.}
 
-\item{col_cow_id, col_bin_id, col_start_time, col_date}{Column names for cow_id,
-feed_bin_id, start_time and date from df_in. Used for ID.}
+\item{col_animal_id, col_bin_id, col_start_time, col_date}{Column names for animal_id,
+bin_id, start_time and date from df_in. Used for ID.}
 
 \item{max_duration_min}{number of minutes. Events with a duration longer than
 this will be classed as a 'manual outlier'}

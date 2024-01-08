@@ -125,10 +125,10 @@ mod_welcome_ui <- function(id){
     )
   )
 }
-col.names = c('transponder_id', 'cow_id',
-              'feed_bin_id', 'start_time',
-              'end_time', 'feed_duration',
-              'start_weight', 'end_weight',
+col.names = c('transponder_id', 'animal_id',
+              'bin_id', 'start_time',
+              'end_time', 'duration_sec',
+              'start_weight_kg', 'end_weight_kg',
               'diet', 'intake')
 
 #' welcome Server Functions

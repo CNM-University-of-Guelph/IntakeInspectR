@@ -174,23 +174,25 @@ mod_by_cow_clean_ui <- function(id){
               bslib::value_box(
                 title = "Not outliers:",
                 #Format to copy default value_box() value size:
-                value = p(textOutput(ns("n_not_error"), inline = TRUE), style = "font-size: 30px;") ,
+                value = p(textOutput(ns("n_not_error"),
+                                     # inline = TRUE
+                                     ), style = "font-size: 30px;") ,
                 showcase = fct_cow_icon(col='white'),
-                # theme_color = 'success',
+                theme = 'primary',
                 height='150px'
               ),
               bslib::value_box(
                 title = "Negative intakes set to 0 kg:",
                 value = p(textOutput(ns("n_neg_intake"), inline = TRUE), style = "font-size: 30px;") ,
                 showcase = bsicons::bs_icon('arrow-repeat'),
-                theme_color = 'info',
+                theme = 'info',
                 height='150px'
               ),
               bslib::value_box(
                 title = "Durations replaced (duration too long):",
                 value = p(textOutput(ns("n_neg"), inline = TRUE), style = "font-size: 30px;") ,
                 showcase = bsicons::bs_icon('arrow-repeat'),
-                theme_color = 'info',
+                theme = 'info',
                 height='150px'
               ),
 
@@ -198,7 +200,8 @@ mod_by_cow_clean_ui <- function(id){
                 title = "Intakes replaced (intake too high):",
                 value = p(textOutput(ns("n_pos"), inline = TRUE), style = "font-size: 30px;") ,
                 showcase = bsicons::bs_icon('arrow-repeat'),
-                theme_color = 'info',
+                # showcase_layout = bslib::showcase_left_center(width = 0.2),
+                theme = 'info',
                 height='150px'
               )
             )
@@ -236,7 +239,7 @@ mod_by_cow_clean_server <- function(id, df_list){
 
     ##################################################################### #
     # Execute Outlier detection ----
-    # Returns a nested df with a col of cow_id_nest which is a copy of cow_id
+    # Returns a nested df with a col of animal_id_nest which is a copy of animal_id
     # then 2x list columns, where the column fitted contains each individual
     # dataframe outputted by f_flag_and_replace_outliers()
     ##################################################################### #
@@ -246,12 +249,12 @@ mod_by_cow_clean_server <- function(id, df_list){
         shinybusy::show_modal_progress_line(text = "Outlier detection running...")
 
         list_out <- f_iterate_cows(df(),
-                                   col_cow_id = cow_id,
-                                   col_bin_id = feed_bin_id,
+                                   col_animal_id = animal_id,
+                                   col_bin_id = bin_id,
                                    col_date = date,
                                    col_start_time = start_time,
                                    col_intake =  corrected_intake_bybin,
-                                   col_duration = corrected_feed_duration_seconds,
+                                   col_duration = corrected_duration_sec_seconds,
                                    max_duration_min = input$max_duration_min,
                                    min_intake_rate_kg_min = input$min_intake_rate_kg_min,
                                    max_intake_rate_kg_min = input$max_intake_rate_kg_min,
