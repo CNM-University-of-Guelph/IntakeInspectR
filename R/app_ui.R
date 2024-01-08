@@ -54,10 +54,15 @@ app_ui <- function(request) {
 
   bslib::page_navbar(
 
-    theme = bslib::bs_theme(version = 5, bootswatch = "flatly",
+    theme = bslib::bs_theme(version = 5,
+                            bootswatch = "flatly",
                             secondary = "#3498DB",
                             success = "#18BC20",
-                            info = "#F8EE4B" ),
+                            info = "#F8EE4B",
+                            # Overrides default width that changes when value_box gets stacked vertically.
+                            # Available when new version of bslib is released to fix github issue:
+                            "bslib-value-box-horizontal-break-point" = "200px"
+                            ),
 
     title = "IntakeInspectR",
 
