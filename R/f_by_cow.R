@@ -1,6 +1,6 @@
 
 
-#' Function to iterate each cow's data through the 'by cow' cleaning functions
+#' Function to iterate each animal's data through the 'by animal' cleaning functions
 #'
 #' This splits the df_in into a list of data frames, which is parsed to
 #' [f_flag_and_replace_outliers()] one at a time. Also can create a log.
@@ -12,7 +12,7 @@
 #' @param df_in A data frame, typically that has been processed by
 #'   [f_by_bin_clean()]
 #' @param col_animal_id,col_duration,col_bin_id,col_date,col_start_time,col_intake,
-#'   Column names for the columns in df_in that contain cow ID, intake (kg),
+#'   Column names for the columns in df_in that contain animal ID, intake (kg),
 #'   duration (sec), feed bin ID, date and feeding event start time.
 #' @param max_duration_min number of minutes. Events with a duration longer than
 #'   this will be classed as a 'manual outlier'
@@ -34,7 +34,7 @@
 #'   (outlier_summary)
 #' @export
 
-f_iterate_cows <-
+f_iterate_animals <-
   function(df_in,
            col_animal_id = .data$animal_id,
            col_bin_id = .data$bin_id,
@@ -71,7 +71,7 @@ f_iterate_cows <-
   max_i <- length(df_nested$animal_id_nest)
 
   if(log){
-    logr::log_print(paste("Number of cows to iterate through:", max_i))
+    logr::log_print(paste("Number of animals to iterate through:", max_i))
 
     logr::log_print(paste("User Input: Maximum allowable duration (min) per feeding event:", max_duration_min))
 
@@ -182,7 +182,7 @@ f_iterate_cows <-
 #' the `min_intake_kg_min` will have a new (shorter) duration estimated from the
 #' measured feed intake. This change in duration is less relevant for most
 #' users, and it is also important to remember that it is theortically possible
-#' that cows can eat very slowly, but there will always be an upper limit to how
+#' that animals can eat very slowly, but there will always be an upper limit to how
 #' fast they can eat. Finally, some very long durations may also have a high
 #' enough intake that they are not flagged by the `min_intake_kg_min` but are
 #' likely not a realistic duration. Therefore, any events with a duration that
@@ -190,14 +190,14 @@ f_iterate_cows <-
 #' `max_duration_min` are flagged to get a new (lower) duration estimated from
 #' the measured intake.
 #' Overall, this step provides a way of filtering feeding events based on
-#' biologically relevant limitations to what a cow might be expected to normally
+#' biologically relevant limitations to what a animal might be expected to normally
 #' do.\cr
 #'
 #' 2) As durations get longer, the range of possible feed intakes increases, so
 #' it might be important for some users to still use a residual SD outlier
-#' detection method to flag potential outliers from what a cow 'normally' does.
+#' detection method to flag potential outliers from what a animal 'normally' does.
 #' This should be done with caution as animals can behave in 'abnormal' ways for
-#' very valid reasons. For example, a cow might consume a larger meal at a
+#' very valid reasons. For example, a animal might consume a larger meal at a
 #' relatively fast rate of intake if it has been previously been restricted for
 #' some reason, such as an experimental treatment. Due to potentially large
 #' outliers, a robust linear model is fit first using `MASS::rlm` The
@@ -211,7 +211,7 @@ f_iterate_cows <-
 #' equation to provide a new intake (y value). Likewise, outliers with a
 #' negative residual are re-fitted to provide a new duration (x value).
 #'
-#' @param df_in data frame of one cow to be cleaned.
+#' @param df_in data frame of one animal to be cleaned.
 #' @param col_intake name of column with intake data to use, normally the
 #'   corrected intake from 'by bin' functions
 #' @param col_duration name of column with duration data to use, normally the
@@ -274,20 +274,20 @@ f_iterate_cows <-
 
      ############################################# #
      # Check data
-     # 1. that only 1 cow of data is entered
+     # 1. that only 1 animal of data is entered
      # 2. that more than 3 rows of data are included for regression
      ############################################# #
 
-     n_cows <- df_in %>% dplyr::pull({{ col_animal_id }}) %>% dplyr::n_distinct()
-     if(n_cows > 1){
-       warning("More than 1 cow detected in df_in. This function requires 1 cow at a time, see f_iterate_cows().")
+     n_animals <- df_in %>% dplyr::pull({{ col_animal_id }}) %>% dplyr::n_distinct()
+     if(n_animals > 1){
+       warning("More than 1 animal detected in df_in. This function requires 1 animal at a time, see f_iterate_animals().")
        return(NULL)
      }
 
      n_row <- df_in %>% nrow()
      if(n_row < 5){
        warning(paste0(
-         "Less than 5 events for current cow. Aborting regression fit and keeping original intakes & durations. Cow number:\n",
+         "Less than 5 events for current animal. Aborting regression fit and keeping original intakes & durations. Animal number:\n",
          df_in %>% dplyr::pull({{ col_animal_id}}) %>% unique(),
          "\nNumber of rows:\n",
          n_row

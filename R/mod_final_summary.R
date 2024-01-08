@@ -54,13 +54,13 @@ mod_final_summary_ui <- function(id){
             ),
 
             shinyWidgets::treeInput(
-              inputId = ns('selected_error_types_by_cow'),
+              inputId = ns('selected_error_types_by_animal'),
               label = NULL,
               returnValue = 'text',
-              selected = 'By Cow',
+              selected = 'By Animal',
               choices = shinyWidgets::create_tree(
                 data.frame(
-                  Step = c( "By Cow", "By Cow"),
+                  Step = c( "By Animal", "By Animal"),
                   Error = c("replace duration outliers", "replace intake outliers"),
                   stringsAsFactors = FALSE
                 ),
@@ -157,7 +157,7 @@ mod_final_summary_ui <- function(id){
               These summary tabs have a table that has download buttons at the
               top that will copy to clipboard or download as a CSV or Excel
               file. It is common to calculate a daily feed intake for each
-              cow, which is the sum of all feeding events for a day. This is
+              animal, which is the sum of all feeding events for a day. This is
               calculated based on the check boxes selected. In addition, a DM
               % can be added in the box which will add a column to the table
               with the calculated DM DM intakes.
@@ -205,7 +205,7 @@ mod_final_summary_ui <- function(id){
                 bslib::card(
 
                 p("
-              Daily feed intake from individual cows can be visualised here. Multiple cows can be selected, each given their own colour on the plot.
+              Daily feed intake from individual animals can be visualised here. Multiple animals can be selected, each given their own colour on the plot.
               "),
               # br(),
 
@@ -219,7 +219,7 @@ mod_final_summary_ui <- function(id){
 
                 shinyWidgets::pickerInput(
                   inputId = ns("animal_id_ind_plots"),
-                  label = "Select cow/s to plot",
+                  label = "Select animal/s to plot",
                   choices = NULL,
                   options = list(
                     `actions-box` = TRUE),
@@ -232,7 +232,7 @@ mod_final_summary_ui <- function(id){
 
               bslib::card(
                 full_screen = TRUE,
-                plotly::plotlyOutput(outputId = ns("plot_ind_cows"), height = "600px") %>%  shinycssloaders::withSpinner()
+                plotly::plotlyOutput(outputId = ns("plot_ind_animals"), height = "600px") %>%  shinycssloaders::withSpinner()
               )
 
                 )
@@ -245,7 +245,7 @@ mod_final_summary_ui <- function(id){
               bslib::nav_panel(
                 title = 'Rate of intake',
                 bslib::card(
-                  bslib::card_title("Mean rate of intake across all events for each cow"),
+                  bslib::card_title("Mean rate of intake across all events for each animal"),
                 # br(),
                 bslib::card(
                   shiny::plotOutput(outputId = ns('rate_histogram'), height = '350px') %>%  shinycssloaders::withSpinner(type=7),
@@ -259,7 +259,7 @@ mod_final_summary_ui <- function(id){
               bslib::nav_panel(
                 title = 'Feed Duration',
                 bslib::card(
-                  bslib::card_title("Mean feed duration across all events for each cow"),
+                  bslib::card_title("Mean feed duration across all events for each animal"),
                 # br(),
                 bslib::card(
                   shiny::plotOutput(outputId = ns('duration_histogram'), height = '350px') %>%  shinycssloaders::withSpinner(type=7),
@@ -282,10 +282,10 @@ mod_final_summary_ui <- function(id){
 #'
 #' @param id module id
 #' @param df_list_bybin List; output from the `by_bin - clean` module. Required for log filepath.
-#' @param df_list_bycow List; output from the `by_cow - clean` module. Required for final data frames and log filepath.
+#' @param df_list_byanimal List; output from the `by_animal - clean` module. Required for final data frames and log filepath.
 #'
 #' @noRd
-mod_final_summary_server <- function(id, df_list_bybin, df_list_bycow){
+mod_final_summary_server <- function(id, df_list_bybin, df_list_byanimal){
   moduleServer( id, function(input, output, session){
     ns <- session$ns
 
@@ -295,15 +295,15 @@ mod_final_summary_server <- function(id, df_list_bybin, df_list_bycow){
 
     observe({
       # Error handler
-      # If any from 'By Cow' are selected, then it must use 'by bin'
-      if(any(c("replace duration outliers", "replace intake outliers") %in% input$selected_error_types_by_cow)){
+      # If any from 'By Animal' are selected, then it must use 'by bin'
+      if(any(c("replace duration outliers", "replace intake outliers") %in% input$selected_error_types_by_animal)){
         # make sure all of 'by bin' are selected, with warning:
         if( ! all(c("correct end weight", "correct start weight", "correct overlapping end times") %in% input$selected_error_types_by_bin)){
           # Currently this isn't possible. Show warning and reset by bin
 
-          shinyWidgets::show_alert(title = "By Cow must use By Bin", text = "Currently 'By Cow' outlier detection and cleaning defaults to using all cleaning methods from 'By Bin' step.
+          shinyWidgets::show_alert(title = "By Animal must use By Bin", text = "Currently 'By Animal' outlier detection and cleaning defaults to using all cleaning methods from 'By Bin' step.
                                    This can be changed by running codes manually in R, but will be added to app in future. Therefore, all of 'By Bin' has been re-selected.
-                                   To customise 'By Bin', deselect 'By Cow' first.
+                                   To customise 'By Bin', deselect 'By Animal' first.
                                    ",
                                    type = 'error',
                                    showCloseButton = TRUE)
@@ -318,9 +318,9 @@ mod_final_summary_server <- function(id, df_list_bybin, df_list_bycow){
     final_data_full <-   reactive({
 
       # If keep all corrections:
-      if(all('By Bin' %in% input$selected_error_types_by_bin & 'By Cow' %in% input$selected_error_types_by_cow)){
+      if(all('By Bin' %in% input$selected_error_types_by_bin & 'By Animal' %in% input$selected_error_types_by_animal)){
 
-        df_out <- df_list_bycow()$merged_df %>%
+        df_out <- df_list_byanimal()$merged_df %>%
           # remove prev and next columns
           dplyr::select( !tidyselect::starts_with(c("prev", "next"))) %>%
           dplyr::mutate(
@@ -330,17 +330,17 @@ mod_final_summary_server <- function(id, df_list_bybin, df_list_bycow){
 
       }  else {
         # return the data based on user input
-        df_list_bycow()$merged_df %>%
+        df_list_byanimal()$merged_df %>%
           dplyr::mutate(
             selected_final_intake_kg = dplyr::case_when(
-              "replace intake outliers" %in% input$selected_error_types_by_cow ~ new_y,
+              "replace intake outliers" %in% input$selected_error_types_by_animal ~ new_y,
               all(c('correct end weight', 'correct start weight') %in% input$selected_error_types_by_bin) ~ corrected_intake_bybin,
               'correct end weight' %in% input$selected_error_types_by_bin ~ (start_weight_kg - corrected_end_weight_kg_bybin),
               'correct start weight' %in% input$selected_error_types_by_bin ~ (corrected_start_weight_kg_bybin - end_weight_kg),
               TRUE ~ intake
             ),
             selected_final_duration_sec = dplyr::case_when(
-              "replace duration outliers" %in% input$selected_error_types_by_cow ~ new_x,
+              "replace duration outliers" %in% input$selected_error_types_by_animal ~ new_x,
               "correct overlapping end times" %in% input$selected_error_types_by_bin ~ corrected_duration_sec_seconds,
               TRUE ~ duration_sec
             )
@@ -458,7 +458,7 @@ mod_final_summary_server <- function(id, df_list_bybin, df_list_bycow){
         # Combine the log contents into a single vector
         combined_logs<- c(
           readLines(df_list_bybin()$log_path),
-          readLines(df_list_bycow()$log_path)
+          readLines(df_list_byanimal()$log_path)
           )
 
 
@@ -534,7 +534,7 @@ mod_final_summary_server <- function(id, df_list_bybin, df_list_bycow){
       shinyWidgets::updatePickerInput(session = session, inputId = 'animal_id_ind_plots', choices = vec_bins, selected = vec_bins[1:4])
     })
 
-    output$plot_ind_cows <- plotly::renderPlotly({
+    output$plot_ind_animals <- plotly::renderPlotly({
       req(!is.null(df_daily_intakes()))
 
 
@@ -577,7 +577,7 @@ mod_final_summary_server <- function(id, df_list_bybin, df_list_bycow){
 
 
     output$rate_histogram <- renderPlot({
-      req(!is.null(df_list_bycow()))
+      req(!is.null(df_list_byanimal()))
 
       mean_rate <- summary_table()$selected_slope_g_min %>%
         mean(na.rm=TRUE) %>%
@@ -608,7 +608,7 @@ mod_final_summary_server <- function(id, df_list_bybin, df_list_bycow){
     ################################# #
 
     output$duration_histogram <- renderPlot({
-      req(!is.null(df_list_bycow()))
+      req(!is.null(df_list_byanimal()))
 
       mean_duration <- summary_table()$selected_final_duration_min %>%
         mean(na.rm=TRUE) %>%

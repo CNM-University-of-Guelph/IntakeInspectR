@@ -72,8 +72,8 @@ app_ui <- function(request) {
     mod_uploads_ui("uploads_1"),
     mod_by_bin_clean_ui("by_bin_clean_1"),
     mod_by_bin_vis_ui("by_bin_vis_1"),
-    mod_by_cow_clean_ui("by_cow_clean_1"),
-    mod_by_cow_vis_ui("by_cow_vis_1"),
+    mod_by_animal_clean_ui("by_animal_clean_1"),
+    mod_by_animal_vis_ui("by_animal_vis_1"),
     mod_final_summary_ui("final_summary_1"),
     bslib::nav_spacer(),
     bslib::nav_item(

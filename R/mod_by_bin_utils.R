@@ -11,7 +11,7 @@ fct_table_description <- function(){
 #' show modal helper function
 #'
 #' Helper function for showing modal for all steps of function assigns to a
-#' temporary output that is used by showModal once. Also includes a function from 'by cow'.
+#' temporary output that is used by showModal once. Also includes a function from 'by animal'.
 #'
 #' @param doc The documentation name to show. Matches input$f_step*
 #' @param output,session parsed down from Shiny module

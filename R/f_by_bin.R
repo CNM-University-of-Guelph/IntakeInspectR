@@ -21,7 +21,7 @@ f_count_errors <- function(.df, ...){
 #'
 #' Most steps group the data by day and by feed bin ID, meaning that each day
 #' and feed bin is analysed separately. The final step checks for incorrectly
-#' recorded end times and uses the data grouped by cow ID to evaluate if she
+#' recorded end times and uses the data grouped by animal ID to evaluate if she
 #' visited another feed bin while still being recorded at another feed bin.
 #' It also generates a log file, summarising each error by count and %. This is
 #' stored in a temporary file path which is returned in the output list.
@@ -35,7 +35,7 @@ f_count_errors <- function(.df, ...){
 #' @param feedout_thresh Number. What threshold (kg) should be used to call an
 #'   increase in feed intake a feed out event? Default 10 kg
 #' @param col_bin_ID Name of column with feed bin ID.
-#' @param col_animal_id Name of column with cow ID.
+#' @param col_animal_id Name of column with animal ID.
 #' @param col_date Name of column with date (formatted as Date) of feeding event.
 #' @param col_start_time,col_end_time Name of columns with start time and end time (formatted as POSIXct
 #'   date-time) recorded by feed bin.

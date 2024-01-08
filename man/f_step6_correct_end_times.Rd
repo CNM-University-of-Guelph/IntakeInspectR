@@ -15,7 +15,7 @@ f_step6_correct_end_times(
 \arguments{
 \item{df_step5}{Data frame produced by [f_step5()]}
 
-\item{col_animal_id}{Name of column with cow ID.}
+\item{col_animal_id}{Name of column with animal ID.}
 
 \item{col_date}{Name of column with date (formatted as Date) of feeding event}
 
@@ -29,8 +29,8 @@ nextStartTime, is_end_time_overlap_error, corrected_end_time, corrected_duration
 \description{
 This function checks for errors in the time recorded by the feed bin without making
 any assumptions about a biologically possible rate of intake. This is technically
-a 'by cow' step, as it compares start and end times within a cow (across feed bins)
-to see if the cow visited another feed bin while still being recorded as present
+a 'by animal' step, as it compares start and end times within a animal (across feed bins)
+to see if the animal visited another feed bin while still being recorded as present
 at a feed bin (i.e. overlapping events). If this is found, it will trim the first
 event to end 10 sec before the next recorded feeding event.
 }

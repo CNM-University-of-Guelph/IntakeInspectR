@@ -1,4 +1,4 @@
-#' by_cow_clean UI Function
+#' by_animal_clean UI Function
 #'
 #' @description A shiny Module.
 #'
@@ -7,12 +7,12 @@
 #' @noRd
 #'
 #' @importFrom shiny NS tagList
-mod_by_cow_clean_ui <- function(id){
+mod_by_animal_clean_ui <- function(id){
   ns <- NS(id)
 
   # tabPanel(
   bslib::nav_panel(
-    title = "3a. By Cow - Clean",
+    title = "3a. By Animal - Clean",
 
     div(class = 'resized-tab-container',
         gridlayout::grid_container(
@@ -38,11 +38,11 @@ mod_by_cow_clean_ui <- function(id){
             area = "button_box",
             # wrapper = bslib::card_body,
             full_screen = FALSE,
-            strong("Clean data - grouped by cow ID"),
+            strong("Clean data - grouped by animal ID"),
             p("
           This step of the cleaning identifies outliers based on user defined max
           and min rates of intake (kg/min). Then, further outliers can be flagged
-          by fitting a robust linear model to the duration vs intake data for each cow.
+          by fitting a robust linear model to the duration vs intake data for each animal.
           All outliers are temporarily removed to fit a bisector regression, then new
           duration or intake values are estimated for each outlier.
           ")
@@ -85,7 +85,7 @@ mod_by_cow_clean_ui <- function(id){
                              step = 0.01),
 
                 p("Manual outliers are based on the user entered min and max rate of intake (kg/min).
-                  These are for individual events and should be more extreme than what is 'normal' for a cow.
+                  These are for individual events and should be more extreme than what is 'normal' for a animal.
                   Events with a rate of intake < min specified will have a new duration estimated from linear model."),
 
                 numericInput(inputId = ns("min_intake_rate_kg_min"),
@@ -177,7 +177,7 @@ mod_by_cow_clean_ui <- function(id){
                 value = p(textOutput(ns("n_not_error"),
                                      # inline = TRUE
                                      ), style = "font-size: 30px;") ,
-                showcase = fct_cow_icon(col='white'),
+                showcase = fct_animal_icon(col='white'),
                 theme = 'primary',
                 height='150px'
               ),
@@ -211,10 +211,10 @@ mod_by_cow_clean_ui <- function(id){
   )
 }
 
-#' by_cow_clean Server Functions
+#' by_animal_clean Server Functions
 #'
 #' @noRd
-mod_by_cow_clean_server <- function(id, df_list){
+mod_by_animal_clean_server <- function(id, df_list){
   moduleServer( id, function(input, output, session){
     ns <- session$ns
 
@@ -248,7 +248,7 @@ mod_by_cow_clean_server <- function(id, df_list){
       reactive({
         shinybusy::show_modal_progress_line(text = "Outlier detection running...")
 
-        list_out <- f_iterate_cows(df(),
+        list_out <- f_iterate_animals(df(),
                                    col_animal_id = animal_id,
                                    col_bin_id = bin_id,
                                    col_date = date,
@@ -275,16 +275,16 @@ mod_by_cow_clean_server <- function(id, df_list){
 
 
     # Split list output into required components to use here:
-    df_outliers_nested_by_cow <- reactive({
+    df_outliers_nested_by_animal <- reactive({
       list_outlier_detection()$nested_out
     })
 
-    df_summary_outliers_by_cow <- reactive({ # used for valueBoxes
+    df_summary_outliers_by_animal <- reactive({ # used for valueBoxes
       list_outlier_detection()$outlier_summary
     })
 
     # create merged data - unnested - returned in list at end for other modules
-    df_outliers_merged <- reactive({ f_merge_corrected_outlier_data(df_outliers_nested_by_cow()) })
+    df_outliers_merged <- reactive({ f_merge_corrected_outlier_data(df_outliers_nested_by_animal()) })
 
 
     ################################################################# #
@@ -299,11 +299,11 @@ mod_by_cow_clean_server <- function(id, df_list){
 
     # observe table to override output to show in window:
     observe({
-      print_out$glimpse_nested <- tibble::as_tibble(df_outliers_nested_by_cow())
+      print_out$glimpse_nested <- tibble::as_tibble(df_outliers_nested_by_animal())
       print_out$glimpse_merged <- tibble::as_tibble(df_outliers_merged())
 
       # read in log file to print to glimpse window:
-      log$by_cow <- readLines(list_outlier_detection()$log_path)
+      log$by_animal <- readLines(list_outlier_detection()$log_path)
 
     })
 
@@ -311,7 +311,7 @@ mod_by_cow_clean_server <- function(id, df_list){
     output$dynamic_glimpse <- renderPrint({
       if(tibble::is_tibble(print_out$glimpse_nested)){
         # print log file, then a glimpse of data:
-        cat(paste(log$by_cow, collapse = "\n"))
+        cat(paste(log$by_animal, collapse = "\n"))
         cat("\n")
         dplyr::glimpse(print_out$glimpse_nested)
         cat("\n")
@@ -329,8 +329,8 @@ mod_by_cow_clean_server <- function(id, df_list){
 
       req(list_outlier_detection())
 
-      fct_check_for_valuebox_cow(
-        df_summary_outliers_by_cow(),
+      fct_check_for_valuebox_animal(
+        df_summary_outliers_by_animal(),
         .data$outlier_pos_neg,
         "not_error"
       )
@@ -340,8 +340,8 @@ mod_by_cow_clean_server <- function(id, df_list){
 
       req(list_outlier_detection())
 
-      fct_check_for_valuebox_cow(
-        df_summary_outliers_by_cow(),
+      fct_check_for_valuebox_animal(
+        df_summary_outliers_by_animal(),
         .data$outlier_pos_neg,
         "neg"
       )
@@ -353,8 +353,8 @@ mod_by_cow_clean_server <- function(id, df_list){
 
       req(list_outlier_detection())
 
-      fct_check_for_valuebox_cow(
-        df_summary_outliers_by_cow(),
+      fct_check_for_valuebox_animal(
+        df_summary_outliers_by_animal(),
         .data$outlier_pos_neg,
         "neg_intake"
       )
@@ -365,8 +365,8 @@ mod_by_cow_clean_server <- function(id, df_list){
 
       req(list_outlier_detection())
 
-      fct_check_for_valuebox_cow(
-        df_summary_outliers_by_cow(),
+      fct_check_for_valuebox_animal(
+        df_summary_outliers_by_animal(),
         .data$outlier_pos_neg,
         "pos"
       )
@@ -391,7 +391,7 @@ mod_by_cow_clean_server <- function(id, df_list){
     ################ #
     observe({
 
-      fct_show_custom_modal(fct_modal_content_bycow_more_info(), title = "More about the 'By Cow' data cleaning")
+      fct_show_custom_modal(fct_modal_content_byanimal_more_info(), title = "More about the 'By Animal' data cleaning")
 
     }) %>% bindEvent({ input$button_more_info })
 
@@ -408,21 +408,21 @@ mod_by_cow_clean_server <- function(id, df_list){
     ################################################################# #
     output$download_nested <- downloadHandler(
       filename = function() {
-        paste0("by_cow_nested_data_out_",
+        paste0("by_animal_nested_data_out_",
                format(Sys.time(), "%Y%m%d_%H%M%S"), ".rds")
       },
       content = function(file) {
-        saveRDS(df_outliers_nested_by_cow(), file = file)
+        saveRDS(df_outliers_nested_by_animal(), file = file)
       }
     )
 
     output$download_merged <- downloadHandler(
       filename = function() {
-        paste0("by_cow_outlier_detection_out",
+        paste0("by_animal_outlier_detection_out",
                format(Sys.time(), "%Y%m%d_%H%M%S"), ".csv")
       },
       content = function(file) {
-        #saveRDS(df_outliers_nested_by_cow(), file = file)
+        #saveRDS(df_outliers_nested_by_animal(), file = file)
         data.table::fwrite(df_outliers_merged(), file = file)
       },
       contentType = "text/csv"
@@ -441,7 +441,7 @@ mod_by_cow_clean_server <- function(id, df_list){
 
 
 
-    return(reactive({ list(nested_df = df_outliers_nested_by_cow(),
+    return(reactive({ list(nested_df = df_outliers_nested_by_animal(),
                            merged_df = df_outliers_merged(),
                            log_path = list_outlier_detection()$log_path,
                            user_inputs_to_parse_to_vis = user_inputs_to_parse_to_vis())
@@ -450,7 +450,7 @@ mod_by_cow_clean_server <- function(id, df_list){
 }
 
 ## To be copied in the UI
-# mod_by_cow_clean_ui("by_cow_clean_1")
+# mod_by_animal_clean_ui("by_animal_clean_1")
 
 ## To be copied in the server
-# mod_by_cow_clean_server("by_cow_clean_1")
+# mod_by_animal_clean_server("by_animal_clean_1")

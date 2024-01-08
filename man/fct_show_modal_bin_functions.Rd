@@ -16,5 +16,5 @@ Called for side effect of executing showModal()
 }
 \description{
 Helper function for showing modal for all steps of function assigns to a
-temporary output that is used by showModal once. Also includes a function from 'by cow'.
+temporary output that is used by showModal once. Also includes a function from 'by animal'.
 }

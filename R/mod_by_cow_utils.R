@@ -1,4 +1,4 @@
-# Functions for use in Shiny module - by cow
+# Functions for use in Shiny module - by animal
 
 
 
@@ -43,7 +43,7 @@ fct_Rd_to_HTML = function(Rd_filepath){
 #'
 #' @return A number to print in value box
 
-fct_check_for_valuebox_cow <- function(df_summary, col, condition){
+fct_check_for_valuebox_animal <- function(df_summary, col, condition){
   n_tmp <-
     df_summary %>%
     dplyr::mutate(to_print = paste0(.data$n, " (",.data$percent,"%)")) %>%
@@ -61,17 +61,17 @@ fct_check_for_valuebox_cow <- function(df_summary, col, condition){
 #'
 #' @return a list of HTML
 #' @noRd
-fct_modal_content_bycow_more_info <- function() {
+fct_modal_content_byanimal_more_info <- function() {
   html <- list(
     #h4("More about the data"),
     p("
-      The data is split into individual data sets for each cow which are
+      The data is split into individual data sets for each animal which are
       iteratively parsed to the ",
       tags$code("f_flag_and_replace_outliers()"),
       " function. This
       function will firstly drop any rows of data with missing intake or
       duration values, but these should not normally be present. It also
-      checks that only 1 cow ID is in the data and that there are 5 or rows of
+      checks that only 1 animal ID is in the data and that there are 5 or rows of
       data, if there are less then outlier detection is not executed."),
     h3("Step 1: Biologically relevant outliers"),
     p(""),
@@ -96,8 +96,8 @@ fct_modal_content_bycow_more_info <- function() {
       outliers is to estimate new intake or duration values, but users should be
       careful to only identify very extreme values as outliers. The relatively conservative
       threshold of 5 SD is used as the default value in this analysis. Some values that may appear
-      to be 'outliers' may by physically possible but just not as common for that cow, e.g. a
-      cow on a feed restriction experiment may have a larger meal once a day, that is consumed much
+      to be 'outliers' may by physically possible but just not as common for that animal, e.g. a
+      animal on a feed restriction experiment may have a larger meal once a day, that is consumed much
       faster than other meal events, which could appear as outliers but are actually real events. "),
 
     h3("Step 3: Estimate new values for outliers"),
@@ -131,7 +131,7 @@ fct_modal_content_bycow_more_info <- function() {
     p("
       A log of the steps are recorded when the outlier detection is
       executed, similar to 'by bin' page. This log will also display a warning for when
-      a robust model was not fitted for a particular cow due to there being less than
+      a robust model was not fitted for a particular animal due to there being less than
       5 data points. Logs can be downloaded in a single file on Final Summary page.
       ")
   )
@@ -142,10 +142,10 @@ fct_modal_content_bycow_more_info <- function() {
 
 
 
-#' fct_plot_by_cow
+#' fct_plot_by_animal
 #'
-#' Plot 'by cow' outlier detection results. Visualise feed duration vs intake
-#' for individual cows. Each point is an individual feeding event. Outlier
+#' Plot 'by animal' outlier detection results. Visualise feed duration vs intake
+#' for individual animals. Each point is an individual feeding event. Outlier
 #' points are shown twice, with an arrow pointing from original value to new
 #' fitted value. The outlier classifications are based on values selected when
 #' cleaned. Outlier type refers to negative (neg) or positive (pos) residual
@@ -161,13 +161,13 @@ fct_modal_content_bycow_more_info <- function() {
 #' @param outlier_exemption_max_duration,outlier_exemption_max_intake number (kg or min). Events below this `outlier_exemption_max_intake` (kg) & with a duration less than `outlier_exemption_max_duration` (min) are exempt from other outlier detection methods.
 #' @param col_intake name of column with intake data to use
 #' @param col_duration name of column with duration data to use
-#' @param col_animal_id name of column with cow ID
+#' @param col_animal_id name of column with animal ID
 #' @param pt_size number. point size for `geom_point()`
 #'
 #' @return ggplot2 object
 #' @export
 #'
-fct_plot_by_cow <- function(df,
+fct_plot_by_animal <- function(df,
                             max_intake_rate_kg_min = 1.5,
                             min_intake_rate_kg_min = 0.05,
                             outlier_exemption_max_duration = 1,
@@ -293,7 +293,7 @@ fct_plot_by_cow <- function(df,
 
 #' Plot for overall data
 #'
-#' By cow overall plot which plots a regression showing the different outliers.
+#' By animal overall plot which plots a regression showing the different outliers.
 #' Assumes various columns are present from the [f_flag_and_replace_outliers()] function
 #'
 #' @param df data frame to plot
@@ -303,7 +303,7 @@ fct_plot_by_cow <- function(df,
 #'
 #' @return a ggplot2
 #' @export
-fct_plot_by_cow_overall <- function(df,
+fct_plot_by_animal_overall <- function(df,
                                     col_intake,
                                     col_duration,
                                     pt_size = 3){
@@ -337,7 +337,7 @@ fct_plot_by_cow_overall <- function(df,
 
 
 
-# fct_plot_by_cow_ggiraph <- function(df,
+# fct_plot_by_animal_ggiraph <- function(df,
 #                                     col_intake,
 #                                     col_duration,
 #                                     pt_size = 3){
@@ -391,7 +391,7 @@ fct_plot_by_cow_overall <- function(df,
 
 
 # NOTE: this one returns the actuale girafe() object, and then is rendered inside server()
-fct_plot_cow_bins <-  function(df,
+fct_plot_animal_bins <-  function(df,
                                col_end_time,
                                subtitle = ""){
 
@@ -413,7 +413,7 @@ fct_plot_cow_bins <-  function(df,
                                          Is duration error 'by bin': {is_end_time_overlap_error}
                                          Is pos or neg outlier: {outlier_pos_neg}
 
-                                         Cow: {animal_id}
+                                         Animal: {animal_id}
                                          Feed Bin: {bin_id}
                                          Start time: {start_time}"
                                          )) %>%

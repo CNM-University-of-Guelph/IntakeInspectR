@@ -32,7 +32,7 @@ increase in feed intake a feed out event? Default 10 kg}
 
 \item{col_bin_ID}{Name of column with feed bin ID.}
 
-\item{col_animal_id}{Name of column with cow ID.}
+\item{col_animal_id}{Name of column with animal ID.}
 
 \item{col_date}{Name of column with date (formatted as Date) of feeding event.}
 
@@ -58,7 +58,7 @@ errors in automatically collected feed intake data.
 \details{
 Most steps group the data by day and by feed bin ID, meaning that each day
 and feed bin is analysed separately. The final step checks for incorrectly
-recorded end times and uses the data grouped by cow ID to evaluate if she
+recorded end times and uses the data grouped by animal ID to evaluate if she
 visited another feed bin while still being recorded at another feed bin.
 It also generates a log file, summarising each error by count and %. This is
 stored in a temporary file path which is returned in the output list.

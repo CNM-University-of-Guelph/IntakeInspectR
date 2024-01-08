@@ -1,4 +1,4 @@
-#' by_cow_vis UI Function
+#' by_animal_vis UI Function
 #'
 #' @description A shiny Module.
 #'
@@ -7,12 +7,12 @@
 #' @noRd
 #'
 #' @importFrom shiny NS tagList
-mod_by_cow_vis_ui <- function(id){
+mod_by_animal_vis_ui <- function(id){
   ns <- NS(id)
 
   bslib::nav_panel(
   # tabPanel(
-    title = "3b. By Cow - Vis",
+    title = "3b. By Animal - Vis",
     div(class = 'resized-tab-container',
         gridlayout::grid_container(
 
@@ -49,7 +49,7 @@ mod_by_cow_vis_ui <- function(id){
                 fillable = TRUE,
                 selectInput(
                   inputId = ns('animal_id'),
-                  label = "Select Cow ID to view:",
+                  label = "Select Animal ID to view:",
                   # selected = 1,
                   choices = NULL # This is updated by server
                 ),
@@ -104,7 +104,7 @@ mod_by_cow_vis_ui <- function(id){
               bslib::nav_panel(
                 title = "Table: Outliers",
                 value = "outliers_table",
-                bslib::card_title("Cows with most outliers (based on rate of intake regression)"),
+                bslib::card_title("Animals with most outliers (based on rate of intake regression)"),
                 fct_table_description(),
                 DT::DTOutput(outputId = ns("outlier_table")) %>%  shinycssloaders::withSpinner(type=7)
               ),
@@ -112,7 +112,7 @@ mod_by_cow_vis_ui <- function(id){
               bslib::nav_panel(
                 title = "Table: Long durations",
                 value = "durations_table",
-                bslib::card_title("Cows with longest feed durations: "),
+                bslib::card_title("Animals with longest feed durations: "),
                 fct_table_description(),
                 DT::DTOutput(outputId = ns("durations_table")) %>%  shinycssloaders::withSpinner(type=7)
               ),
@@ -127,7 +127,7 @@ mod_by_cow_vis_ui <- function(id){
                     title = "Plot description:",
                     icon = bsicons::bs_icon('info-circle'),
                     h5("Duration vs Intake Plot"),
-                    p("Visualise feed duration vs intake for individual cows. Each point is an individual feeding event. Outlier
+                    p("Visualise feed duration vs intake for individual animals. Each point is an individual feeding event. Outlier
                   points are shown twice, with an arrow pointing from original value to new fitted value. The outlier classifications are based on
                   values selected when cleaned. Outlier type refers to negative (neg) or positive (pos) residual from fitted regression.
                   Boundary lines are the max and min rates of intake selected when cleaning to define outliers.
@@ -179,10 +179,10 @@ mod_by_cow_vis_ui <- function(id){
 
 }
 
-#' by_cow_vis Server Functions
+#' by_animal_vis Server Functions
 #'
 #' @noRd
-mod_by_cow_vis_server <- function(id, df_list){
+mod_by_animal_vis_server <- function(id, df_list){
   moduleServer( id, function(input, output, session){
     ns <- session$ns
 
@@ -218,7 +218,7 @@ mod_by_cow_vis_server <- function(id, df_list){
       if(input$plot_type_overall == "reg") {
         .df %>%
           dplyr::slice_head(n = 80000) %>%
-          fct_plot_by_cow_overall(col_intake = .data$corrected_intake_bybin,
+          fct_plot_by_animal_overall(col_intake = .data$corrected_intake_bybin,
                                   col_duration = .data$corrected_duration_sec_seconds,
                                   pt_size = 3)
 
@@ -242,7 +242,7 @@ mod_by_cow_vis_server <- function(id, df_list){
     ##################################################################### #
     # Outliers Table ----
     ##################################################################### #
-    # Create table summarising number of outliers in each cow
+    # Create table summarising number of outliers in each animal
     # create df in reactive first so that it can be accessed downstream
     # ns: outlier_table
     df_n_outliers <- reactive({
@@ -261,7 +261,7 @@ mod_by_cow_vis_server <- function(id, df_list){
         dplyr::arrange(dplyr::desc(.data$total_outliers))
 
       cols_names <- c(
-        `Cow ID` = 'animal_id',
+        `Animal ID` = 'animal_id',
         `Count outliers (intake too high)` = 'pos',
         `Count outliers (duration too long)` = 'neg',
         `Count negative intakes` = 'neg_intake',
@@ -293,7 +293,7 @@ mod_by_cow_vis_server <- function(id, df_list){
         dplyr::arrange(dplyr::desc(.data$duration_sec)) %>%
         dplyr::slice_head(n=1000)
 
-      colnames(df) <- c('Event start time','Cow ID', 'Feed Bin ID', 'Original duration (sec)', 'Final Duration (sec)', 'Is duration error from "by bin"?', 'Is positive or negative outlier "by cow" ?' )
+      colnames(df) <- c('Event start time','Animal ID', 'Feed Bin ID', 'Original duration (sec)', 'Final Duration (sec)', 'Is duration error from "by bin"?', 'Is positive or negative outlier "by animal" ?' )
 
       return(df)
     })
@@ -316,22 +316,22 @@ mod_by_cow_vis_server <- function(id, df_list){
         s_outlier <- input$outlier_table_rows_selected # DT exports row index
         s_durations <- input$durations_table_rows_selected
 
-        cat("Selected cow IDs from outliers table:\n")
+        cat("Selected animal IDs from outliers table:\n")
         if (length(s_outlier)){
           # use row index to slice out rows of df, then return bin ID
           ids_outlier <- df_n_outliers() %>%
             dplyr::slice(s_outlier) %>%
-            dplyr::mutate(cowID_asnum = as.numeric(.data$`Cow ID`)) %>%
-            dplyr::arrange(.data$cowID_asnum) %>%
-            dplyr::pull(.data$`Cow ID`)
+            dplyr::mutate(animalID_asnum = as.numeric(.data$`Animal ID`)) %>%
+            dplyr::arrange(.data$animalID_asnum) %>%
+            dplyr::pull(.data$`Animal ID`)
 
           cat(unique(ids_outlier), sep = "\n")
         }
 
-        cat("\n\nSelected cow IDs from durations table:\n")
+        cat("\n\nSelected animal IDs from durations table:\n")
         if (length(s_durations)){
           # use row index to slice out rows of df, then return bin ID
-          ids_durations <- df_long_durations() %>% dplyr::slice(s_durations) %>% dplyr::pull(.data$`Cow ID`)
+          ids_durations <- df_long_durations() %>% dplyr::slice(s_durations) %>% dplyr::pull(.data$`Animal ID`)
           cat(unique(ids_durations), sep = "\n")
         }
 
@@ -367,14 +367,14 @@ mod_by_cow_vis_server <- function(id, df_list){
     # Therefore, we can 'update' the UI to include these values
 
     observe({
-      vec_cows <- df_list()$nested_df %>%
+      vec_animals <- df_list()$nested_df %>%
         dplyr::select("animal_id_nest") %>%
         dplyr::distinct(.keep_all = TRUE) %>%
         dplyr::arrange(.data$animal_id_nest) %>%
         dplyr::pull(.data$animal_id_nest)
 
       freezeReactiveValue(input, 'animal_id') # doesn't evaluate on load when no data available
-      updateSelectInput(inputId = 'animal_id', choices = vec_cows)
+      updateSelectInput(inputId = 'animal_id', choices = vec_animals)
     })
 
     # Filter data frame based on selected bin and produce ggplots based on selected plot type
@@ -383,7 +383,7 @@ mod_by_cow_vis_server <- function(id, df_list){
     data_to_plot <- reactive({
       req(df_list())
 
-      # extra table from nested df for 1 cow and plot:
+      # extra table from nested df for 1 animal and plot:
       isolate(df_list()$nested_df) %>%
         dplyr::filter(.data$animal_id_nest == input$animal_id) %>%
         dplyr::pull(.data$fitted) %>%
@@ -401,7 +401,7 @@ mod_by_cow_vis_server <- function(id, df_list){
       if(any(data_to_plot()$outlier_pos_neg %in% 'insufficient_rows_for_regression')){
         # No regression line available, so use different function:
         p <- data_to_plot() %>%
-          fct_plot_by_cow_overall(col_intake = .data$corrected_intake_bybin,
+          fct_plot_by_animal_overall(col_intake = .data$corrected_intake_bybin,
                           col_duration = .data$corrected_duration_sec_seconds,
                           pt_size = 5)+
           labs(title = paste(unique(data_to_plot()$animal_id)),
@@ -412,7 +412,7 @@ mod_by_cow_vis_server <- function(id, df_list){
       } else {
         #make plot object:
         p <- data_to_plot() %>%
-          fct_plot_by_cow(
+          fct_plot_by_animal(
             max_intake_rate_kg_min = df_list()$user_inputs_to_parse_to_vis$max_intake_rate_kg_min,
             min_intake_rate_kg_min = df_list()$user_inputs_to_parse_to_vis$min_intake_rate_kg_min,
             outlier_exemption_max_duration = df_list()$user_inputs_to_parse_to_vis$outlier_exemption_max_duration,
@@ -461,7 +461,7 @@ mod_by_cow_vis_server <- function(id, df_list){
       df_list()$merged_df %>%
         dplyr::filter(.data$animal_id == input$animal_id) %>%
         dplyr::filter(.data$date >= lubridate::ymd(input$dateRange[1]) &  .data$date <= lubridate::ymd(input$dateRange[2])) %>%
-        fct_plot_cow_bins(col_end_time = .data$end_time, subtitle = NULL)
+        fct_plot_animal_bins(col_end_time = .data$end_time, subtitle = NULL)
 
     })
 
@@ -472,7 +472,7 @@ mod_by_cow_vis_server <- function(id, df_list){
 }
 
 ## To be copied in the UI
-# mod_by_cow_vis_ui("by_cow_vis_1")
+# mod_by_animal_vis_ui("by_animal_vis_1")
 
 ## To be copied in the server
-# mod_by_cow_vis_server("by_cow_vis_1")
+# mod_by_animal_vis_server("by_animal_vis_1")

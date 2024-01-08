@@ -100,15 +100,15 @@ mod_uploads_ui <- function(id){
                   choices = NULL # This is updated by server to include vec_bins
                 ),
 
-                # Cow IDs
+                # Animal IDs
                 selectInput(
                   inputId = ns('animal_id'),
-                  label = "Select Cow ID/s (caution: see instructions):",
+                  label = "Select Animal ID/s (caution: see instructions):",
                   multiple = TRUE,
                   selectize = FALSE, # so that it stays in a list format
-                  choices = NULL # This is updated by server to include vec_cows
+                  choices = NULL # This is updated by server to include vec_animals
                 ),
-                p("All cows and feed bin IDs are selected by default. Use Shift and Ctrl keys to select multiple."),
+                p("All animals and feed bin IDs are selected by default. Use Shift and Ctrl keys to select multiple."),
 
 
 
@@ -138,9 +138,9 @@ mod_uploads_ui <- function(id){
                 theme = "primary"
               ),
               bslib::value_box(
-                title = "Number of cows:",
-                value = textOutput(ns("cow_n")) ,
-                showcase = fct_cow_icon('white'),
+                title = "Number of animals:",
+                value = textOutput(ns("animal_n")) ,
+                showcase = fct_animal_icon('white'),
                 height = "150px",
                 theme = "primary"
               ),
@@ -259,11 +259,11 @@ mod_uploads_server <- function(id){
     })
 
     #############################################################
-    # Set up cow ID and feed bin ID
+    # Set up animal ID and feed bin ID
 
     observe({
 
-      vec_cows <- full_data() %>%
+      vec_animals <- full_data() %>%
         dplyr::pull(.data$animal_id) %>% unique() %>% sort()
 
       vec_bins <- full_data() %>%
@@ -272,7 +272,7 @@ mod_uploads_server <- function(id){
       freezeReactiveValue(input, 'animal_id') # doesn't evaluate on load when no data available
       freezeReactiveValue(input, 'bin_id')
 
-      updateSelectInput(inputId = 'animal_id', choices = vec_cows, selected = vec_cows)
+      updateSelectInput(inputId = 'animal_id', choices = vec_animals, selected = vec_animals)
       updateSelectInput(inputId = 'bin_id', choices = vec_bins, selected = vec_bins)
     })
 
@@ -340,7 +340,7 @@ mod_uploads_server <- function(id){
       } else { "ERROR" }
     })
 
-    output$cow_n <- renderText({
+    output$animal_n <- renderText({
       req(full_data()) # require data input before doing anything else
 
       if(tibble::is_tibble(variable_out$current_df)){

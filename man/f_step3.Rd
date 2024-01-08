@@ -65,7 +65,7 @@ This function calculates the various conditions used to check the
   a feeding event (`end_weight_kg`) is greater than the weight recorded at the
   beginning of the feeding event (`start_weight_kg`), resulting in a negative
   feed intake. This is likely due to the inability of the sensor (load cell)
-  to get a stable weight, for example when a cow bumps the feed bin when
+  to get a stable weight, for example when a animal bumps the feed bin when
   exiting. Therefore, if the start weight of the next feeding event
   (`nextStart`) is lower than both the `start_weight_kg` and `end_weight_kg`, then
   this function flags it as a `replace:` error. This means it is logical to

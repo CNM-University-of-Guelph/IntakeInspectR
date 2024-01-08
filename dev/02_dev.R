@@ -51,7 +51,7 @@ golem::add_module(name = "initial_summary", fct = "", with_test = TRUE)
 golem::add_module(name = "by_bin", utils = "bin", with_test = TRUE)
 
 
-golem::add_module(name = "by_cow", fct = "cow", with_test = TRUE)
+golem::add_module(name = "by_animal", fct = "animal", with_test = TRUE)
 
 golem::add_module(name = "files_in",  with_test = TRUE)
 
@@ -63,9 +63,9 @@ golem::add_module(name = 'by_bin_clean', fct = "")
 
 golem::add_module(name = 'uploads')
 
-golem::add_module(name = 'by_cow_clean')
+golem::add_module(name = 'by_animal_clean')
 
-golem::add_module(name = 'by_cow_vis')
+golem::add_module(name = 'by_animal_vis')
 
 
 ## Add helper functions ----

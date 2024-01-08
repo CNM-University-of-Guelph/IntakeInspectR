@@ -119,7 +119,7 @@ f_step2 <- function(df_in,
 #'   a feeding event (`end_weight_kg`) is greater than the weight recorded at the
 #'   beginning of the feeding event (`start_weight_kg`), resulting in a negative
 #'   feed intake. This is likely due to the inability of the sensor (load cell)
-#'   to get a stable weight, for example when a cow bumps the feed bin when
+#'   to get a stable weight, for example when a animal bumps the feed bin when
 #'   exiting. Therefore, if the start weight of the next feeding event
 #'   (`nextStart`) is lower than both the `start_weight_kg` and `end_weight_kg`, then
 #'   this function flags it as a `replace:` error. This means it is logical to
@@ -523,13 +523,13 @@ f_step5_correct_intakes <-
 #'
 #' This function checks for errors in the time recorded by the feed bin without making
 #' any assumptions about a biologically possible rate of intake. This is technically
-#' a 'by cow' step, as it compares start and end times within a cow (across feed bins)
-#' to see if the cow visited another feed bin while still being recorded as present
+#' a 'by animal' step, as it compares start and end times within a animal (across feed bins)
+#' to see if the animal visited another feed bin while still being recorded as present
 #' at a feed bin (i.e. overlapping events). If this is found, it will trim the first
 #' event to end 10 sec before the next recorded feeding event.
 #'
 #' @param df_step5 Data frame produced by [f_step5()]
-#' @param col_animal_id Name of column with cow ID.
+#' @param col_animal_id Name of column with animal ID.
 #' @param col_date Name of column with date (formatted as Date) of feeding event
 #' @param col_start_time,col_end_time Name of column with start and end time (formatted as POSIXct
 #'   date-time) recorded by feed bin.
@@ -551,7 +551,7 @@ f_step6_correct_end_times <-
       dplyr::arrange( {{ col_start_time }}) %>%
       dplyr::mutate(
         nextStartTime = data.table::shift({{ col_start_time}}, type = 'lead'),
-        # is the end time later in time than the time of the next feeding event by the cow
+        # is the end time later in time than the time of the next feeding event by the animal
         is_end_time_overlap_error = dplyr::if_else(
           is.na(.data$nextStartTime), # check if NA - NA due to last event of day
           true = FALSE, # if last event of day, assume no error (i.e. FALSE)

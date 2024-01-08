@@ -42,7 +42,7 @@ plot_bin_timeline <-
 #' plot_bin_regression function
 #'
 #' @description A function to plot duration_sec vs feed_intake scatter plot.
-#' This doesn't include an actual regression function because this is best done per cow, not per bin.
+#' This doesn't include an actual regression function because this is best done per animal, not per bin.
 #'
 #' @param df_in Dataframe that has been filtered via user input (`input$bin_id`) to only include 1 feed bin.
 #' @param x,y columns to plot on x- and y-axis

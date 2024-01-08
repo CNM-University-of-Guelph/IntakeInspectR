@@ -16,7 +16,7 @@ A data frame with 94,026 rows and 11 columns:
   \item{diet}{name of diet assigned to feed bin}
   \item{intake}{amount of feed eaten during event, kg}
   \item{date}{date of feeding event}
-  \item{animal_id}{Fake cow identification number}
+  \item{animal_id}{Fake animal identification number}
   ...
 }
 }
@@ -28,7 +28,7 @@ demo_insentec_data
 }
 \description{
 A dataset derived of real intake data from Insentec Feed Bins which are
-distributed to allow IntakeInspectR functionality to be tested. Cow numbers
+distributed to allow IntakeInspectR functionality to be tested. Animal numbers
 have been changed to be anonymous. It contains data from 100 feed bins for 7 days.
 }
 \keyword{datasets}

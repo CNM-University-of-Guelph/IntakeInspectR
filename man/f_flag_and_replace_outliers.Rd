@@ -21,7 +21,7 @@ f_flag_and_replace_outliers(
 )
 }
 \arguments{
-\item{df_in}{data frame of one cow to be cleaned.}
+\item{df_in}{data frame of one animal to be cleaned.}
 
 \item{col_intake}{name of column with intake data to use, normally the
 corrected intake from 'by bin' functions}
@@ -72,7 +72,7 @@ the measured duration. Whereas, events that have a rate of intake lower than
 the `min_intake_kg_min` will have a new (shorter) duration estimated from the
 measured feed intake. This change in duration is less relevant for most
 users, and it is also important to remember that it is theortically possible
-that cows can eat very slowly, but there will always be an upper limit to how
+that animals can eat very slowly, but there will always be an upper limit to how
 fast they can eat. Finally, some very long durations may also have a high
 enough intake that they are not flagged by the `min_intake_kg_min` but are
 likely not a realistic duration. Therefore, any events with a duration that
@@ -80,15 +80,15 @@ were not previously flagged and have a duration longer than
 `max_duration_min` are flagged to get a new (lower) duration estimated from
 the measured intake.
 Overall, this step provides a way of filtering feeding events based on
-biologically relevant limitations to what a cow might be expected to normally
+biologically relevant limitations to what a animal might be expected to normally
 do.\cr
 }
 \details{
 2) As durations get longer, the range of possible feed intakes increases, so
 it might be important for some users to still use a residual SD outlier
-detection method to flag potential outliers from what a cow 'normally' does.
+detection method to flag potential outliers from what a animal 'normally' does.
 This should be done with caution as animals can behave in 'abnormal' ways for
-very valid reasons. For example, a cow might consume a larger meal at a
+very valid reasons. For example, a animal might consume a larger meal at a
 relatively fast rate of intake if it has been previously been restricted for
 some reason, such as an experimental treatment. Due to potentially large
 outliers, a robust linear model is fit first using `MASS::rlm` The

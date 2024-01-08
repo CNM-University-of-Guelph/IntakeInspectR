@@ -20,5 +20,5 @@ A ggplot2 object
 }
 \description{
 A function to plot duration_sec vs feed_intake scatter plot.
-This doesn't include an actual regression function because this is best done per cow, not per bin.
+This doesn't include an actual regression function because this is best done per animal, not per bin.
 }

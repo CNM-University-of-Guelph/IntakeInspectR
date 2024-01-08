@@ -291,13 +291,13 @@ fct_modal_content_uploads_more_info <- function() {
       "The Insentec Roughage Intake Control (RIC) System is one type
                  of system used by livestock researchers. This system consists of
                  feed bins which are suspended on load cells that constantly
-                 measure the weight of the bin and the feed inside it. When a cow
-                 visits the feed bin, a RFID reader checks the cow's ear tag,
+                 measure the weight of the bin and the feed inside it. When a animal
+                 visits the feed bin, a RFID reader checks the animal's ear tag,
                  determines if it is allowed access and opens a gate (on some
                  models) and records the starting time and weight of the feed bin
                  of the feeding event. The system uses 2 lasers to determine if
-                 the cow's head is still over the feed bin, and once it detects
-                 that the cow has left it will record the end time and weight.
+                 the animal's head is still over the feed bin, and once it detects
+                 that the animal has left it will record the end time and weight.
                  This 'event' corresponds to 1 row of data in the database. This
                  data can be messy and researchers often do not have the ability to
                  easily visualise all of these individual events before
@@ -306,7 +306,7 @@ fct_modal_content_uploads_more_info <- function() {
                  system in multiple flat file formats. The minimum information required is:
                  "),
     HTML("<ul>
-                   <li> Cow ID </li>
+                   <li> Animal ID </li>
                    <li> Feed Bin ID </li>
                    <li> Start Time (and date) </li>
                    <li> End Time (and date) </li>
@@ -381,12 +381,12 @@ fct_modal_content_uploads_instructions <- function() {
       additional columns, it will be ignored as intake is calculated based on
       the provided `start_weight_kg` and `end_weight_kg` columns."),
 
-    strong("Filtering feed bin and cow IDs"),
+    strong("Filtering feed bin and animal IDs"),
     br(),
     p("After uploading the files, use the provided controls to filter the data
-      by dates, feed bin IDs, and cow IDs. However, please ensure that all data
+      by dates, feed bin IDs, and animal IDs. However, please ensure that all data
       for a feed bin is included. If you filter the data to include only some
-      cows, but other cows also used the same feed bin, the cleaning process may not work as expected.")
+      animals, but other animals also used the same feed bin, the cleaning process may not work as expected.")
   )
 }
 
@@ -395,15 +395,15 @@ fct_modal_content_uploads_instructions <- function() {
 ##############################################################################
 
 
-#' Draw SVG cow face
+#' Draw SVG animal face
 #'
 #' @param col colour to use for lines. either 'black' or 'white'
 #'
 #' @return returns HTML() with the <svg> code to draw icon.
-#' Can be tested in R console using `htmltools::browsable(fct_cow_icon('white'))`
+#' Can be tested in R console using `htmltools::browsable(fct_animal_icon('white'))`
 #' @export
 #'
-fct_cow_icon <- function(col){
+fct_animal_icon <- function(col){
   if(col == 'white'){
     HTML('<svg fill="#ffffff" height="64px" width="64px" version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 512 512" xml:space="preserve" stroke="#ffffff"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round" stroke="#CCCCCC" stroke-width="1.024"></g><g id="SVGRepo_iconCarrier"> <g> <g> <path d="M211.054,349.845c-8.773,0-15.886,7.113-15.886,15.886v38.019c0,8.773,7.113,15.886,15.886,15.886 s15.886-7.113,15.886-15.886v-38.019C226.941,356.958,219.828,349.845,211.054,349.845z"></path> </g> </g> <g> <g> <path d="M300.945,349.845c-8.773,0-15.886,7.113-15.886,15.886v38.019c0,8.773,7.113,15.886,15.886,15.886 c8.773,0,15.886-7.113,15.886-15.886v-38.019C316.832,356.958,309.719,349.845,300.945,349.845z"></path> </g> </g> <g> <g> <path d="M512,153.677c0-8.773-7.113-15.886-15.886-15.886H394.07c-7.068-12.725-15.95-24.544-26.527-35.122 c-0.377-0.377-0.764-0.737-1.143-1.11V44.186c0-8.773-7.113-15.886-15.886-15.886s-15.886,7.113-15.886,15.886v33.17 c-49.075-28.287-109.4-27.364-157.256-0.116V44.186c0-8.773-7.113-15.886-15.886-15.886s-15.886,7.113-15.886,15.886v57.058 c-11.042,10.853-20.323,23.267-27.637,36.549H15.886C7.113,137.792,0,144.905,0,153.678c0,50.445,50.811,85.642,98.249,67.288 v78.902c-24.231,15.814-38.92,42.592-38.92,72.051v25.642c0,47.497,38.641,86.139,86.14,86.139h221.063 c47.498,0,86.14-38.641,86.14-86.139v-25.642c0-29.462-14.694-56.242-38.92-72.052v-78.901 C461.232,239.336,512,204.06,512,153.677z M256.221,88.228c-10.365,57.372-63.049,98.196-121.841,93.074 C149.187,126.34,199.212,88.162,256.221,88.228z M130.021,214.213c0-0.472,0.011-0.944,0.016-1.416 c76.41,7.501,145.145-45.73,157.736-120.637c53.146,13.727,94.206,62.646,94.206,122.053v72.938 c-18.231-3.294-244.246-1.398-251.958,0V214.213z M35.027,169.563h69.636c-1.099,3.735-2.125,7.782-2.943,11.621 C81.902,202.533,46.556,196.414,35.027,169.563z M420.898,371.919v25.642h0.001c0,29.978-24.388,54.367-54.368,54.367H145.468 c-29.979,0-54.368-24.388-54.368-54.367v-25.642c0-30.536,24.73-54.367,54.368-54.367h221.063 C396.111,317.553,420.898,341.329,420.898,371.919z M410.3,181.205c-0.831-3.925-1.81-7.809-2.936-11.642h69.609 C465.434,196.438,430.102,202.507,410.3,181.205z"></path> </g> </g> <g> <g> <circle cx="179.916" cy="240.569" r="21.015"></circle> </g> </g> <g> <g> <circle cx="332.729" cy="240.569" r="21.015"></circle> </g> </g> </g></svg>'
     )

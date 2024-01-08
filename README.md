@@ -410,14 +410,14 @@ p_bin_timeline_clean
 
 <img src="man/figures/README-unnamed-chunk-14-1.png" width="100%" />
 
-## 3a. By Cow - Clean
+## 3a. By Animal - Clean
 
-This function takes the whole cleaned data frame, and splits by cow to
-iterate through regression functions.
+This function takes the whole cleaned data frame, and splits by animal
+to iterate through regression functions.
 
 ``` r
-by_cow_list_out <- 
- IntakeInspectR::f_iterate_cows(
+by_animal_list_out <- 
+ IntakeInspectR::f_iterate_animals(
     list_cleaned$df_cleaned,
     col_animal_id = animal_id,
     col_bin_id = bin_id,
@@ -450,11 +450,11 @@ This data is returned as a nested data frame. This makes many operations
 easier but users may prefer a normal data frame:
 
 ``` r
-merged_by_cow <- 
-  by_cow_list_out$nested_out %>% 
+merged_by_animal <- 
+  by_animal_list_out$nested_out %>% 
   IntakeInspectR:::f_merge_corrected_outlier_data()
 
-merged_by_cow %>% glimpse()
+merged_by_animal %>% glimpse()
 #> Rows: 60,056
 #> Columns: 48
 #> $ transponder_id                  <int64> 13052339, 13052339, 13052339, 130523…
@@ -507,17 +507,17 @@ merged_by_cow %>% glimpse()
 #> $ final_duration_sec              <dbl> 118, 243, 208, 299, 87, 315, 179, 338,…
 ```
 
-## 3b. By Cow - Vis
+## 3b. By Animal - Vis
 
 ### Overall
 
-This shows all changes made at a per cow level but displayed together on
-this single plot for an overview.
+This shows all changes made at a per animal level but displayed together
+on this single plot for an overview.
 
 ``` r
 
-merged_by_cow %>%
-   IntakeInspectR:::fct_plot_by_cow_overall(
+merged_by_animal %>%
+   IntakeInspectR:::fct_plot_by_animal_overall(
     col_intake = corrected_intake_bybin,
     col_duration = corrected_duration_sec_seconds,
     pt_size = 3)+
@@ -527,12 +527,12 @@ merged_by_cow %>%
 
 <img src="man/figures/README-unnamed-chunk-17-1.png" width="100%" />
 
-### Individual cow
+### Individual animal
 
-#### Find some cows with errors
+#### Find some animals with errors
 
 ``` r
-merged_by_cow %>% 
+merged_by_animal %>% 
   dplyr::count(.data$animal_id, .data$outlier_pos_neg) %>% 
   dplyr::mutate(dplyr::across('outlier_pos_neg', ~tidyr::replace_na(.x, 'not_error'))) %>%
   tidyr::pivot_wider(names_from = 'outlier_pos_neg', values_from = 'n') %>%
@@ -558,12 +558,12 @@ merged_by_cow %>%
 #> # ℹ 123 more rows
 ```
 
-#### Visualise some individual cows
+#### Visualise some individual animals
 
 ``` r
-merged_by_cow %>%
+merged_by_animal %>%
   filter(animal_id %in% c(2040,2043,2107,2007)) %>% 
-  IntakeInspectR::fct_plot_by_cow(
+  IntakeInspectR::fct_plot_by_animal(
     col_intake = .data$corrected_intake_bybin,
     col_duration = .data$corrected_duration_sec_seconds,
     pt_size = 3)+
@@ -586,7 +586,7 @@ correct data using any combination of corrections.
 ``` r
 
 df_all_steps <- 
-  merged_by_cow %>% 
+  merged_by_animal %>% 
   dplyr::select(
     bin_id,
     animal_id,
@@ -613,7 +613,7 @@ df_all_steps <-
     corrected_end_time,
     corrected_duration_sec_seconds,
     
-    # By Cow - Outlier detection
+    # By Animal - Outlier detection
     is_manual_outlier,
     manual_outlier_classification,
     is_outlier,
@@ -653,9 +653,9 @@ df_all_steps %>% glimpse()
 ### Keep only corrected end weight and end time
 
 This is an example of selecting a final intake that ignores fixing start
-weight errors or outlier detection (By Cow), but does correct for long
-durations where feeding events by a cow overlapped at different feed
-bins.
+weight errors or outlier detection (By Animal), but does correct for
+long durations where feeding events by a animal overlapped at different
+feed bins.
 
 ``` r
 df_all_steps %>% 
@@ -692,7 +692,7 @@ pre-calcualted flags:
 
 ``` r
 simplified_final_df <- 
-  merged_by_cow %>% 
+  merged_by_animal %>% 
   dplyr::rowwise() %>%
   dplyr::mutate(
     # overall flag for if anything was modified in the event
@@ -721,13 +721,14 @@ simplified_final_df %>% glimpse()
 #> $ is_modified                   <lgl> FALSE, FALSE, FALSE, FALSE, FALSE, FALSE…
 ```
 
-### Notes on By Cow outlier detection
+### Notes on By Animal outlier detection
 
-The By Cow functions require an x axis (duration) and y axis (intake) to
-be specified for it to use for fitting regressions.Therefore, it is not
-possible to exclude some error types from the By Bin cleaning after
-running the By Cow functions, instead users should re-run
-`f_iterate_cows` and specify the columns they wish to use. For example:
+The By Animal functions require an x axis (duration) and y axis (intake)
+to be specified for it to use for fitting regressions.Therefore, it is
+not possible to exclude some error types from the By Bin cleaning after
+running the By Animal functions, instead users should re-run
+`f_iterate_animals` and specify the columns they wish to use. For
+example:
 
 ``` r
 list_cleaned$df_cleaned %>% 
@@ -737,7 +738,7 @@ list_cleaned$df_cleaned %>%
     selected_duration_sec_bybin =   as.numeric(corrected_end_time - start_time) 
   ) %>% 
   # Re-run with new columns:
- IntakeInspectR::f_iterate_cows(
+ IntakeInspectR::f_iterate_animals(
     col_animal_id = animal_id,
     col_bin_id = bin_id,
     col_date = date,
@@ -794,7 +795,7 @@ daily_intakes %>%
 
 <img src="man/figures/README-unnamed-chunk-25-1.png" width="100%" />
 
-### Visualise per cow daily intake
+### Visualise per animal daily intake
 
 It can be useful to monitor daily feed intake over time and a low intake
 might be important to follow up on.

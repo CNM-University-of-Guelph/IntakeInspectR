@@ -35,16 +35,16 @@ mod_welcome_ui <- function(id){
             # h3("A dashboard for automatically collected feed intake data"),
 
             # Further description
-            p("IntakeInspectR is intended for cleaning an entire data set from
-                 multiple Insentec (RIC) feed bins and multiple animals (we
-                 have assumed 'cows' for now) and generating a file containing
-                 daily intake (kg) for each cow. In addition, data removals
-                 and manipulations are recorded in log files and appended in
-                 columns to the original data. A typical workflow involves
-                 proceeding through steps 1 to 3 at the top of the screen and
-                 following the green buttons throughout. Step 2a cleans the
-                 data based on individual feed bins, then Step 3a cleans the
-                 data based on individual cows.
+            p("
+              IntakeInspectR is intended for cleaning an entire data set from
+              multiple Insentec (RIC) feed bins and multiple animals and
+              generating a file containing daily intake (kg) for each animal.
+              In addition, data removals and manipulations are recorded in log
+              files and appended in columns to the original data. A typical
+              workflow involves proceeding through steps 1 to 3 at the top of
+              the screen and following the green buttons throughout. Step 2a
+              cleans the data based on individual feed bins, then Step 3a
+              cleans the data based on individual animals.
                  "),
             br(),
 
