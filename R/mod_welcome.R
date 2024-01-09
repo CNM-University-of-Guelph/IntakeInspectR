@@ -32,7 +32,6 @@ mod_welcome_ui <- function(id){
 
             # Page title and subtitle
             h2("Welcome to IntakeInspectR"),
-            # h3("A dashboard for automatically collected feed intake data"),
 
             # Further description
             p("

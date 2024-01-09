@@ -165,8 +165,9 @@ f_iterate_animals <-
 
 #' f_flag_and_replace_outliers
 #'
-#' This function executes a 3 step process for outlier detection: \cr\cr 1)
-#' User-defined 'manual outliers': Firstly, individual feeding events that are
+#' This function executes a 3 step process for outlier detection, detailed below.
+#'
+#' 1) User-defined 'manual outliers': Firstly, individual feeding events that are
 #' less than or equal to the `outlier_exemption_max_duration` and
 #' `outlier_exemption_max_intake` are classified as 'exempt' from further
 #' outlier detection. This is useful as many events occur with low intakes (e.g.

@@ -55,8 +55,10 @@ A nested data frame with a column called `data` that is the original
   `f_merge_corrected_outlier_data()`
 }
 \description{
-This function executes a 3 step process for outlier detection: \cr\cr 1)
-User-defined 'manual outliers': Firstly, individual feeding events that are
+This function executes a 3 step process for outlier detection, detailed below.
+}
+\details{
+1) User-defined 'manual outliers': Firstly, individual feeding events that are
 less than or equal to the `outlier_exemption_max_duration` and
 `outlier_exemption_max_intake` are classified as 'exempt' from further
 outlier detection. This is useful as many events occur with low intakes (e.g.
@@ -82,8 +84,7 @@ the measured intake.
 Overall, this step provides a way of filtering feeding events based on
 biologically relevant limitations to what a animal might be expected to normally
 do.\cr
-}
-\details{
+
 2) As durations get longer, the range of possible feed intakes increases, so
 it might be important for some users to still use a residual SD outlier
 detection method to flag potential outliers from what a animal 'normally' does.
