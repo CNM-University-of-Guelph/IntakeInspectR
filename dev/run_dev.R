@@ -21,6 +21,9 @@ golem::document_and_reload()
 # visualise reactive log in real time in Ctrl + F3 to open vis in browser:
 options(shiny.reactlog=TRUE)
 
+# Newer option in shiny for development:
+shiny::devmode(devmode = TRUE, verbose = TRUE)
+
 
 # options(shiny.host='0.0.0.0')
 options(shiny.host='127.0.0.1')
