@@ -83,6 +83,7 @@ app_ui <- function(request) {
     bslib::nav_spacer(),
     bslib::nav_item(
       tags$a(
+        paste0("v",utils::packageVersion("IntakeInspectR")),
         bsicons::bs_icon("github"),
         href = "https://github.com/CNM-University-of-Guelph/IntakeInspectR",
         target = "_blank"
