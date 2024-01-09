@@ -66,6 +66,7 @@ mod_uploads_ui <- function(id){
                       accept = c(".DAT", ".dat",
                                  ".CSV", ".csv",
                                  ".TXT", ".txt")),
+            br(),
             shinyWidgets::switchInput(inputId = ns("use_demo_data"),
                                       value = FALSE,
                                       onLabel = "TRUE", # TRUE
@@ -74,6 +75,25 @@ mod_uploads_ui <- function(id){
                                       labelWidth = '100px',
                                       width='auto',
                                       inline=FALSE),
+            br(),
+
+            bslib::accordion(
+              id = ns('accordian_custom_colnames'), # must have ID to work
+              open = FALSE,
+              bslib::accordion_panel(
+                title = "Advanced: Custom column names",
+                p("
+                  The following column names are required if uploading a .csv
+                  or .txt file. If your file uses different column names,
+                  define them under 'uploaded_names' below. They will then be renamed
+                  to the required names for this app.
+                  "),
+                strong("Double click cells to edit."),
+
+                DT::DTOutput(ns("df_custom_colnames")),
+
+              )),
+
             br(),
 
             # hide until data uploaded:
@@ -85,6 +105,7 @@ mod_uploads_ui <- function(id){
                                                        fill=FALSE, #card won't change size inside of parent
                                                        fillable=TRUE #contents of card will fill out
                                                        ),
+                h5("Filter uploaded data (optional)"),
                 # Dates
                 dateRangeInput(ns('dateRange'),
                                label = 'Date range to use: ',
@@ -109,9 +130,6 @@ mod_uploads_ui <- function(id){
                   choices = NULL # This is updated by server to include vec_animals
                 ),
                 p("All animals and feed bin IDs are selected by default. Use Shift and Ctrl keys to select multiple."),
-
-
-
 
                 actionButton(ns('filter_data'), label = "Filter data", class='btn-success')
               )
@@ -162,10 +180,6 @@ mod_uploads_ui <- function(id){
             ),
 
 
-
-
-
-
           gridlayout::grid_card(
             area = "display_data",
             wrapper = bslib::card_body,
@@ -195,38 +209,37 @@ mod_uploads_server <- function(id){
     ###########################################################
     full_data <- reactive({
       if(input$use_demo_data == FALSE){
-         # require there to be user input from UI, or else don't execute
-      req(input$DAT_in)
+        # require there to be user input from UI, or else don't execute
+        req(input$DAT_in)
 
-     filetype <- fct_check_filetypes(input$DAT_in$name)
+        filetype <- fct_check_filetypes(input$DAT_in$name)
+        print('DEV: Recalculating intake as start_weight_kg - end_weight_kg')
 
+        shinybusy::show_modal_spinner(spin = 'orbit', text = 'Processing files...')
 
-      print('DEV: Recalculating intake as start_weight_kg - end_weight_kg')
-
-      shinybusy::show_modal_spinner(spin = 'orbit', text = 'Processing files...')
-
-      if(filetype %in% c("dat","DAT")){
-        df_out <- fct_import_DAT_default(.x = input$DAT_in$datapath,
-                               .y = input$DAT_in$name)
+        if(filetype %in% c("dat","DAT")){
+          df_out <- fct_import_DAT_default(.x = input$DAT_in$datapath,
+                                           .y = input$DAT_in$name)
         } else if(filetype %in% c("csv", "txt", "CSV", "TXT")){
-        df_out <- fct_import_csv_txt(.x = input$DAT_in$datapath)
-        }
 
-      # coerce all numbers to doubles:
-      df_out <- df_out %>%
-        dplyr::mutate(dplyr::across(tidyselect::where(is.numeric), ~ as.double(.x)))
+          df_out <- fct_import_csv_txt(.x = input$DAT_in$datapath,
+                                       colnames_df = react_custom_cols$df)
 
-      shinybusy::remove_modal_spinner()
+          }
 
-      variable_out$current_df <- tibble::as_tibble(df_out)
-      # browser()
+        # coerce all numbers to doubles:
+        df_out <- df_out %>%
+          dplyr::mutate(dplyr::across(tidyselect::where(is.numeric), ~ as.double(.x)))
 
-      return(df_out)
+        shinybusy::remove_modal_spinner()
+
+        variable_out$current_df <- tibble::as_tibble(df_out)
+
+        return(df_out)
+
       } else if(input$use_demo_data){
         variable_out$current_df <- tibble::as_tibble(IntakeInspectR::demo_insentec_data)
-
         return( tibble::as_tibble(IntakeInspectR::demo_insentec_data ))# example data stored in ./data/
-
       }
 
 
@@ -245,6 +258,10 @@ mod_uploads_server <- function(id){
 
       # at same time, unhide the UI related to dates:
       shinyjs::show(id = 'toggle_date_inputs', anim = TRUE)
+
+      #in addition, collapse custom column name accordian:
+      bslib::accordion_panel_close(id = 'accordian_custom_colnames', values = TRUE)
+
 
       return(dates_list_out)
     })
@@ -276,17 +293,51 @@ mod_uploads_server <- function(id){
       updateSelectInput(inputId = 'bin_id', choices = vec_bins, selected = vec_bins)
     })
 
+    ##############################################################
+    # Custom column names
+    # This uses an editable DT to collect new names for columns
 
+    react_custom_cols <- reactiveValues(
+      df = data.frame(
+        required_names = c('animal_id', 'bin_id', 'start_time', 'end_time',
+                           'duration_sec', 'start_weight_kg', 'end_weight_kg', 'date'),
+        uploaded_names = c('animal_id', 'bin_id', 'start_time', 'end_time',
+                           'duration_sec', 'start_weight_kg', 'end_weight_kg', 'date')
+      )
+      )
+
+    # output DT as editable
+    output$df_custom_colnames <- DT::renderDT({
+      DT::datatable(
+        react_custom_cols$df,
+        options = list(
+          dom = 't'  # Display only the table without additional controls
+        ),
+        # allow edits in second column only
+        editable = list(target = "cell", disable = list(columns = 0)),
+        rownames = FALSE
+      )
+    })
+
+
+    # Observe for change uses *_cell_edit which returns the position and new value
+    # Then at end, overwrite value stored in df
+    observeEvent(input$df_custom_colnames_cell_edit, {
+      #get values
+      info = input$df_custom_colnames_cell_edit
+      i = as.numeric(info$row)
+      j = as.numeric(info$col)+1
+      k = as.character(info$value)
+
+      #write values to reactive
+      react_custom_cols$df[i,j] <- k
+    })
 
 
 
 
     #############################################################
-
-
-
-
-
+    # Filter data
     # when button pressed, filter df and return it as full_data()
     sub_data <-  reactive({
 
@@ -310,13 +361,6 @@ mod_uploads_server <- function(id){
 
     ###########################################################
     # Outputs
-    output$glimpse_cols <-  renderPrint({
-      print(colnames(full_data()) %>% t())
-    })
-
-
-
-
 
 
     # dynamically change display:
@@ -326,6 +370,9 @@ mod_uploads_server <- function(id){
 
       if(tibble::is_tibble(variable_out$current_df)){
         dplyr::glimpse(variable_out$current_df)
+
+        cat("\nColumn names defined for renaming:\n")
+        print(react_custom_cols$df)
       } else { "ERROR" }
     })
 

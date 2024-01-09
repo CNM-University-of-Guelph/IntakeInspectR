@@ -66,14 +66,19 @@ fct_import_DAT_default <- function(.x, .y){
 #' R code which can have any column name parsed to it.
 #'
 #' @param .x datapath from import$DAT_in$datapath
+#' @param colnames_df a dataframe with 2 columns 'required_names' and 'uploaded_names'. Uploaded names are entered by user and get renamed to required_names.
 #'
 #' @export
-fct_import_csv_txt <- function(.x){
+fct_import_csv_txt <- function(.x, colnames_df){
 
 
   # map over each file
   df_imported <- purrr::map(.x, data.table::fread) %>%
     purrr::list_rbind()
+
+  #store sample of original uploaded df
+  cols_original_import <- colnames(df_imported)
+
 
   print('DEV: checking column names for matches')
 
@@ -82,6 +87,18 @@ fct_import_csv_txt <- function(.x){
                         'end_time', 'duration_sec', 'start_weight_kg', 'end_weight_kg',
                         'date')
 
+  if(!all(required_columns %in% colnames(df_imported))){
+    # try to rename columns:
+    df_imported <-
+      fct_missing_col_error_handler({
+        df_imported %>%
+          dplyr::rename_with(~ colnames_df$required_names[match(.x, colnames_df$uploaded_names, nomatch = "ERROR")],
+                             .cols = colnames_df$uploaded_names)
+      })
+
+  }
+
+  # Then, re-check df_imported and continue
   if(all(required_columns %in% colnames(df_imported))){
     # if true, then format dates and times
     # Try executing the code and catch the warning
@@ -90,17 +107,22 @@ fct_import_csv_txt <- function(.x){
         df_imported %>%
         dplyr::mutate(dplyr::across(c('start_time', 'end_time'), ~ lubridate::ymd_hms(stringr::str_c(.data$date, .x, sep = "_"))),
                       date = lubridate::ymd(.data$date)) %>%
-        # re-calculate intake column to mimick raw files not (FR)
+        # re-calculate intake column to mimic raw files not (FR)
         dplyr::mutate(intake = .data$start_weight_kg - .data$end_weight_kg)
       )
     })
 
   } else {
-    print('test: col error')
-    # if false, then try and select with all_of() so that meaningful error is thrown. Not returning anything.
-    fct_missing_col_error_handler({
-      df_imported %>% dplyr::select(tidyselect::all_of(required_columns))
-    })
+    warning("column names of original df uploaded:")
+    warning(cols_original_import)
+
+    if (!is.null(df_imported)){
+      # if false, then try and select with all_of() so that meaningful error is thrown. Not returning anything.
+      fct_missing_col_error_handler({
+        df_imported %>% dplyr::select(tidyselect::all_of(required_columns))
+      })
+    }
+
     # return an empty data frame so that app doesn't crash
     df_out <- data.frame(
       animal_id = integer(),
@@ -184,12 +206,13 @@ fct_missing_col_error_handler <- function(expr) {
       warning("An error occurred:", conditionMessage(e))
       fct_show_custom_modal(
         content = list(
-          p("Error: missing columns in uploaded data. Please close this box and try to upload files again.
-              More details:", conditionMessage(e))
+          p("Error: missing columns in uploaded data. Please close this box and try to upload files with correct column names.
+            Or, use the 'Advanced: Custom column names' to rename columns.
+              More details:"),
+          conditionMessage(e)
         ),
         title = "Error!"
       )
-      # Return the result of the expr as is
       return(NULL)
     }
   )
@@ -327,14 +350,17 @@ fct_modal_content_uploads_more_info <- function() {
 fct_modal_content_uploads_instructions <- function() {
    list(
     #h4("Instructions"),
-    strong("Upload .DAT, .CSV or .TXT files"),
+    p("Either .DAT, .CSV or .TXT files can be uploaded.
+      Multiple files will be joined together automatically.
+      See detailed instructions for each file type below."),
+    br(),
 
     strong(".DAT Files"),
     br(),
     p("When uploading .DAT files, please note that they are specific to the
-      Insentec (RIC) system and should not have column names. However, the columns
-      should be in the following order, as they will be assigned these
-      hardcoded column names (only these first 10 columns will be imported):"),
+      Insentec (RIC) system and therefore these should not have column names.
+      However, the columns should be in the following order, as they will be
+      assigned the following column names (only these first 10 columns will be imported):"),
 
     HTML(paste("<ul>",
                paste("<li>",
@@ -345,7 +371,7 @@ fct_modal_content_uploads_instructions <- function() {
                "</ul>", sep = "")),
     br(),
     p("In addition, the file names for .DAT files must include the date as 6 digits in the format YYMMDD,
-      and no other numbers should be in the file name, e.g. `VR220428.DAT`"),
+      and no other numbers should be in the file name, e.g. `VR220428.DAT`. This is the only way the Insentec system records the date for the files."),
 
     strong(".CSV and .TXT Files"),
     br(),
@@ -364,6 +390,12 @@ fct_modal_content_uploads_instructions <- function() {
                        'date'
                      ), "</li>", sep = "", collapse = ""),
                "</ul>", sep = "")),
+    p("
+      If a file is uploaded with incorrect names a warning will be shown. You
+      can then use the 'Advanced: Custom column names' drop down box to rename
+      the columns that were uploaded to the required column names.
+      "),
+
     p("Currently the date must be provided separately from the start_time and end_time. The date
       should be in a format that can be parsed to",
       tags$code(a(href="https://lubridate.tidyverse.org/reference/ymd.html",
@@ -378,7 +410,7 @@ fct_modal_content_uploads_instructions <- function() {
 
     p("If using .csv or .txt files you can upload additional columns beyond the required ones and they will
       be retained throughout analysis. If there is an `intake` column among the
-      additional columns, it will be ignored as intake is calculated based on
+      additional columns, it will be ignored as intake is always calculated based on
       the provided `start_weight_kg` and `end_weight_kg` columns."),
 
     strong("Filtering feed bin and animal IDs"),

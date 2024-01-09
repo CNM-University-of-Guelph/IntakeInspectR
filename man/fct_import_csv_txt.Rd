@@ -4,10 +4,12 @@
 \alias{fct_import_csv_txt}
 \title{Function for importing .csv or .txt}
 \usage{
-fct_import_csv_txt(.x)
+fct_import_csv_txt(.x, colnames_df)
 }
 \arguments{
 \item{.x}{datapath from import$DAT_in$datapath}
+
+\item{colnames_df}{a dataframe with 2 columns 'required_names' and 'uploaded_names'. Uploaded names are entered by user and get renamed to required_names.}
 }
 \description{
 This gives more custom options, but it still has rules. It checks for certain
