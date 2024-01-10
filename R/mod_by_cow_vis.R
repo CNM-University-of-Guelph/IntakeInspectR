@@ -290,8 +290,8 @@ mod_by_animal_vis_server <- function(id, df_list){
         # the 2 ways a duration could be an error:
         dplyr::filter(.data$is_end_time_overlap_error | .data$is_outlier) %>%
         dplyr::select('start_time', 'animal_id', 'bin_id', 'duration_sec', 'final_duration_sec', 'is_end_time_overlap_error', 'outlier_pos_neg') %>%
-        dplyr::arrange(dplyr::desc(.data$duration_sec)) %>%
-        dplyr::slice_head(n=1000)
+        dplyr::arrange(dplyr::desc(.data$duration_sec))
+
 
       colnames(df) <- c('Event start time','Animal ID', 'Feed Bin ID', 'Original duration (sec)', 'Final Duration (sec)', 'Is duration error from "by bin"?', 'Is positive or negative outlier "by animal" ?' )
 
