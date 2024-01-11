@@ -66,12 +66,20 @@ f_iterate_animals <-
     dplyr::mutate(animal_id_nest = {{ col_animal_id }} ) %>%
     tidyr::nest(.by = .data$animal_id_nest)
 
+  #get names of columns for log
+  c_intake <- rlang::enquo(col_intake) %>% rlang::as_name()
+  c_duration <- rlang::enquo(col_duration) %>% rlang::as_name()
+
 
   # get number of iterations required:
   max_i <- length(df_nested$animal_id_nest)
 
   if(log){
     logr::log_print(paste("Number of animals to iterate through:", max_i))
+
+    logr::log_print(paste("User Input: Selected intake column:", c_intake))
+
+    logr::log_print(paste("User Input: Selected duration column:", c_duration))
 
     logr::log_print(paste("User Input: Maximum allowable duration (min) per feeding event:", max_duration_min))
 
