@@ -299,7 +299,13 @@ mod_by_animal_vis_server <- function(id, df_list){
     })
 
     output$durations_table <-  DT::renderDT({
-      df_long_durations() %>% fct_DT_nopages(buttons_at_bottom = TRUE, scrollY = 400)
+      df_long_durations() %>%
+        fct_DT_pages(
+          pageLength = 20,
+          scrollY = 400,
+          buttons_at_bottom = TRUE
+        )
+
     })
 
 

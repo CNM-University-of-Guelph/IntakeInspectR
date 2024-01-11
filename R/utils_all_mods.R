@@ -41,6 +41,57 @@ fct_DT_nopages <- function(x, scrollY = 350, buttons_at_bottom = FALSE, rownames
 
 
 
+#' DT table template - for using pages
+#'
+#' Call to `DT::datatable()` with added download buttons, fixed columns and uses pages. Pages are helpful when large data needs to be loaded. It also allows scrolling.
+#'
+#' @param x dataframe
+#' @param pageLength number of rows to show per page.
+#' @param scrollY number to represent size of y axis before scrolling
+#' @param allow_copy bool. Should the option to copy data be enabled? For large data it is not advisable.
+#' @param buttons_at_bottom boolean. Should buttons for downloading table be at bottom?
+#' @param rownames boolean. Are rownames used in this table? Default FALSE.
+#' @param fillContainer boolean for DT::datatable(fillContainer)
+#'
+#'
+#' @return DT
+#' @export
+fct_DT_pages <- function(x, pageLength = 20, scrollY = 350, allow_copy = FALSE, buttons_at_bottom = FALSE, rownames = FALSE,  fillContainer = FALSE) {
+  DT::datatable(x,
+                fillContainer = fillContainer,
+                rownames = rownames,
+                escape = TRUE, # see ?datatable
+                extensions = c('Scroller', 'Buttons','FixedColumns'),
+                options = list(
+                  dom = ifelse(buttons_at_bottom, 'lfrtiBp', 'lfBrtip'),
+                  pageLength=pageLength,
+                  lengthMenu = c(20, 50, 100, 500, 1000),
+                  # lengthMenu = list(
+                  #   c(20, 50, 100, 500, 1000, -1),
+                  #   c('20', '50', '100', '500', '1000', 'ALL')
+                  #   ),
+                  paging=TRUE,
+                  buttons =
+                    if(allow_copy){
+                      list(
+                        list(extend = 'copy', className = 'btn-info'),
+                        list(extend = 'csv', className = 'btn-info'),
+                        list(extend = 'excel', className = 'btn-info')
+                      )
+                    } else {
+                      list(
+                       list(extend = 'csv', className = 'btn-info'),
+                        list(extend = 'excel', className = 'btn-info')
+                      )
+                    },
+
+                  columnDefs = list(list(className = 'dt-center', targets = "_all")),
+                  # fixedcolumns options
+                  scrollX = TRUE,
+                  scrollY = scrollY,
+                  scrollCollapse = TRUE,
+                  fixedColumns = list(leftColumns = 2)
+                ) )}
 
 
 #' Summary plots

@@ -18,37 +18,19 @@ mod_by_animal_clean_ui <- function(id){
         gridlayout::grid_container(
 
           layout = gridlayout::new_gridlayout(c(
-            "4px     0.25fr      0.75fr",
-            "120px   button_box  button_box",
-            "0.3fr   user_input  summary_box",
-            "0.7fr   user_input  Display "
+            "2px    0.25fr      0.75fr",
+            "155px user_input  summary_box",
+            "1fr user_input  Display "
           ),
           alternate_layouts = list(
             layout = c(
-              "4px       1fr     ",
-              "150px    button_box ",
+              "2px       1fr     ",
               "200px    user_input ",
               "300px    summary_box",
               "400px    Display"
             ),
             width_bounds = c(max = 900)
           )),
-
-          gridlayout::grid_card(
-            area = "button_box",
-            # wrapper = bslib::card_body,
-            full_screen = FALSE,
-            strong("Clean data - grouped by animal ID"),
-            p("
-          This step of the cleaning identifies outliers based on user defined max
-          and min rates of intake (kg/min). Then, further outliers can be flagged
-          by fitting a robust linear model to the duration vs intake data for each animal.
-          All outliers are temporarily removed to fit a bisector regression, then new
-          duration or intake values are estimated for each outlier.
-          ")
-          ),
-
-
 
           ############################################### #
           # Inputs panel ----
@@ -135,12 +117,14 @@ mod_by_animal_clean_ui <- function(id){
                 div(
                   style = "display: flex; flex-direction: column; align-items: center;",
                   p("
-                  These files are useful for tracking how the data was handled in this step,
-                  but the Final Summary page has better formatted tables for download.
+                  These files are useful for importing into R. See the View Table to view merged table.
+                  The nested output is the file returned by", tags$code("f_flag_and_replace_outliers()"), "before it is merged for easier viewing.
                   "),
-                  downloadButton(ns("download_nested"), "Download raw nested output (.Rds)", class = 'btn-info'),
+                  downloadButton(ns("download_nested"), "Download raw nested output (.rds)", class = 'btn-info'),
                   br(),
-                  downloadButton(ns("download_merged"), "Download unnested data frame (.csv)", class = 'btn-info')
+                  downloadButton(ns("download_merged"), "Download unnested data frame (.rds)", class = 'btn-info'),
+                  br(),
+                  downloadButton(ns("download_merged_csv"), "Download unnested data frame (.csv)", class = 'btn-info')
                 )
               )
             )
@@ -151,10 +135,66 @@ mod_by_animal_clean_ui <- function(id){
           ################################################ #
           gridlayout::grid_card(
             area = "Display",
+            wrapper = bslib::card_body(class = "p-0", fillable = FALSE, fill = TRUE), # this removes the padding around edges
             full_screen = TRUE,
-            strong("Log and data structure"),
-            verbatimTextOutput(ns("dynamic_glimpse"), placeholder=TRUE)
 
+            bslib::navset_card_pill( # a card with nav tabs:
+              id = ns('display_tabs'), #used for input$ to see active tab
+
+              bslib::nav_panel(
+                title = "Intro",
+                value = "display_intro", #for accessing input$ details
+                bslib::card_title("Clean data - grouped by animal ID"),
+
+                p("
+                  This step of the cleaning identifies outliers based on user defined max
+                  and min rates of intake (kg/min). Then, further outliers can be flagged
+                  by fitting a robust linear model to the duration vs intake data for each animal.
+                  All outliers are temporarily removed to fit a bisector regression, then new
+                  duration or intake values are estimated for each outlier.
+                  "),
+
+                em("Hover mouse over bottom right of screen to show button to expand view. Use Esc or click Close to return to normal screen."),
+
+                h4("Quick Start"),
+                # tags$div(
+                #   tags$ol(
+                #     tags$li(tags$strong("Ensure data upload:"), " The 'Clean data' button will become active once the data is successfully uploaded."),
+                #     tags$li(tags$strong("Execute:"), " Click the 'Clean data' button to initiate the cleaning process. This function utilises predefined thresholds set in the 'Advanced: Change thresholds' drop-down box."),
+                #     tags$li(tags$strong("Understand thresholds:"), " Familiarise yourself with the detailed overview and flow chart to understand how the values defined in the 'Advanced: Change thresholds' drop-down affect the cleaning process."),
+                #     tags$li(tags$strong("Verify successful cleaning:"), " If the cleaning process is successful, the value boxes at the top of the page will be populated, and the Log, Data Structure, and View Table tabs will also be updated."),
+                #     tags$li(tags$strong("Visualise:"), " For the best evaluation of the cleaning results, navigate to the '2b. By Bin - Vis' page and review the tables and plots of the cleaned data.")
+                #   )
+                # ),
+              ),
+
+              bslib::nav_panel(
+                title = "Log",
+                value = "display_log", #for accessing input$ details
+                bslib::card_title("Log - 'By Animal' cleaning"),
+                p("This log can be copied from this box or downloaded with all other logs on Final Summary tab at end of analysis."),
+                verbatimTextOutput(ns("dynamic_log"), placeholder=TRUE),
+              ),
+
+              bslib::nav_panel(
+                title = "Data Structure",
+                value = "display_structure", #for accessing input$ details
+                bslib::card_title("Data Structure"),
+                p("This shows the column names and dimensions of the data frame returned by the by animal cleaning function.
+                The MERGED file is the result of merging the nested data frame that is returned by the", tags$code("f_flag_and_replace_outliers()"), " function.
+                See 'Download function outputs' for more details.
+                "),
+                verbatimTextOutput(ns("dynamic_glimpse"), placeholder=TRUE),
+              ),
+
+              bslib::nav_panel(
+                title = "View Table",
+                value = "display_table", #for accessing input$ details
+                bslib::card_title("View Table"),
+                p("The data frame returned from the cleaning table can be explored here. Use the buttons to download as file/s. "),
+                DT::DTOutput(ns('byanimal_DT')) %>%  shinycssloaders::withSpinner(type=7)
+              )
+            )
           ),
 
           ################################################ #
@@ -174,9 +214,7 @@ mod_by_animal_clean_ui <- function(id){
               bslib::value_box(
                 title = "Not outliers:",
                 #Format to copy default value_box() value size:
-                value = p(textOutput(ns("n_not_error"),
-                                     # inline = TRUE
-                                     ), style = "font-size: 30px;") ,
+                value = p(textOutput(ns("n_not_error"), inline = TRUE), style = "font-size: 30px;") ,
                 showcase = fct_animal_icon(col='white'),
                 theme = 'primary',
                 height='150px'
@@ -265,6 +303,7 @@ mod_by_animal_clean_server <- function(id, df_list){
                                    log = TRUE
         )
 
+        bslib::nav_select('display_tabs', 'display_log')
 
         shinybusy::remove_modal_progress()
 
@@ -292,15 +331,15 @@ mod_by_animal_clean_server <- function(id, df_list){
     ################################################################# #
 
     # setup a reactive value -- used for changing ui output based on events later
-    print_out <- reactiveValues(glimpse_nested = 1, glimpse_merged = 1)
+    print_out <- reactiveValues(df_nested = 1, df_merged = 1)
 
     # set up reactivevalues list to store log data (from logr in `f_by_bin_clean`)
     log <- reactiveValues()
 
     # observe table to override output to show in window:
     observe({
-      print_out$glimpse_nested <- tibble::as_tibble(df_outliers_nested_by_animal())
-      print_out$glimpse_merged <- tibble::as_tibble(df_outliers_merged())
+      print_out$df_nested <- tibble::as_tibble(df_outliers_nested_by_animal())
+      print_out$df_merged <- tibble::as_tibble(df_outliers_merged())
 
       # read in log file to print to glimpse window:
       log$by_animal <- readLines(list_outlier_detection()$log_path)
@@ -309,15 +348,29 @@ mod_by_animal_clean_server <- function(id, df_list){
 
     # dynamically change display:
     output$dynamic_glimpse <- renderPrint({
-      if(tibble::is_tibble(print_out$glimpse_nested)){
-        # print log file, then a glimpse of data:
-        cat(paste(log$by_animal, collapse = "\n"))
-        cat("\n")
-        dplyr::glimpse(print_out$glimpse_nested)
-        cat("\n")
-        dplyr::glimpse(print_out$glimpse_merged)
+      if(tibble::is_tibble(print_out$df_nested)){
+        cat("\nMERGED: \n")
+        dplyr::glimpse(print_out$df_merged)
+        cat("\nNESTED (for .rds) \n")
+        dplyr::glimpse(print_out$df_nested)
 
       }
+    })
+
+    output$dynamic_log <- renderPrint({
+      cat(paste(log$by_animal, collapse = "\n"))
+    })
+
+
+    # View table
+
+    output$byanimal_DT <- DT::renderDT({
+      req(input$execute_detect_outliers)
+      print_out$df_merged %>%
+        fct_DT_pages(
+          pageLength = 20,
+          scrollY = 380
+        )
     })
 
 
@@ -384,6 +437,7 @@ mod_by_animal_clean_server <- function(id, df_list){
     observe({
       shinyjs::toggleState("download_nested", condition = input$execute_detect_outliers > 0)
       shinyjs::toggleState("download_merged", condition = input$execute_detect_outliers > 0)
+      shinyjs::toggleState("download_merged_csv", condition = input$execute_detect_outliers > 0)
     })
 
     ################ #
@@ -418,12 +472,20 @@ mod_by_animal_clean_server <- function(id, df_list){
 
     output$download_merged <- downloadHandler(
       filename = function() {
+        paste0("by_animal_merged_data_out_",
+               format(Sys.time(), "%Y%m%d_%H%M%S"), ".rds")
+      },
+      content = function(file) {
+        saveRDS(df_outliers_merged(), file = file)
+      }
+    )
+    output$download_merged_csv <- downloadHandler(
+      filename = function() {
         paste0("by_animal_outlier_detection_out",
                format(Sys.time(), "%Y%m%d_%H%M%S"), ".csv")
       },
       content = function(file) {
-        #saveRDS(df_outliers_nested_by_animal(), file = file)
-        data.table::fwrite(df_outliers_merged(), file = file)
+         data.table::fwrite(df_outliers_merged(), file = file)
       },
       contentType = "text/csv"
     )
