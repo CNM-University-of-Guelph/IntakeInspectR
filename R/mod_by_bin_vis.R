@@ -213,7 +213,7 @@ mod_by_bin_vis_server <- function(id, df_list){
       }else if(selectedData() == "corrected") {
         df() %>%
           f_plot_summary(
-            x = .data$corrected_duration_sec_seconds,
+            x = .data$corrected_duration_sec,
             y = .data$corrected_intake_bybin,
             type = input$plot_type_overall)
 
@@ -374,7 +374,7 @@ mod_by_bin_vis_server <- function(id, df_list){
       } else if(input$data_type == "corrected"){
         # Regression:
         p_duration_intake <- .df %>%
-          plot_bin_regression( x = .data$corrected_duration_sec_seconds,
+          plot_bin_regression( x = .data$corrected_duration_sec,
                                    y = .data$corrected_intake_bybin,
                                    col_colour =  .data[[input$colour_aes]])+
           labs(x = 'Corrected Feed Duration (seconds)',

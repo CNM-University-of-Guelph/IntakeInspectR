@@ -338,7 +338,7 @@ by_animal_list_out <-
     col_date = date,
     col_start_time =  start_time,
     col_intake =  corrected_intake_bybin,
-    col_duration = corrected_duration_sec_seconds,
+    col_duration = corrected_duration_sec,
     sd_thresh = 20, 
     max_duration_min = 60,
     min_intake_rate_kg_min = 0.05,
@@ -372,7 +372,7 @@ This shows all changes made at a per animal level but displayed together on this
 merged_by_animal %>%
    IntakeInspectR:::fct_plot_by_animal_overall(
     col_intake = corrected_intake_bybin,
-    col_duration = corrected_duration_sec_seconds,
+    col_duration = corrected_duration_sec,
     pt_size = 3)+
   labs(x = 'Corrected Feed Duration (seconds)',
        y = 'Corrected Feed Intake (kg)')
@@ -405,7 +405,7 @@ merged_by_animal %>%
   filter(animal_id %in% c(2040,2043,2107,2007)) %>% 
   IntakeInspectR::fct_plot_by_animal(
     col_intake = .data$corrected_intake_bybin,
-    col_duration = .data$corrected_duration_sec_seconds,
+    col_duration = .data$corrected_duration_sec,
     pt_size = 3)+
   labs(x = 'Corrected Feed Duration (seconds)',
        y = 'Corrected Feed Intake (kg)')  +
@@ -447,7 +447,7 @@ df_all_steps <-
     # By Bin - Overlapping end times:
     is_end_time_overlap_error,
     corrected_end_time,
-    corrected_duration_sec_seconds,
+    corrected_duration_sec,
     
     # By Animal - Outlier detection
     is_manual_outlier,

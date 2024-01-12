@@ -535,7 +535,7 @@ f_step5_correct_intakes <-
 #'   date-time) recorded by feed bin.
 
 #' @return The original data frame with the following additional columns:
-#' nextStartTime, is_end_time_overlap_error, corrected_end_time, corrected_duration_sec_diff, corrected_duration_sec_seconds
+#' nextStartTime, is_end_time_overlap_error, corrected_end_time, corrected_duration_sec_diff, corrected_duration_sec
 #' @export
 #'
 f_step6_correct_end_times <-
@@ -563,6 +563,6 @@ f_step6_correct_end_times <-
           false = {{ col_end_time }}),
 
         corrected_duration_sec_diff = .data$corrected_end_time - {{ col_start_time }},
-        corrected_duration_sec_seconds = as.numeric(.data$corrected_duration_sec_diff)
+        corrected_duration_sec = as.numeric(.data$corrected_duration_sec_diff)
       ) %>% tibble::as_tibble()
   }

@@ -219,7 +219,7 @@ mod_by_animal_vis_server <- function(id, df_list){
         .df %>%
           dplyr::slice_head(n = 80000) %>%
           fct_plot_by_animal_overall(col_intake = .data$corrected_intake_bybin,
-                                  col_duration = .data$corrected_duration_sec_seconds,
+                                  col_duration = .data$corrected_duration_sec,
                                   pt_size = 3)
 
       }else if(input$plot_type_overall == "hist") {
@@ -408,7 +408,7 @@ mod_by_animal_vis_server <- function(id, df_list){
         # No regression line available, so use different function:
         p <- data_to_plot() %>%
           fct_plot_by_animal_overall(col_intake = .data$corrected_intake_bybin,
-                          col_duration = .data$corrected_duration_sec_seconds,
+                          col_duration = .data$corrected_duration_sec,
                           pt_size = 5)+
           labs(title = paste(unique(data_to_plot()$animal_id)),
                x = 'Corrected Feed Duration (seconds)',
@@ -424,7 +424,7 @@ mod_by_animal_vis_server <- function(id, df_list){
             outlier_exemption_max_duration = df_list()$user_inputs_to_parse_to_vis$outlier_exemption_max_duration,
             outlier_exemption_max_intake = df_list()$user_inputs_to_parse_to_vis$outlier_exemption_max_intake,
             col_intake = .data$corrected_intake_bybin,
-            col_duration = .data$corrected_duration_sec_seconds,
+            col_duration = .data$corrected_duration_sec,
             pt_size = 5)+
           labs(x = 'Corrected Feed Duration (seconds)',
                y = 'Corrected Feed Intake (kg)')

@@ -49,7 +49,8 @@ f_iterate_animals <-
            outlier_exemption_max_intake = 0.2,
            sd_thresh = Inf,
            shiny.session = NULL,
-           log = TRUE){
+           log = TRUE,
+           verbose = TRUE){
 
     if(log){
       tmp <- tempfile(pattern = "log_", fileext = ".log")
@@ -101,6 +102,11 @@ f_iterate_animals <-
 
   # setup function that can update progress bar with imap()
   .f_outlier_iterate <-  function(.x, idx){
+
+    if(verbose){
+      current_animal <- .x %>% dplyr::pull( {{ col_animal_id }}) %>% unique()
+      logr::log_print(paste("'By Animal' current iteration = ", current_animal, "Execution time:",format(Sys.time(), "%Y-%m-%d %H:%M:%OS3")))
+    }
 
     out <-
       withCallingHandlers(
@@ -252,7 +258,7 @@ f_iterate_animals <-
  f_flag_and_replace_outliers <-
    function(df_in,
             col_intake = .data$corrected_intake_bybin,
-            col_duration = .data$corrected_duration_sec_seconds, # must be seconds
+            col_duration = .data$corrected_duration_sec, # must be seconds
             col_animal_id = .data$animal_id,
             col_bin_id = .data$bin_id,
             col_start_time = .data$start_time,
@@ -295,7 +301,7 @@ f_iterate_animals <-
 
      n_row <- df_in %>% nrow()
      if(n_row < 5){
-       warning(paste0(
+       warning(cat(
          "Less than 5 events for current animal. Aborting regression fit and keeping original intakes & durations. Animal number:\n",
          df_in %>% dplyr::pull({{ col_animal_id}}) %>% unique(),
          "\nNumber of rows:\n",

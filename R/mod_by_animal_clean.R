@@ -39,10 +39,28 @@ mod_by_animal_clean_ui <- function(id){
             area = "user_input",
             wrapper = function(x) bslib::card_body(x, fill=TRUE, fillable=TRUE ),
 
+            shinyWidgets::treeInput(
+              inputId = ns('selected_error_types_by_bin'),
+              label = "Select corrections from 'By Bin' cleaning that should be used in downstream analysis.
+              If any are not selected, the corresponding columns from the original uploaded file will be used.",
+              returnValue = 'text',
+              selected = 'By Bin Corrections',
+              choices = shinyWidgets::create_tree(
+                data.frame(
+                  Step = c("By Bin Corrections", "By Bin Corrections", "By Bin Corrections"),
+                  Error = c("end weight", "start weight", "overlapping end times (long durations)"),
+                  stringsAsFactors = FALSE
+                ),
+                levels = c('Step', 'Error')
+              )
+            ),
 
             actionButton(ns('execute_detect_outliers'), label = "Execute Outlier Detection", class = "btn-lg btn-success"),
 
             br(),
+            checkboxInput(ns("verbose"), "Verbose (show more detail in log)", value = FALSE),
+
+
             actionButton(ns("button_more_info"), "Detailed overview of outlier detection"),
             br(),
 
@@ -157,6 +175,14 @@ mod_by_animal_clean_ui <- function(id){
                 em("Hover mouse over bottom right of screen to show button to expand view. Use Esc or click Close to return to normal screen."),
 
                 h4("Quick Start"),
+                p("Select which columns to use from 'By Bin' cleaning step "),
+                p("Store the selection to log, filter data and then run analysis"),
+                p("return the call that was ultimately used to generated results"),
+                p("If both 'end weight' and 'start weight' corrections are used, the previously calculated 'corrected_intake_bybin' column is used.
+                  If only one is selected, the intake will be re-calculated and a new column added called 'corrected_intake_bybin_startweight' or 'corrected_intake_bybin_endweight'."),
+                p("More detailed selections are possible if using the functions directly in R, see the READ")
+
+
                 # tags$div(
                 #   tags$ol(
                 #     tags$li(tags$strong("Ensure data upload:"), " The 'Clean data' button will become active once the data is successfully uploaded."),
@@ -286,22 +312,80 @@ mod_by_animal_clean_server <- function(id, df_list){
       reactive({
         shinybusy::show_modal_progress_line(text = "Outlier detection running...")
 
-        list_out <- f_iterate_animals(df(),
-                                   col_animal_id = animal_id,
-                                   col_bin_id = bin_id,
-                                   col_date = date,
-                                   col_start_time = start_time,
-                                   col_intake =  corrected_intake_bybin,
-                                   col_duration = corrected_duration_sec_seconds,
-                                   max_duration_min = input$max_duration_min,
-                                   min_intake_rate_kg_min = input$min_intake_rate_kg_min,
-                                   max_intake_rate_kg_min = input$max_intake_rate_kg_min,
-                                   outlier_exemption_max_duration  = input$outlier_exemption_max_duration,
-                                   outlier_exemption_max_intake = input$outlier_exemption_max_intake,
-                                   sd_thresh = input$sd_threshold, # default = 20
-                                   shiny.session = session,
-                                   log = TRUE
+        # setup generic call for options of column selections to be used with logic below
+        .execute_iterate_animals <-
+          function(df_in, col_user_intake){
+            # duration selection logic:
+            if(any('overlapping end times (long durations)' %in% input$selected_error_types_by_bin)){
+              f_iterate_animals(df_in,
+                                col_animal_id = animal_id,
+                                col_bin_id = bin_id,
+                                col_date = date,
+                                col_start_time = start_time,
+                                col_intake =  {{ col_user_intake }},
+                                col_duration = corrected_duration_sec,
+                                max_duration_min = input$max_duration_min,
+                                min_intake_rate_kg_min = input$min_intake_rate_kg_min,
+                                max_intake_rate_kg_min = input$max_intake_rate_kg_min,
+                                outlier_exemption_max_duration  = input$outlier_exemption_max_duration,
+                                outlier_exemption_max_intake = input$outlier_exemption_max_intake,
+                                sd_thresh = input$sd_threshold, # default = 20
+                                shiny.session = session,
+                                log = TRUE,
+                                verbose = input$verbose
+              )
+            } else {
+              f_iterate_animals(df_in,
+                                col_animal_id = animal_id,
+                                col_bin_id = bin_id,
+                                col_date = date,
+                                col_start_time = start_time,
+                                col_intake =  {{ col_user_intake }},
+                                col_duration = duration_sec,
+                                max_duration_min = input$max_duration_min,
+                                min_intake_rate_kg_min = input$min_intake_rate_kg_min,
+                                max_intake_rate_kg_min = input$max_intake_rate_kg_min,
+                                outlier_exemption_max_duration  = input$outlier_exemption_max_duration,
+                                outlier_exemption_max_intake = input$outlier_exemption_max_intake,
+                                sd_thresh = input$sd_threshold, # default = 20
+                                shiny.session = session,
+                                log = TRUE,
+                                verbose = input$verbose
+              )
+            }
+
+          }
+
+
+
+        #prepare data based on user selected errors
+        if(all(c('start weight', 'end weight') %in% input$selected_error_types_by_bin)){
+          #Use original df() that has 'corrected_intake_bybin
+          list_out <-  .execute_iterate_animals(df(), corrected_intake_bybin )
+
+
+          } else if('start weight' %in% input$selected_error_types_by_bin) {
+
+          list_out <-
+            df() %>%
+            dplyr::mutate(
+              corrected_intake_bybin_startweight = .data$corrected_start_weight_kg_bybin - .data$end_weight_kg
+            ) %>%
+            .execute_iterate_animals(corrected_intake_bybin_startweight)
+
+
+        } else if('end weight' %in% input$selected_error_types_by_bin) {
+         list_out <-
+            df() %>%
+            dplyr::mutate(
+              corrected_intake_bybin_endweight = .data$start_weight_kg - .data$corrected_end_weight_kg_bybin
+            ) %>%
+            .execute_iterate_animals(corrected_intake_bybin_endweight)
+
+        } else(
+          list_out <- .execute_iterate_animals(df(), intake)
         )
+
 
         bslib::nav_select('display_tabs', 'display_log')
 

@@ -19,7 +19,8 @@ f_iterate_animals(
   outlier_exemption_max_intake = 0.2,
   sd_thresh = Inf,
   shiny.session = NULL,
-  log = TRUE
+  log = TRUE,
+  verbose = TRUE
 )
 }
 \arguments{

@@ -7,7 +7,7 @@
 f_flag_and_replace_outliers(
   df_in,
   col_intake = .data$corrected_intake_bybin,
-  col_duration = .data$corrected_duration_sec_seconds,
+  col_duration = .data$corrected_duration_sec,
   col_animal_id = .data$animal_id,
   col_bin_id = .data$bin_id,
   col_start_time = .data$start_time,

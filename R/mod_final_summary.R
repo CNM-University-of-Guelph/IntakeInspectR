@@ -38,20 +38,20 @@ mod_final_summary_ui <- function(id){
 
             h3("Downloads:"),
 
-            shinyWidgets::treeInput(
-              inputId = ns('selected_error_types_by_bin'),
-              label = "Select corrections to customise final intake and duration values, then press button to calculate values ready for download.",
-              returnValue = 'text',
-              selected = 'By Bin',
-              choices = shinyWidgets::create_tree(
-                data.frame(
-                  Step = c("By Bin", "By Bin", "By Bin"),
-                  Error = c("correct end weight", "correct start weight", "correct overlapping end times"),
-                  stringsAsFactors = FALSE
-                ),
-                levels = c('Step', 'Error')
-              )
-            ),
+            # shinyWidgets::treeInput(
+            #   inputId = ns('selected_error_types_by_bin'),
+            #   label = "Select corrections to customise final intake and duration values, then press button to calculate values ready for download.",
+            #   returnValue = 'text',
+            #   selected = 'By Bin',
+            #   choices = shinyWidgets::create_tree(
+            #     data.frame(
+            #       Step = c("By Bin", "By Bin", "By Bin"),
+            #       Error = c("correct end weight", "correct start weight", "correct overlapping end times"),
+            #       stringsAsFactors = FALSE
+            #     ),
+            #     levels = c('Step', 'Error')
+            #   )
+            # ),
 
             shinyWidgets::treeInput(
               inputId = ns('selected_error_types_by_animal'),
@@ -301,14 +301,14 @@ mod_final_summary_server <- function(id, df_list_bybin, df_list_byanimal){
         if( ! all(c("correct end weight", "correct start weight", "correct overlapping end times") %in% input$selected_error_types_by_bin)){
           # Currently this isn't possible. Show warning and reset by bin
 
-          shinyWidgets::show_alert(title = "By Animal must use By Bin", text = "Currently 'By Animal' outlier detection and cleaning defaults to using all cleaning methods from 'By Bin' step.
-                                   This can be changed by running codes manually in R, but will be added to app in future. Therefore, all of 'By Bin' has been re-selected.
-                                   To customise 'By Bin', deselect 'By Animal' first.
-                                   ",
-                                   type = 'error',
-                                   showCloseButton = TRUE)
+          # shinyWidgets::show_alert(title = "By Animal must use By Bin", text = "Currently 'By Animal' outlier detection and cleaning defaults to using all cleaning methods from 'By Bin' step.
+          #                          This can be changed by running codes manually in R, but will be added to app in future. Therefore, all of 'By Bin' has been re-selected.
+          #                          To customise 'By Bin', deselect 'By Animal' first.
+          #                          ",
+          #                          type = 'error',
+          #                          showCloseButton = TRUE)
 
-          shinyWidgets::updateTreeInput('selected_error_types_by_bin', selected = 'By Bin')
+          # shinyWidgets::updateTreeInput('selected_error_types_by_bin', selected = 'By Bin')
 
         }
       }
@@ -341,7 +341,7 @@ mod_final_summary_server <- function(id, df_list_bybin, df_list_byanimal){
             ),
             selected_final_duration_sec = dplyr::case_when(
               "replace duration outliers" %in% input$selected_error_types_by_animal ~ new_x,
-              "correct overlapping end times" %in% input$selected_error_types_by_bin ~ corrected_duration_sec_seconds,
+              "correct overlapping end times" %in% input$selected_error_types_by_bin ~ corrected_duration_sec,
               TRUE ~ duration_sec
             )
           ) %>%

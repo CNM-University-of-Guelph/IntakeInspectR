@@ -24,7 +24,7 @@ date-time) recorded by feed bin.}
 }
 \value{
 The original data frame with the following additional columns:
-nextStartTime, is_end_time_overlap_error, corrected_end_time, corrected_duration_sec_diff, corrected_duration_sec_seconds
+nextStartTime, is_end_time_overlap_error, corrected_end_time, corrected_duration_sec_diff, corrected_duration_sec
 }
 \description{
 This function checks for errors in the time recorded by the feed bin without making

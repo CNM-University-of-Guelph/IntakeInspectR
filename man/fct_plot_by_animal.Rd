@@ -11,7 +11,7 @@ fct_plot_by_animal(
   outlier_exemption_max_duration = 1,
   outlier_exemption_max_intake = 0.3,
   col_intake = .data$corrected_intake_bybin,
-  col_duration = .data$corrected_duration_sec_seconds,
+  col_duration = .data$corrected_duration_sec,
   col_animal_id = .data$animal_id,
   pt_size = 3
 )
