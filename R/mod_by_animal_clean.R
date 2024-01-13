@@ -70,7 +70,7 @@ mod_by_animal_clean_ui <- function(id){
               bslib::accordion_panel(
                 title = "Advanced: Set Outlier Thresholds",
                 strong("Manual Outliers - biologically relevant limits"),
-                p("Outlier Exemption means that values with a duration and intake <= the following values are not classified as outliers or modified."),
+                p("Outlier Exemption means that values with a duration and intake <= the following values are not classified as outliers or modified. This region of exempt values is represented on the plot with a red box."),
 
                 numericInput(inputId = ns("outlier_exemption_max_duration"),
                              label = "Enter outlier exemption maximum duration (minutes):",
@@ -85,7 +85,7 @@ mod_by_animal_clean_ui <- function(id){
                              step = 0.01),
 
                 p("Manual outliers are based on the user entered min and max rate of intake (kg/min).
-                  These are for individual events and should be more extreme than what is 'normal' for a animal.
+                  These are for individual events and should be more extreme than what is 'normal' for an animal.
                   Events with a rate of intake < min specified will have a new duration estimated from linear model."),
 
                 numericInput(inputId = ns("min_intake_rate_kg_min"),
@@ -111,7 +111,7 @@ mod_by_animal_clean_ui <- function(id){
 
                 strong("Statistical outlier based on linear model"),
                 p("This should be used to flag unusual outliers not caught by biologically relevant thresholds above.
-                  Please check visualisations to ensure it is not too stringent. Set to a very high number to override. "),
+                  Please check visualisations to ensure it is not too stringent. Set to a very high number to bypass. "),
                 numericInput(inputId = ns("sd_threshold"),
                              label = "Enter residual SD threshold:",
                              value = 20,
@@ -175,23 +175,32 @@ mod_by_animal_clean_ui <- function(id){
                 em("Hover mouse over bottom right of screen to show button to expand view. Use Esc or click Close to return to normal screen."),
 
                 h4("Quick Start"),
-                p("Select which columns to use from 'By Bin' cleaning step "),
-                p("Store the selection to log, filter data and then run analysis"),
-                p("return the call that was ultimately used to generated results"),
-                p("If both 'end weight' and 'start weight' corrections are used, the previously calculated 'corrected_intake_bybin' column is used.
-                  If only one is selected, the intake will be re-calculated and a new column added called 'corrected_intake_bybin_startweight' or 'corrected_intake_bybin_endweight'."),
-                p("More detailed selections are possible if using the functions directly in R, see the READ")
+                tags$div(
+                  tags$ol(
+                    tags$li(tags$strong("Select columns:"), " Click the categories of 'By Bin Corrections' in the side panel to choose which corrections should be used for 'By Animal' cleaning."),
+                    tags$li(
+                      tags$strong("Data Corrections:"),
+                      " If both 'end weight' and 'start weight' corrections are selected, the previously calculated 'corrected_intake_bybin' column is utilised.
+                      If only one is chosen, the intake will be recalculated, and a new column will be added named 'corrected_intake_bybin_startweight' or 'corrected_intake_bybin_endweight'.
+                      Note that more detailed selection of individual corrections can be achieved by calling IntakeInspectR's functions directly in R. Refer to the README on GitHub for details."
+                    ),
+
+                    tags$li(
+                      tags$strong("Execute:"),
+                      " Click the 'Execute Outlier Detection' button to initiate the cleaning process. This process uses predefined outlier thresholds set in the 'Advanced: Set Outlier Thresholds' dropdown menu."
+                    ),
+                    tags$li(
+                      tags$strong("Visualise:"),
+                      " Evaluate the cleaning process by navigating to the '3b. By Animal - Vis' page. "
+                    ),
+                    tags$li(
+                      tags$strong("Revise and repeat:"),
+                      " Adjust thresholds (under 'Advanced: Set Outlier Thresholds') and re-execute until the outlier detection appears reasonable in the visualisations. Take note of what is biologically possible, but be careful to not remove real variation in the data."
+                    )
+                  )
+                )
 
 
-                # tags$div(
-                #   tags$ol(
-                #     tags$li(tags$strong("Ensure data upload:"), " The 'Clean data' button will become active once the data is successfully uploaded."),
-                #     tags$li(tags$strong("Execute:"), " Click the 'Clean data' button to initiate the cleaning process. This function utilises predefined thresholds set in the 'Advanced: Change thresholds' drop-down box."),
-                #     tags$li(tags$strong("Understand thresholds:"), " Familiarise yourself with the detailed overview and flow chart to understand how the values defined in the 'Advanced: Change thresholds' drop-down affect the cleaning process."),
-                #     tags$li(tags$strong("Verify successful cleaning:"), " If the cleaning process is successful, the value boxes at the top of the page will be populated, and the Log, Data Structure, and View Table tabs will also be updated."),
-                #     tags$li(tags$strong("Visualise:"), " For the best evaluation of the cleaning results, navigate to the '2b. By Bin - Vis' page and review the tables and plots of the cleaned data.")
-                #   )
-                # ),
               ),
 
               bslib::nav_panel(
