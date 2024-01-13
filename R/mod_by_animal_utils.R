@@ -330,7 +330,7 @@ fct_plot_by_animal_overall <- function(df,
     # NA values are from outlier_pos_neg (if NA it means it wasn't an outlier)
     ggplot2::scale_colour_viridis_d("Outlier type", option = 'D',
                                     end = 0.8, na.value = "grey60")+
-    ggplot2::theme_classic(base_size = 18)+
+    ggplot2::theme_classic(base_size = 16)+
     ggplot2::theme(axis.text = ggplot2::element_text(colour = 'black'))+
     ggplot2::labs(x = "Corrected Feed Duration (sec)",
                   y = "Corrected intake (kg)")

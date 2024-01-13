@@ -67,7 +67,7 @@ f_iterate_animals <-
     dplyr::mutate(animal_id_nest = {{ col_animal_id }} ) %>%
     tidyr::nest(.by = .data$animal_id_nest)
 
-  #get names of columns for log
+  #get names of columns for log, and returns as a string (as_name())
   c_intake <- rlang::enquo(col_intake) %>% rlang::as_name()
   c_duration <- rlang::enquo(col_duration) %>% rlang::as_name()
 
@@ -168,11 +168,19 @@ f_iterate_animals <-
 
 
 
+
   # need to return tmp as well
-  return(list(nested_out = nested_out,
-              outlier_summary = outlier_summary,
-              log_path = tmp))
-}
+  return(
+    list(
+      nested_out = nested_out,
+      outlier_summary = outlier_summary,
+      log_path = tmp,
+      # store user selected column names for intake and duration so it can be parsed for plotting
+      selected_intake_column = c_intake,
+      selected_duration_column = c_duration
+    )
+  )
+  }
 
 
 

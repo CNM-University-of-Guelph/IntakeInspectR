@@ -89,16 +89,22 @@ mod_by_animal_vis_ui <- function(id){
             bslib::navset_card_tab( # a card with nav tabs:
               id = ns('display_tabs'), #used for input$ to see active tab
               # wrapper = bslib::card_body(fill = TRUE, fillable = TRUE),
+              full_screen = TRUE,
+
 
               bslib::nav_panel(
                 title = "Overall Plots",
                 value = "overall_plots", #for accessing input$ details
                 bslib::card_title("Regression or histogram of all feeding events"),
                 p("Overall visualisation of all feeding events. Select plot type (histogram/regression) to view. Regression only shows first 80,000 rows."),
-                bslib::card(
-                  shiny::plotOutput(outputId = ns("p"))  %>%  shinycssloaders::withSpinner(type=7),
-                  full_screen = TRUE
-                )
+                # bslib::card(
+                #   shiny::plotOutput(outputId = ns("p"))  %>%  shinycssloaders::withSpinner(type=7),
+                #   full_screen = TRUE
+                # ),
+                # bslib::card(
+                  shiny::plotOutput(outputId = ns("p"), height = '500px')  %>%  shinycssloaders::withSpinner(type=7),
+                  # full_screen = TRUE
+                # )
               ),
 
               bslib::nav_panel(
@@ -135,11 +141,11 @@ mod_by_animal_vis_ui <- function(id){
                   Select 'interactive' plot on left to allow more data on hover or to zoom in and out. "),
                   strong("Hover over bottom right of screen to show 'full screen' button.")
                   )),
-                bslib::card(
+                # bslib::card(
                   #make dynamically created as either interactive or not:
                   uiOutput(ns('selected_plot')),
-                  full_screen = TRUE
-                )
+                  # full_screen = TRUE
+                # )
               ),
 
               bslib::nav_panel(
@@ -166,10 +172,10 @@ mod_by_animal_vis_ui <- function(id){
                   strong("Hover over bottom right of screen to show 'full screen' button.")
                   )),
 
-                bslib::card(
+                # bslib::card(
                   ggiraph::girafeOutput(outputId = ns("p_bins_duration"), height = '500px') %>%  shinycssloaders::withSpinner(type=7),
-                  full_screen = TRUE
-                )
+                  # full_screen = TRUE
+                # )
               )
             )
           )
@@ -218,9 +224,13 @@ mod_by_animal_vis_server <- function(id, df_list){
       if(input$plot_type_overall == "reg") {
         .df %>%
           dplyr::slice_head(n = 80000) %>%
-          fct_plot_by_animal_overall(col_intake = .data$corrected_intake_bybin,
-                                  col_duration = .data$corrected_duration_sec,
-                                  pt_size = 3)
+          fct_plot_by_animal_overall(
+            col_intake = !!rlang::sym(df_list()$user_inputs_to_parse_to_vis$selected_intake_column),
+            col_duration = !!rlang::sym(df_list()$user_inputs_to_parse_to_vis$selected_duration_column),
+            pt_size = 3)+
+          ggplot2::labs(
+            caption = "This plot only shows first 80,000 rows due to memory constraints."
+          )
 
       }else if(input$plot_type_overall == "hist") {
         .df %>%
@@ -407,12 +417,14 @@ mod_by_animal_vis_server <- function(id, df_list){
       if(any(data_to_plot()$outlier_pos_neg %in% 'insufficient_rows_for_regression')){
         # No regression line available, so use different function:
         p <- data_to_plot() %>%
-          fct_plot_by_animal_overall(col_intake = .data$corrected_intake_bybin,
-                          col_duration = .data$corrected_duration_sec,
-                          pt_size = 5)+
+          fct_plot_by_animal_overall(
+            col_intake = !!rlang::sym(df_list()$user_inputs_to_parse_to_vis$selected_intake_column),
+            col_duration = !!rlang::sym(df_list()$user_inputs_to_parse_to_vis$selected_duration_column),
+            pt_size = 5)+
           labs(title = paste(unique(data_to_plot()$animal_id)),
                x = 'Corrected Feed Duration (seconds)',
-               y = 'Corrected Feed Intake (kg)')
+               y = 'Corrected Feed Intake (kg)',
+               caption = "Showing simplified plot as 'insufficient_rows_for_regression'")
 
 
       } else {
@@ -423,8 +435,8 @@ mod_by_animal_vis_server <- function(id, df_list){
             min_intake_rate_kg_min = df_list()$user_inputs_to_parse_to_vis$min_intake_rate_kg_min,
             outlier_exemption_max_duration = df_list()$user_inputs_to_parse_to_vis$outlier_exemption_max_duration,
             outlier_exemption_max_intake = df_list()$user_inputs_to_parse_to_vis$outlier_exemption_max_intake,
-            col_intake = .data$corrected_intake_bybin,
-            col_duration = .data$corrected_duration_sec,
+            col_intake = !!rlang::sym(df_list()$user_inputs_to_parse_to_vis$selected_intake_column),
+            col_duration = !!rlang::sym(df_list()$user_inputs_to_parse_to_vis$selected_duration_column),
             pt_size = 5)+
           labs(x = 'Corrected Feed Duration (seconds)',
                y = 'Corrected Feed Intake (kg)')

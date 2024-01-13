@@ -580,7 +580,10 @@ mod_by_animal_clean_server <- function(id, df_list){
         min_intake_rate_kg_min = input$min_intake_rate_kg_min,
         max_intake_rate_kg_min = input$max_intake_rate_kg_min,
         outlier_exemption_max_duration  = input$outlier_exemption_max_duration,
-        outlier_exemption_max_intake = input$outlier_exemption_max_intake
+        outlier_exemption_max_intake = input$outlier_exemption_max_intake,
+        # store user selected column names for intake and duration so it can be parsed for plotting
+        selected_intake_column = list_outlier_detection()$selected_intake_column,
+        selected_duration_column = list_outlier_detection()$selected_duration_column
       )
 
     })

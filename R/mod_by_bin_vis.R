@@ -100,16 +100,17 @@ mod_by_bin_vis_ui <- function(id){
             bslib::navset_card_tab( # a card with nav tabs:
               id = ns('display_tabs'), #used for input$ to see active tab
                # wrapper = bslib::card_body,
+              full_screen = TRUE,
 
               bslib::nav_panel(
                 title = "Overall Plots",
                 value = "overall_plots", #for accessing input$ details
                 bslib::card_title("Regression or histogram of all feeding events"),
                 p("Overall visualisation of all feeding events. Select data type (raw/corrected) and plot type (histogram/regression) to view."),
-                bslib::card(
-                  shiny::plotOutput(outputId = ns("p"))  %>%  shinycssloaders::withSpinner(),
-                  full_screen = TRUE
-                )
+                # bslib::card(
+                  shiny::plotOutput(outputId = ns("p"), height = '500px')  %>%  shinycssloaders::withSpinner(),
+                  # full_screen = TRUE
+                # )
               ),
 
               bslib::nav_panel(
@@ -145,11 +146,11 @@ mod_by_bin_vis_ui <- function(id){
                   strong("Hover over bottom right of screen to show 'full screen' button.")
                   )),
 
-                bslib::card(
+                # bslib::card(
                   plotly::plotlyOutput(outputId = ns("p_duration_intake"),
                                        height = "500px") %>%  shinycssloaders::withSpinner(),
-                  full_screen = TRUE
-                )
+                  # full_screen = TRUE
+                # )
               ),
               bslib::nav_panel(
                 title = "Plot: Timeline",
@@ -169,10 +170,10 @@ mod_by_bin_vis_ui <- function(id){
                   Use the buttons and lower panel to focus on shorter time periods. "),
                   strong("Hover over bottom right of screen to show 'full screen' button.")
                   )),
-                bslib::card(
+                # bslib::card(
                   plotly::plotlyOutput(outputId = ns("p_timeline"), height = "600px") %>%  shinycssloaders::withSpinner(),
-                  full_screen = TRUE
-                )
+                  # full_screen = TRUE
+                # )
               )
             )
           )

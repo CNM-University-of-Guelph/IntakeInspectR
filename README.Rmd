@@ -346,7 +346,8 @@ by_animal_list_out <-
     outlier_exemption_max_duration = 1,
     outlier_exemption_max_intake = 0.2,
     shiny.session = NULL, # use NULL if not inside a shiny app
-    log = FALSE
+    log = FALSE,
+    verbose = FALSE
   )
 
 ```
