@@ -313,17 +313,17 @@ mod_by_animal_clean_server <- function(id, df_list){
         shinybusy::show_modal_progress_line(text = "Outlier detection running...")
 
         # setup generic call for options of column selections to be used with logic below
-        .execute_iterate_animals <-
-          function(df_in, col_user_intake){
+       .execute_iterate_animals <-
+          function(df_in, col_user_intake, col_duration){
             # duration selection logic:
-            if(any('overlapping end times (long durations)' %in% input$selected_error_types_by_bin)){
+
               f_iterate_animals(df_in,
                                 col_animal_id = animal_id,
                                 col_bin_id = bin_id,
                                 col_date = date,
                                 col_start_time = start_time,
                                 col_intake =  {{ col_user_intake }},
-                                col_duration = corrected_duration_sec,
+                                col_duration = {{ col_duration }},
                                 max_duration_min = input$max_duration_min,
                                 min_intake_rate_kg_min = input$min_intake_rate_kg_min,
                                 max_intake_rate_kg_min = input$max_intake_rate_kg_min,
@@ -332,60 +332,57 @@ mod_by_animal_clean_server <- function(id, df_list){
                                 sd_thresh = input$sd_threshold, # default = 20
                                 shiny.session = session,
                                 log = TRUE,
-                                verbose = input$verbose
-              )
-            } else {
-              f_iterate_animals(df_in,
-                                col_animal_id = animal_id,
-                                col_bin_id = bin_id,
-                                col_date = date,
-                                col_start_time = start_time,
-                                col_intake =  {{ col_user_intake }},
-                                col_duration = duration_sec,
-                                max_duration_min = input$max_duration_min,
-                                min_intake_rate_kg_min = input$min_intake_rate_kg_min,
-                                max_intake_rate_kg_min = input$max_intake_rate_kg_min,
-                                outlier_exemption_max_duration  = input$outlier_exemption_max_duration,
-                                outlier_exemption_max_intake = input$outlier_exemption_max_intake,
-                                sd_thresh = input$sd_threshold, # default = 20
-                                shiny.session = session,
-                                log = TRUE,
-                                verbose = input$verbose
-              )
-            }
+                                verbose = input$verbose)
 
           }
 
+       # Define which 'duration' column to use, parsed to .execute_iterate_animals
+        selected_duration_col <-
+          if(any('overlapping end times (long durations)' %in% input$selected_error_types_by_bin)){
+            'corrected_duration_sec'
+          } else {
+            'duration_sec'
+          }
 
-
-        #prepare data based on user selected errors
+        # INTAKE SELECTION:
+        #prepare data based on user selected errors,
         if(all(c('start weight', 'end weight') %in% input$selected_error_types_by_bin)){
-          #Use original df() that has 'corrected_intake_bybin
-          list_out <-  .execute_iterate_animals(df(), corrected_intake_bybin )
+          #Use original df() that has 'corrected_intake_bybin'
+          list_out <-
+            .execute_iterate_animals(
+              df(),
+              corrected_intake_bybin,
+              !!rlang::sym(selected_duration_col)
+            )
 
 
-          } else if('start weight' %in% input$selected_error_types_by_bin) {
+        } else if('start weight' %in% input$selected_error_types_by_bin) {
 
           list_out <-
             df() %>%
             dplyr::mutate(
               corrected_intake_bybin_startweight = .data$corrected_start_weight_kg_bybin - .data$end_weight_kg
             ) %>%
-            .execute_iterate_animals(corrected_intake_bybin_startweight)
+            .execute_iterate_animals(
+              corrected_intake_bybin_startweight,
+              !!rlang::sym(selected_duration_col)
+              )
 
 
         } else if('end weight' %in% input$selected_error_types_by_bin) {
-         list_out <-
+          list_out <-
             df() %>%
             dplyr::mutate(
               corrected_intake_bybin_endweight = .data$start_weight_kg - .data$corrected_end_weight_kg_bybin
             ) %>%
-            .execute_iterate_animals(corrected_intake_bybin_endweight)
+            .execute_iterate_animals(
+              corrected_intake_bybin_endweight,
+              !!rlang::sym(selected_duration_col)
+              )
 
         } else(
-          list_out <- .execute_iterate_animals(df(), intake)
+          list_out <- .execute_iterate_animals(df(), intake, !!rlang::sym(selected_duration_col))
         )
-
 
         bslib::nav_select('display_tabs', 'display_log')
 
