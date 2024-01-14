@@ -50,6 +50,8 @@ bisector regression}
 NULL if not using shiny.}
 
 \item{log}{Boolean. Should log files be generated to a temporary directory?}
+
+\item{verbose}{Boolean. Should more detail be printed in logs? This will print each animal number as it iterates and is useful for troubleshooting.}
 }
 \value{
 A list with the full nested df (nested_out) and a small summary df

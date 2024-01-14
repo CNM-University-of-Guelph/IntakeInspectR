@@ -14,6 +14,12 @@ f_by_bin_bypass_shiny(df_in, log = TRUE)
 \value{
 A list of data frames: `df_0kg`, `df_step2_errors` and `df_cleaned`.
 In addition, `log_path` is returned in the list, which is the temporary file path where the log is stored.
+
+* prevEnd, prevStart, nextEnd, nextStart - used by check_end_weight_kgs and
+downstream functions
+* check_end_weight_kgs - error types as described above
+* corrected_end_weight_kg_bybin - corrected end weights based on check_end_weight_kgs
+* category_end_weight_kg - classification of errors (keep, replace, error)
 }
 \description{
 This will return a similar output to f_by_bin_clean that will allow a user to bypass this step in the Shiny app.

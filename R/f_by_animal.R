@@ -29,6 +29,7 @@
 #' @param shiny.session session name, for R Shiny to update progress bar. Use
 #'   NULL if not using shiny.
 #' @param log Boolean. Should log files be generated to a temporary directory?
+#' @param verbose Boolean. Should more detail be printed in logs? This will print each animal number as it iterates and is useful for troubleshooting.
 #'
 #' @return A list with the full nested df (nested_out) and a small summary df
 #'   (outlier_summary)

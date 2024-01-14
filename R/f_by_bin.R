@@ -260,8 +260,6 @@ f_by_bin_clean <- function(
 #' @return A list of data frames: `df_0kg`, `df_step2_errors` and `df_cleaned`.
 #' In addition, `log_path` is returned in the list, which is the temporary file path where the log is stored.
 #'
-#' @noRd
-
 f_by_bin_bypass_shiny <- function(df_in, log = TRUE){
 
   if(log){
