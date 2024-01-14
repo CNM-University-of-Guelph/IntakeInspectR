@@ -1,4 +1,4 @@
-# IntakeInspectR (development version)
+# IntakeInspectR 2.1.0
 
 * 'By Cow' cleaning now uses biologically relevant thresholds of rate of intakes for each feeding event. The original statistical approach can also be applied if desired.
 
@@ -14,7 +14,9 @@
 
 * Included download options for the 'By Bin' cleaning page, similar to what was available on the 'By Animal' page.
 
+* Users can now bypass the 'By Bin' cleaning if they want to only check for outliers 'By Animal'
 
+* The 'By Animal' cleaning now asks users to select which cleaning they want to use from the previous step. It still lumps all 'end_weight' corrections together. If a user wanted a more detailed selection of say only 1 'replace' type, then this can be done manually in R outside of the Shiny app.
 
 # IntakeInspectR v1.0.0
 
