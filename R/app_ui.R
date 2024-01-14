@@ -54,10 +54,15 @@ app_ui <- function(request) {
 
   bslib::page_navbar(
 
-    theme = bslib::bs_theme(version = 5, bootswatch = "flatly",
+    theme = bslib::bs_theme(version = 5,
+                            bootswatch = "flatly",
                             secondary = "#3498DB",
                             success = "#18BC20",
-                            info = "#F8EE4B" ),
+                            info = "#F8EE4B",
+                            # Overrides default width that changes when value_box gets stacked vertically.
+                            # Available when new version of bslib is released to fix github issue:
+                            "bslib-value-box-horizontal-break-point" = "200px"
+                            ),
 
     title = "IntakeInspectR",
 
@@ -72,12 +77,13 @@ app_ui <- function(request) {
     mod_uploads_ui("uploads_1"),
     mod_by_bin_clean_ui("by_bin_clean_1"),
     mod_by_bin_vis_ui("by_bin_vis_1"),
-    mod_by_cow_clean_ui("by_cow_clean_1"),
-    mod_by_cow_vis_ui("by_cow_vis_1"),
+    mod_by_animal_clean_ui("by_animal_clean_1"),
+    mod_by_animal_vis_ui("by_animal_vis_1"),
     mod_final_summary_ui("final_summary_1"),
     bslib::nav_spacer(),
     bslib::nav_item(
       tags$a(
+        paste0("v",utils::packageVersion("IntakeInspectR")),
         bsicons::bs_icon("github"),
         href = "https://github.com/CNM-University-of-Guelph/IntakeInspectR",
         target = "_blank"

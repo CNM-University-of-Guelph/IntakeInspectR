@@ -17,11 +17,11 @@ app_server <- function(input, output, session) {
 
   mod_by_bin_vis_server(id = "by_bin_vis_1", df_list = bybin_out)
 
-  bycow_out <-  mod_by_cow_clean_server("by_cow_clean_1", df_list = bybin_out)
+  byanimal_out <-  mod_by_animal_clean_server("by_animal_clean_1", df_list = bybin_out)
 
-  mod_by_cow_vis_server("by_cow_vis_1", df_list = bycow_out)
+  mod_by_animal_vis_server("by_animal_vis_1", df_list = byanimal_out)
 
-  mod_final_summary_server("final_summary_1", df_list_bybin = bybin_out, df_list_bycow = bycow_out)
+  mod_final_summary_server("final_summary_1", df_list_bybin = bybin_out, df_list_byanimal = byanimal_out)
 
 
 

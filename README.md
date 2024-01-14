@@ -75,17 +75,17 @@ View data layout:
 df_uploaded %>% glimpse()
 #> Rows: 94,026
 #> Columns: 11
-#> $ transponder_id <int64> 6.448698e-317, 6.448695e-317, 6.629925e-317, 6.448712…
-#> $ feed_bin_id    <int> 6, 2, 41, 7, 1, 72, 71, 41, 53, 16, 1, 42, 41, 49, 8, 2…
-#> $ start_time     <dttm> 2022-01-01 00:04:20, 2022-01-01 00:03:55, 2022-01-01 0…
-#> $ end_time       <dttm> 2022-01-01 00:04:32, 2022-01-01 00:04:41, 2022-01-01 0…
-#> $ feed_duration  <int> 12, 46, 39, 118, 26, 127, 136, 138, 206, 118, 140, 309,…
-#> $ start_weight   <dbl> 0.4, 3.3, 32.1, 35.7, 13.5, 8.9, 17.7, 31.9, 21.4, 7.4,…
-#> $ end_weight     <dbl> 0.3, 3.1, 31.9, 35.2, 13.3, 8.7, 17.4, 31.3, 20.9, 7.0,…
-#> $ diet           <chr> "DIET1", "DIET1", "DIET1", "DIET1", "DIET1", "DIET1", "…
-#> $ intake         <dbl> 0.1, 0.2, 0.2, 0.5, 0.2, 0.2, 0.3, 0.6, 0.5, 0.4, 0.6, …
-#> $ date           <date> 2022-01-01, 2022-01-01, 2022-01-01, 2022-01-01, 2022-0…
-#> $ cow_id         <dbl> 2000, 2001, 2002, 2003, 2001, 2004, 2005, 2002, 2006, 2…
+#> $ transponder_id  <int64> 6.448698e-317, 6.448695e-317, 6.629925e-317, 6.44871…
+#> $ bin_id          <int> 6, 2, 41, 7, 1, 72, 71, 41, 53, 16, 1, 42, 41, 49, 8, …
+#> $ start_time      <dttm> 2022-01-01 00:04:20, 2022-01-01 00:03:55, 2022-01-01 …
+#> $ end_time        <dttm> 2022-01-01 00:04:32, 2022-01-01 00:04:41, 2022-01-01 …
+#> $ duration_sec    <int> 12, 46, 39, 118, 26, 127, 136, 138, 206, 118, 140, 309…
+#> $ start_weight_kg <dbl> 0.4, 3.3, 32.1, 35.7, 13.5, 8.9, 17.7, 31.9, 21.4, 7.4…
+#> $ end_weight_kg   <dbl> 0.3, 3.1, 31.9, 35.2, 13.3, 8.7, 17.4, 31.3, 20.9, 7.0…
+#> $ diet            <chr> "DIET1", "DIET1", "DIET1", "DIET1", "DIET1", "DIET1", …
+#> $ intake          <dbl> 0.1, 0.2, 0.2, 0.5, 0.2, 0.2, 0.3, 0.6, 0.5, 0.4, 0.6,…
+#> $ date            <date> 2022-01-01, 2022-01-01, 2022-01-01, 2022-01-01, 2022-…
+#> $ animal_id       <dbl> 2000, 2001, 2002, 2003, 2001, 2004, 2005, 2002, 2006, …
 ```
 
 ### Custom data
@@ -148,7 +148,7 @@ Plot 30k rows of data for a quick look at data.
 df_uploaded %>% 
   slice_head(n=30000) %>% 
   IntakeInspectR::f_plot_summary(
-    x = feed_duration/60,
+    x = duration_sec/60,
     y = intake,
     col_colour = NULL,
     type = 'reg'
@@ -206,13 +206,13 @@ list_cleaned <-
           df_filtered,
           zero_thresh = 0.3, 
           feedout_thresh = 10, 
-          col_bin_ID = feed_bin_id,
-          col_cow_ID = cow_id,
+          col_bin_ID = bin_id,
+          col_animal_id = animal_id,
           col_date = date,
           col_start_time = start_time,
           col_end_time = end_time,
-          col_start_weight = start_weight,
-          col_end_weight = end_weight,
+          col_start_weight_kg = start_weight_kg,
+          col_end_weight_kg = end_weight_kg,
           col_intake = intake,
           log = FALSE
           )
@@ -227,26 +227,26 @@ the output by name.
 
 The columns ending in `_bybin` represent columns where corrections were
 made, as well `is_end_time_overlap_error`. These columns use the
-classifications to make corrections, e.g. If `check_end_weights` starts
-with `'replace: '` then `corrected_end_weight_bybin` will be given the
-value of the next row’s start weight. Otherwise, it keeps the original
-`end_weight`.
+classifications to make corrections, e.g. If `check_end_weight_kgs`
+starts with `'replace: '` then `corrected_end_weight_kg_bybin` will be
+given the value of the next row’s start weight. Otherwise, it keeps the
+original `end_weight_kg`.
 
 ``` r
 list_cleaned$df_cleaned %>% glimpse()
 #> Rows: 60,056
 #> Columns: 32
 #> $ transponder_id                  <int64> 6.448712e-317, 6.448697e-317, 6.4487…
-#> $ feed_bin_id                     <int> 7, 42, 48, 18, 2, 49, 53, 41, 6, 71, 7…
+#> $ bin_id                          <int> 7, 42, 48, 18, 2, 49, 53, 41, 6, 71, 7…
 #> $ start_time                      <dttm> 2022-01-01 00:03:10, 2022-01-01 00:03…
 #> $ end_time                        <dttm> 2022-01-01 00:05:08, 2022-01-01 00:08…
-#> $ feed_duration                   <int> 118, 309, 470, 372, 46, 306, 206, 39, …
-#> $ start_weight                    <dbl> 35.7, 31.0, 24.0, 5.5, 3.3, 32.4, 21.4…
-#> $ end_weight                      <dbl> 35.2, 29.4, 22.3, 4.1, 3.1, 31.7, 20.9…
+#> $ duration_sec                    <int> 118, 309, 470, 372, 46, 306, 206, 39, …
+#> $ start_weight_kg                 <dbl> 35.7, 31.0, 24.0, 5.5, 3.3, 32.4, 21.4…
+#> $ end_weight_kg                   <dbl> 35.2, 29.4, 22.3, 4.1, 3.1, 31.7, 20.9…
 #> $ diet                            <chr> "DIET1", "DIET1", "DIET1", "DIET1", "D…
 #> $ intake                          <dbl> 0.5, 1.6, 1.7, 1.4, 0.2, 0.7, 0.5, 0.2…
 #> $ date                            <date> 2022-01-01, 2022-01-01, 2022-01-01, 2…
-#> $ cow_id                          <dbl> 2003, 2008, 2016, 2011, 2001, 2009, 20…
+#> $ animal_id                       <dbl> 2003, 2008, 2016, 2011, 2001, 2009, 20…
 #> $ is_0kg                          <lgl> FALSE, FALSE, FALSE, FALSE, FALSE, FAL…
 #> $ prevEnd                         <dbl> NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
 #> $ prevStart                       <dbl> NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
@@ -255,19 +255,19 @@ list_cleaned$df_cleaned %>% glimpse()
 #> $ prevEnd_vs_nextStart            <dbl> NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
 #> $ check_prev_vs_next              <chr> "ok", "ok", "ok", "ok", "ok", "ok", "o…
 #> $ classify_errors                 <chr> "ok", "ok", "ok", "ok", "ok", "ok", "o…
-#> $ check_end_weights               <chr> "keep: feed removed: minor (< zero_thr…
-#> $ corrected_end_weight_bybin      <dbl> 35.2, 29.4, 22.4, 4.1, 3.1, 31.7, 20.9…
-#> $ category_end_weight             <chr> "keep", "keep", "replace", "keep", "ke…
+#> $ check_end_weight_kgs            <chr> "keep: feed removed: minor (< zero_thr…
+#> $ corrected_end_weight_kg_bybin   <dbl> 35.2, 29.4, 22.4, 4.1, 3.1, 31.7, 20.9…
+#> $ category_end_weight_kg          <chr> "keep", "keep", "replace", "keep", "ke…
 #> $ prev_step3_check                <chr> NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
-#> $ check_start_weights             <chr> "keep", "keep", "keep", "keep", "keep"…
-#> $ corrected_start_weight_bybin    <dbl> 35.7, 31.0, 24.0, 5.5, 3.3, 32.4, 21.4…
+#> $ check_start_weight_kgs          <chr> "keep", "keep", "keep", "keep", "keep"…
+#> $ corrected_start_weight_kg_bybin <dbl> 35.7, 31.0, 24.0, 5.5, 3.3, 32.4, 21.4…
 #> $ corrected_intake_bybin          <dbl> 0.5, 1.6, 1.6, 1.4, 0.2, 0.7, 0.5, 0.2…
 #> $ is_corrected_intake_bybin       <lgl> FALSE, FALSE, TRUE, FALSE, FALSE, FALS…
 #> $ nextStartTime                   <dttm> 2022-01-01 00:05:15, 2022-01-01 00:09…
 #> $ is_end_time_overlap_error       <lgl> FALSE, FALSE, FALSE, FALSE, FALSE, FAL…
 #> $ corrected_end_time              <dttm> 2022-01-01 00:05:08, 2022-01-01 00:08…
-#> $ corrected_feed_duration_diff    <drtn> 118 secs, 309 secs, 470 secs, 372 sec…
-#> $ corrected_feed_duration_seconds <dbl> 118, 309, 470, 372, 46, 306, 206, 39, …
+#> $ corrected_duration_sec_diff     <drtn> 118 secs, 309 secs, 470 secs, 372 sec…
+#> $ corrected_duration_sec_seconds  <dbl> 118, 309, 470, 372, 46, 306, 206, 39, …
 ```
 
 ## 2b. By Bin - Visualise
@@ -280,7 +280,7 @@ list_cleaned$df_cleaned %>% glimpse()
 
 list_cleaned$df_cleaned %>% 
   IntakeInspectR::f_plot_summary(
-    x = feed_duration,
+    x = duration_sec,
     y = intake,
     type = 'reg')+
   ggplot2::labs(
@@ -296,7 +296,7 @@ list_cleaned$df_cleaned %>%
 
 list_cleaned$df_cleaned %>% 
   IntakeInspectR::f_plot_summary(
-     x = feed_duration,
+     x = duration_sec,
     y = intake,
     type = 'hist')
 ```
@@ -307,7 +307,7 @@ list_cleaned$df_cleaned %>%
 
 These functions require data from only 1 feed bin. Various columns
 contain useful information about the cleaning, such as
-‘check_end_weights’, ‘is_end_time_error’, ‘check_start_weights’,
+‘check_end_weight_kgs’, ‘is_end_time_error’, ‘check_start_weight_kgs’,
 ‘is_corrected_bybin’. These can be used for col_colour to colour the
 points in the plot.
 
@@ -317,15 +317,15 @@ interactive using plotly.
 ``` r
 p_bin_regression_raw <- 
   list_cleaned$df_cleaned %>% 
-  dplyr::filter(feed_bin_id == 16) %>% 
+  dplyr::filter(bin_id == 16) %>% 
   dplyr::mutate(
-    tooltip = paste('cow_id:', .data$cow_id,
+    tooltip = paste('animal_id:', .data$animal_id,
                     '\nstart_time', .data$start_time)
   ) %>% 
   IntakeInspectR::plot_bin_regression(
-    x = feed_duration,
+    x = duration_sec,
     y = intake,
-    col_colour = check_end_weights,
+    col_colour = check_end_weight_kgs,
     col_hover_text = .data$tooltip)+
   # add custom labels:
   ggplot2::labs(
@@ -351,18 +351,18 @@ p_bin_timeline_raw <-
   list_cleaned$df_cleaned %>% 
   # filter to specific dates if not using interactively
   dplyr::filter(date == lubridate::ymd("2022-01-02")) %>%
-  dplyr::filter(feed_bin_id == 16) %>% 
+  dplyr::filter(bin_id == 16) %>% 
   dplyr::mutate(
     # For plotly when hovering over a point
-    tooltip = paste('cow_id:', .data$cow_id,
+    tooltip = paste('animal_id:', .data$animal_id,
                     '\nstart_time', .data$start_time)
   ) %>% 
   IntakeInspectR::plot_bin_timeline(
     col_start_time = start_time,
     col_end_time = end_time,
-    col_start_weight = start_weight,
-    col_end_weight = end_weight,
-    col_colour = check_end_weights,
+    col_start_weight_kg = start_weight_kg,
+    col_end_weight_kg = end_weight_kg,
+    col_colour = check_end_weight_kgs,
     col_hover_text = .data$tooltip)+
   # add custom labels:
   ggplot2::labs(
@@ -382,20 +382,20 @@ p_bin_timeline_raw
 ``` r
 p_bin_timeline_clean <- 
   list_cleaned$df_cleaned %>% 
-  dplyr::filter(feed_bin_id == 16) %>% 
+  dplyr::filter(bin_id == 16) %>% 
   # filter to specific dates if not using interactively
   dplyr::filter(date == lubridate::ymd("2022-01-02")) %>%
   dplyr::mutate(
     # For plotly when hovering over a point
-    tooltip = paste('cow_id:', .data$cow_id,
+    tooltip = paste('animal_id:', .data$animal_id,
                     '\nstart_time', .data$start_time)
   ) %>% 
   IntakeInspectR::plot_bin_timeline(
     col_start_time = start_time,
     col_end_time = corrected_end_time,
-    col_start_weight = corrected_start_weight_bybin,
-    col_end_weight = corrected_end_weight_bybin,
-    col_colour = check_end_weights,
+    col_start_weight_kg = corrected_start_weight_kg_bybin,
+    col_end_weight_kg = corrected_end_weight_kg_bybin,
+    col_colour = check_end_weight_kgs,
     col_hover_text = .data$tooltip)+
   # add custom labels:
   ggplot2::labs(
@@ -410,49 +410,64 @@ p_bin_timeline_clean
 
 <img src="man/figures/README-unnamed-chunk-14-1.png" width="100%" />
 
-## 3a. By Cow - Clean
+## 3a. By Animal - Clean
 
-This function takes the whole cleaned data frame, and splits by cow to
-iterate through regression functions.
+This function takes the whole cleaned data frame, and splits by animal
+to iterate through regression functions.
 
 ``` r
-by_cow_list_out <- 
- IntakeInspectR::f_iterate_cows(
+by_animal_list_out <- 
+ IntakeInspectR::f_iterate_animals(
     list_cleaned$df_cleaned,
-    col_cow_id = cow_id,
-    col_bin_id = feed_bin_id,
+    col_animal_id = animal_id,
+    col_bin_id = bin_id,
     col_date = date,
     col_start_time =  start_time,
     col_intake =  corrected_intake_bybin,
-    col_duration = corrected_feed_duration_seconds,
-    sd_thresh = 5, 
+    col_duration = corrected_duration_sec_seconds,
+    sd_thresh = 20, 
+    max_duration_min = 60,
+    min_intake_rate_kg_min = 0.05,
+    max_intake_rate_kg_min = 1.5,
+    outlier_exemption_max_duration = 1,
+    outlier_exemption_max_intake = 0.2,
     shiny.session = NULL, # use NULL if not inside a shiny app
     log = FALSE
   )
+#> [1] "only 166 sets, so all sets will be tried"
+#> [1] "only 138 sets, so all sets will be tried"
+#> [1] "only 132 sets, so all sets will be tried"
+#> [1] "only 129 sets, so all sets will be tried"
+#> Warning: There were 4 warnings in `dplyr::mutate()`.
+#> The first warning was:
+#> ℹ In argument: `fitted = purrr::imap(data, ~.f_outlier_iterate(.x, .y))`.
+#> Caused by warning in `lqs.default()`:
+#> ! only 166 sets, so all sets will be tried
+#> ℹ Run `dplyr::last_dplyr_warnings()` to see the 3 remaining warnings.
 ```
 
 This data is returned as a nested data frame. This makes many operations
 easier but users may prefer a normal data frame:
 
 ``` r
-merged_by_cow <- 
-  by_cow_list_out$nested_out %>% 
+merged_by_animal <- 
+  by_animal_list_out$nested_out %>% 
   IntakeInspectR:::f_merge_corrected_outlier_data()
 
-merged_by_cow %>% glimpse()
+merged_by_animal %>% glimpse()
 #> Rows: 60,056
-#> Columns: 44
+#> Columns: 48
 #> $ transponder_id                  <int64> 13052339, 13052339, 13052339, 130523…
-#> $ feed_bin_id                     <int> 7, 8, 8, 9, 9, 9, 8, 7, 7, 8, 8, 7, 7,…
+#> $ bin_id                          <int> 7, 8, 8, 9, 9, 9, 8, 7, 7, 8, 8, 7, 7,…
 #> $ start_time                      <dttm> 2022-01-01 00:03:10, 2022-01-01 00:05…
 #> $ end_time                        <dttm> 2022-01-01 00:05:08, 2022-01-01 00:09…
-#> $ feed_duration                   <int> 118, 243, 208, 299, 87, 315, 179, 338,…
-#> $ start_weight                    <dbl> 35.7, 38.2, 37.0, 32.9, 31.8, 31.6, 34…
-#> $ end_weight                      <dbl> 35.2, 37.0, 36.3, 31.9, 31.6, 30.9, 33…
+#> $ duration_sec                    <int> 118, 243, 208, 299, 87, 315, 179, 338,…
+#> $ start_weight_kg                 <dbl> 35.7, 38.2, 37.0, 32.9, 31.8, 31.6, 34…
+#> $ end_weight_kg                   <dbl> 35.2, 37.0, 36.3, 31.9, 31.6, 30.9, 33…
 #> $ diet                            <chr> "DIET1", "DIET1", "DIET1", "DIET1", "D…
 #> $ intake                          <dbl> 0.5, 1.2, 0.7, 1.0, 0.2, 0.7, 0.5, 1.0…
 #> $ date                            <date> 2022-01-01, 2022-01-01, 2022-01-01, 2…
-#> $ cow_id                          <dbl> 2003, 2003, 2003, 2003, 2003, 2003, 20…
+#> $ animal_id                       <dbl> 2003, 2003, 2003, 2003, 2003, 2003, 20…
 #> $ is_0kg                          <lgl> FALSE, FALSE, FALSE, FALSE, FALSE, FAL…
 #> $ prevEnd                         <dbl> NA, NA, 37.0, NA, 31.9, 31.6, 34.3, 33…
 #> $ prevStart                       <dbl> NA, NA, 38.2, NA, 32.9, 31.8, 36.3, 35…
@@ -461,46 +476,50 @@ merged_by_cow %>% glimpse()
 #> $ prevEnd_vs_nextStart            <dbl> NA, NA, 0.7, NA, 0.3, 0.7, 0.5, 1.1, 0…
 #> $ check_prev_vs_next              <chr> "ok", "ok", "ok", "ok", "ok", "ok", "o…
 #> $ classify_errors                 <chr> "ok", "ok", "ok", "ok", "ok", "ok", "o…
-#> $ check_end_weights               <chr> "keep: feed removed: minor (< zero_thr…
-#> $ corrected_end_weight_bybin      <dbl> 35.2, 37.0, 36.3, 31.9, 31.6, 30.9, 33…
-#> $ category_end_weight             <chr> "keep", "keep", "keep", "keep", "keep"…
+#> $ check_end_weight_kgs            <chr> "keep: feed removed: minor (< zero_thr…
+#> $ corrected_end_weight_kg_bybin   <dbl> 35.2, 37.0, 36.3, 31.9, 31.6, 30.9, 33…
+#> $ category_end_weight_kg          <chr> "keep", "keep", "keep", "keep", "keep"…
 #> $ prev_step3_check                <chr> NA, NA, "keep", NA, "keep: feed remove…
-#> $ check_start_weights             <chr> "keep", "keep", "keep", "keep", "keep"…
-#> $ corrected_start_weight_bybin    <dbl> 35.7, 38.2, 37.0, 32.9, 31.8, 31.6, 34…
+#> $ check_start_weight_kgs          <chr> "keep", "keep", "keep", "keep", "keep"…
+#> $ corrected_start_weight_kg_bybin <dbl> 35.7, 38.2, 37.0, 32.9, 31.8, 31.6, 34…
 #> $ corrected_intake_bybin          <dbl> 0.5, 1.2, 0.7, 1.0, 0.2, 0.7, 0.5, 1.0…
 #> $ is_corrected_intake_bybin       <lgl> FALSE, FALSE, FALSE, FALSE, FALSE, FAL…
 #> $ nextStartTime                   <dttm> 2022-01-01 00:05:15, 2022-01-01 00:09…
 #> $ is_end_time_overlap_error       <lgl> FALSE, FALSE, FALSE, FALSE, FALSE, FAL…
 #> $ corrected_end_time              <dttm> 2022-01-01 00:05:08, 2022-01-01 00:09…
-#> $ corrected_feed_duration_diff    <drtn> 118 secs, 243 secs, 208 secs, 299 sec…
-#> $ corrected_feed_duration_seconds <dbl> 118, 243, 208, 299, 87, 315, 179, 338,…
-#> $ .fitted                         <dbl> 0.3925220, 0.8083291, 0.6919031, 0.994…
-#> $ .resid                          <dbl> 0.107478049, 0.391670898, 0.008096900,…
+#> $ corrected_duration_sec_diff     <drtn> 118 secs, 243 secs, 208 secs, 299 sec…
+#> $ corrected_duration_sec_seconds  <dbl> 118, 243, 208, 299, 87, 315, 179, 338,…
+#> $ .fitted                         <dbl> 0.3930548, 0.8094264, 0.6928424, 0.995…
+#> $ .resid                          <dbl> 0.106945203, 0.390573595, 0.007157645,…
+#> $ manual_outlier_classification   <chr> "Not Outlier", "Not Outlier", "Not Out…
+#> $ is_manual_outlier               <lgl> FALSE, FALSE, FALSE, FALSE, FALSE, FAL…
+#> $ instant_rate_of_intake_kg_min   <dbl> 0.25423729, 0.29629630, 0.20192308, 0.…
 #> $ is_outlier                      <lgl> FALSE, FALSE, FALSE, FALSE, FALSE, FAL…
-#> $ rate_g_min                      <dbl> 254.23729, 296.29630, 201.92308, 200.6…
+#> $ predicted_y_bisector            <dbl> 0.3975879, 0.8187616, 0.7008330, 1.007…
+#> $ residual_y_bisector             <dbl> 0.1024120682, 0.3812384116, -0.0008329…
 #> $ outlier_pos_neg                 <chr> NA, NA, NA, NA, NA, NA, NA, NA, "neg_i…
-#> $ predicted_y_bisector            <dbl> 0.4181082, 0.8355412, 0.7186600, 1.022…
 #> $ new_y                           <dbl> 0.5, 1.2, 0.7, 1.0, 0.2, 0.7, 0.5, 1.0…
 #> $ new_x                           <dbl> 118, 243, 208, 299, 87, 315, 179, 338,…
-#> $ intercept                       <dbl> 0.02405149, 0.02405149, 0.02405149, 0.…
-#> $ slope                           <dbl> 0.003339464, 0.003339464, 0.003339464,…
+#> $ intercept                       <dbl> 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,…
+#> $ slope                           <dbl> 0.003369389, 0.003369389, 0.003369389,…
+#> $ outlier_classification          <chr> "Not Outlier", "Not Outlier", "Not Out…
 #> $ final_intake_kg                 <dbl> 0.5, 1.2, 0.7, 1.0, 0.2, 0.7, 0.5, 1.0…
 #> $ final_duration_sec              <dbl> 118, 243, 208, 299, 87, 315, 179, 338,…
 ```
 
-## 3b. By Cow - Vis
+## 3b. By Animal - Vis
 
 ### Overall
 
-This shows all changes made at a per cow level but displayed together on
-this single plot for an overview.
+This shows all changes made at a per animal level but displayed together
+on this single plot for an overview.
 
 ``` r
 
-merged_by_cow %>%
-   IntakeInspectR:::fct_plot_by_cow_overall(
+merged_by_animal %>%
+   IntakeInspectR:::fct_plot_by_animal_overall(
     col_intake = corrected_intake_bybin,
-    col_duration = corrected_feed_duration_seconds,
+    col_duration = corrected_duration_sec_seconds,
     pt_size = 3)+
   labs(x = 'Corrected Feed Duration (seconds)',
        y = 'Corrected Feed Intake (kg)')
@@ -508,13 +527,13 @@ merged_by_cow %>%
 
 <img src="man/figures/README-unnamed-chunk-17-1.png" width="100%" />
 
-### Individual cow
+### Individual animal
 
-#### Find some cows with errors
+#### Find some animals with errors
 
 ``` r
-merged_by_cow %>% 
-  dplyr::count(.data$cow_id, .data$outlier_pos_neg) %>% 
+merged_by_animal %>% 
+  dplyr::count(.data$animal_id, .data$outlier_pos_neg) %>% 
   dplyr::mutate(dplyr::across('outlier_pos_neg', ~tidyr::replace_na(.x, 'not_error'))) %>%
   tidyr::pivot_wider(names_from = 'outlier_pos_neg', values_from = 'n') %>%
         dplyr::rowwise() %>%
@@ -524,33 +543,35 @@ merged_by_cow %>%
         dplyr::ungroup() %>%
         dplyr::arrange(dplyr::desc(.data$total_outliers))
 #> # A tibble: 133 × 6
-#>    cow_id   neg neg_intake   pos not_error total_outliers
-#>     <dbl> <int>      <int> <int>     <int>          <int>
-#>  1   2052    NA         23    NA       386             23
-#>  2   2016    21          1    NA       782             22
-#>  3   2040     6         10     5       801             21
-#>  4   2090     2         13     4       425             19
-#>  5   2007     4         12     1       641             17
-#>  6   2017     5          8     3       587             16
-#>  7   2037     1         10     5       399             16
-#>  8   2027    11          4    NA       487             15
-#>  9   2107    NA          6     9       317             15
-#> 10   2089     6          6     2       962             14
-#> # … with 123 more rows
+#>    animal_id neg_intake not_error   pos   neg total_outliers
+#>        <dbl>      <int>     <int> <int> <int>          <int>
+#>  1      2052         23       381    NA     5             28
+#>  2      2128          2       310    NA    18             20
+#>  3      2090         13       426    NA     5             18
+#>  4      2040         10       807     2     3             15
+#>  5      2037         10       401     2     2             14
+#>  6      2007         12       645     1    NA             13
+#>  7      2126          1       306    NA    12             13
+#>  8      2121         NA       281    NA    12             12
+#>  9      2107          6       321     5    NA             11
+#> 10      2091          9       209     1    NA             10
+#> # ℹ 123 more rows
 ```
 
-#### Visualise some individual cows
+#### Visualise some individual animals
 
 ``` r
-merged_by_cow %>%
-  filter(cow_id %in% c(2040,2043,2107,2007)) %>% 
-  IntakeInspectR::fct_plot_by_cow(
+merged_by_animal %>%
+  filter(animal_id %in% c(2040,2043,2107,2007)) %>% 
+  IntakeInspectR::fct_plot_by_animal(
     col_intake = .data$corrected_intake_bybin,
-    col_duration = .data$corrected_feed_duration_seconds,
+    col_duration = .data$corrected_duration_sec_seconds,
     pt_size = 3)+
   labs(x = 'Corrected Feed Duration (seconds)',
        y = 'Corrected Feed Intake (kg)')  +
-  facet_wrap(vars(cow_id), scales = 'free')
+  facet_wrap(vars(animal_id), scales = 'free')
+#> Warning in ggplot2::geom_point(aes(colour = .data$outlier_pos_neg, fill =
+#> .data$outlier_classification, : Ignoring unknown aesthetics: text
 ```
 
 <img src="man/figures/README-unnamed-chunk-19-1.png" width="100%" />
@@ -565,32 +586,36 @@ correct data using any combination of corrections.
 ``` r
 
 df_all_steps <- 
-  merged_by_cow %>% 
+  merged_by_animal %>% 
   dplyr::select(
-    feed_bin_id,
-    cow_id,
+    bin_id,
+    animal_id,
     date,
     start_time,
     end_time,
-    feed_duration,
-    start_weight,
-    end_weight,
+    duration_sec,
+    start_weight_kg,
+    end_weight_kg,
     
     # By Bin - End weight:
-    check_end_weights,
-    category_end_weight,
-    corrected_end_weight_bybin,
+    check_end_weight_kgs,
+    category_end_weight_kg,
+    corrected_end_weight_kg_bybin,
     
     # By Bin - Start weight:
-    check_start_weights,
-    corrected_start_weight_bybin,
+    check_start_weight_kgs,
+    corrected_start_weight_kg_bybin,
+    
+    is_corrected_intake_bybin,
     
     # By Bin - Overlapping end times:
     is_end_time_overlap_error,
     corrected_end_time,
-    corrected_feed_duration_seconds,
+    corrected_duration_sec_seconds,
     
-    # By Cow - Outlier detection
+    # By Animal - Outlier detection
+    is_manual_outlier,
+    manual_outlier_classification,
     is_outlier,
     outlier_pos_neg,
     new_x,
@@ -599,23 +624,26 @@ df_all_steps <-
 
 df_all_steps %>% glimpse()
 #> Rows: 60,056
-#> Columns: 20
-#> $ feed_bin_id                     <int> 7, 8, 8, 9, 9, 9, 8, 7, 7, 8, 8, 7, 7,…
-#> $ cow_id                          <dbl> 2003, 2003, 2003, 2003, 2003, 2003, 20…
+#> Columns: 23
+#> $ bin_id                          <int> 7, 8, 8, 9, 9, 9, 8, 7, 7, 8, 8, 7, 7,…
+#> $ animal_id                       <dbl> 2003, 2003, 2003, 2003, 2003, 2003, 20…
 #> $ date                            <date> 2022-01-01, 2022-01-01, 2022-01-01, 2…
 #> $ start_time                      <dttm> 2022-01-01 00:03:10, 2022-01-01 00:05…
 #> $ end_time                        <dttm> 2022-01-01 00:05:08, 2022-01-01 00:09…
-#> $ feed_duration                   <int> 118, 243, 208, 299, 87, 315, 179, 338,…
-#> $ start_weight                    <dbl> 35.7, 38.2, 37.0, 32.9, 31.8, 31.6, 34…
-#> $ end_weight                      <dbl> 35.2, 37.0, 36.3, 31.9, 31.6, 30.9, 33…
-#> $ check_end_weights               <chr> "keep: feed removed: minor (< zero_thr…
-#> $ category_end_weight             <chr> "keep", "keep", "keep", "keep", "keep"…
-#> $ corrected_end_weight_bybin      <dbl> 35.2, 37.0, 36.3, 31.9, 31.6, 30.9, 33…
-#> $ check_start_weights             <chr> "keep", "keep", "keep", "keep", "keep"…
-#> $ corrected_start_weight_bybin    <dbl> 35.7, 38.2, 37.0, 32.9, 31.8, 31.6, 34…
+#> $ duration_sec                    <int> 118, 243, 208, 299, 87, 315, 179, 338,…
+#> $ start_weight_kg                 <dbl> 35.7, 38.2, 37.0, 32.9, 31.8, 31.6, 34…
+#> $ end_weight_kg                   <dbl> 35.2, 37.0, 36.3, 31.9, 31.6, 30.9, 33…
+#> $ check_end_weight_kgs            <chr> "keep: feed removed: minor (< zero_thr…
+#> $ category_end_weight_kg          <chr> "keep", "keep", "keep", "keep", "keep"…
+#> $ corrected_end_weight_kg_bybin   <dbl> 35.2, 37.0, 36.3, 31.9, 31.6, 30.9, 33…
+#> $ check_start_weight_kgs          <chr> "keep", "keep", "keep", "keep", "keep"…
+#> $ corrected_start_weight_kg_bybin <dbl> 35.7, 38.2, 37.0, 32.9, 31.8, 31.6, 34…
+#> $ is_corrected_intake_bybin       <lgl> FALSE, FALSE, FALSE, FALSE, FALSE, FAL…
 #> $ is_end_time_overlap_error       <lgl> FALSE, FALSE, FALSE, FALSE, FALSE, FAL…
 #> $ corrected_end_time              <dttm> 2022-01-01 00:05:08, 2022-01-01 00:09…
-#> $ corrected_feed_duration_seconds <dbl> 118, 243, 208, 299, 87, 315, 179, 338,…
+#> $ corrected_duration_sec_seconds  <dbl> 118, 243, 208, 299, 87, 315, 179, 338,…
+#> $ is_manual_outlier               <lgl> FALSE, FALSE, FALSE, FALSE, FALSE, FAL…
+#> $ manual_outlier_classification   <chr> "Not Outlier", "Not Outlier", "Not Out…
 #> $ is_outlier                      <lgl> FALSE, FALSE, FALSE, FALSE, FALSE, FAL…
 #> $ outlier_pos_neg                 <chr> NA, NA, NA, NA, NA, NA, NA, NA, "neg_i…
 #> $ new_x                           <dbl> 118, 243, 208, 299, 87, 315, 179, 338,…
@@ -625,34 +653,34 @@ df_all_steps %>% glimpse()
 ### Keep only corrected end weight and end time
 
 This is an example of selecting a final intake that ignores fixing start
-weight errors or outlier detection (By Cow), but does correct for long
-durations where feeding events by a cow overlapped at different feed
-bins.
+weight errors or outlier detection (By Animal), but does correct for
+long durations where feeding events by a animal overlapped at different
+feed bins.
 
 ``` r
 df_all_steps %>% 
   # calculate new intakes and durations:
   mutate(
-    selected_final_intake_kg = start_weight - corrected_end_weight_bybin,
+    selected_final_intake_kg = start_weight_kg - corrected_end_weight_kg_bybin,
     selected_final_duration_sec = corrected_end_time - start_time
   ) %>% 
   # remove unwanted columns:
   dplyr::select(
-    feed_bin_id, cow_id, date, start_time, corrected_end_time, start_weight, corrected_end_weight_bybin,
+    bin_id, animal_id, date, start_time, corrected_end_time, start_weight_kg, corrected_end_weight_kg_bybin,
     selected_final_intake_kg, selected_final_duration_sec
   ) %>% 
   glimpse()
 #> Rows: 60,056
 #> Columns: 9
-#> $ feed_bin_id                 <int> 7, 8, 8, 9, 9, 9, 8, 7, 7, 8, 8, 7, 7, 7, …
-#> $ cow_id                      <dbl> 2003, 2003, 2003, 2003, 2003, 2003, 2003, …
-#> $ date                        <date> 2022-01-01, 2022-01-01, 2022-01-01, 2022-…
-#> $ start_time                  <dttm> 2022-01-01 00:03:10, 2022-01-01 00:05:15,…
-#> $ corrected_end_time          <dttm> 2022-01-01 00:05:08, 2022-01-01 00:09:18,…
-#> $ start_weight                <dbl> 35.7, 38.2, 37.0, 32.9, 31.8, 31.6, 34.3, …
-#> $ corrected_end_weight_bybin  <dbl> 35.2, 37.0, 36.3, 31.9, 31.6, 30.9, 33.8, …
-#> $ selected_final_intake_kg    <dbl> 0.5, 1.2, 0.7, 1.0, 0.2, 0.7, 0.5, 1.0, -0…
-#> $ selected_final_duration_sec <drtn> 118 secs, 243 secs, 208 secs, 299 secs, 8…
+#> $ bin_id                        <int> 7, 8, 8, 9, 9, 9, 8, 7, 7, 8, 8, 7, 7, 7…
+#> $ animal_id                     <dbl> 2003, 2003, 2003, 2003, 2003, 2003, 2003…
+#> $ date                          <date> 2022-01-01, 2022-01-01, 2022-01-01, 202…
+#> $ start_time                    <dttm> 2022-01-01 00:03:10, 2022-01-01 00:05:1…
+#> $ corrected_end_time            <dttm> 2022-01-01 00:05:08, 2022-01-01 00:09:1…
+#> $ start_weight_kg               <dbl> 35.7, 38.2, 37.0, 32.9, 31.8, 31.6, 34.3…
+#> $ corrected_end_weight_kg_bybin <dbl> 35.2, 37.0, 36.3, 31.9, 31.6, 30.9, 33.8…
+#> $ selected_final_intake_kg      <dbl> 0.5, 1.2, 0.7, 1.0, 0.2, 0.7, 0.5, 1.0, …
+#> $ selected_final_duration_sec   <drtn> 118 secs, 243 secs, 208 secs, 299 secs,…
 ```
 
 ### Keeping all corrections
@@ -664,7 +692,7 @@ pre-calcualted flags:
 
 ``` r
 simplified_final_df <- 
-  merged_by_cow %>% 
+  merged_by_animal %>% 
   dplyr::rowwise() %>%
   dplyr::mutate(
     # overall flag for if anything was modified in the event
@@ -672,7 +700,7 @@ simplified_final_df <-
   ) %>% 
   dplyr::ungroup() %>% 
   dplyr::select(
-    feed_bin_id, cow_id, date, start_time, corrected_end_time, start_weight, corrected_end_weight_bybin,
+    bin_id, animal_id, date, start_time, corrected_end_time, start_weight_kg, corrected_end_weight_kg_bybin,
     final_intake_kg, 
     final_duration_sec, 
     is_modified
@@ -681,37 +709,38 @@ simplified_final_df <-
 simplified_final_df %>% glimpse()
 #> Rows: 60,056
 #> Columns: 10
-#> $ feed_bin_id                <int> 7, 8, 8, 9, 9, 9, 8, 7, 7, 8, 8, 7, 7, 7, 7…
-#> $ cow_id                     <dbl> 2003, 2003, 2003, 2003, 2003, 2003, 2003, 2…
-#> $ date                       <date> 2022-01-01, 2022-01-01, 2022-01-01, 2022-0…
-#> $ start_time                 <dttm> 2022-01-01 00:03:10, 2022-01-01 00:05:15, …
-#> $ corrected_end_time         <dttm> 2022-01-01 00:05:08, 2022-01-01 00:09:18, …
-#> $ start_weight               <dbl> 35.7, 38.2, 37.0, 32.9, 31.8, 31.6, 34.3, 3…
-#> $ corrected_end_weight_bybin <dbl> 35.2, 37.0, 36.3, 31.9, 31.6, 30.9, 33.8, 3…
-#> $ final_intake_kg            <dbl> 0.5, 1.2, 0.7, 1.0, 0.2, 0.7, 0.5, 1.0, 0.0…
-#> $ final_duration_sec         <dbl> 118, 243, 208, 299, 87, 315, 179, 338, 89, …
-#> $ is_modified                <lgl> FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, F…
+#> $ bin_id                        <int> 7, 8, 8, 9, 9, 9, 8, 7, 7, 8, 8, 7, 7, 7…
+#> $ animal_id                     <dbl> 2003, 2003, 2003, 2003, 2003, 2003, 2003…
+#> $ date                          <date> 2022-01-01, 2022-01-01, 2022-01-01, 202…
+#> $ start_time                    <dttm> 2022-01-01 00:03:10, 2022-01-01 00:05:1…
+#> $ corrected_end_time            <dttm> 2022-01-01 00:05:08, 2022-01-01 00:09:1…
+#> $ start_weight_kg               <dbl> 35.7, 38.2, 37.0, 32.9, 31.8, 31.6, 34.3…
+#> $ corrected_end_weight_kg_bybin <dbl> 35.2, 37.0, 36.3, 31.9, 31.6, 30.9, 33.8…
+#> $ final_intake_kg               <dbl> 0.5, 1.2, 0.7, 1.0, 0.2, 0.7, 0.5, 1.0, …
+#> $ final_duration_sec            <dbl> 118, 243, 208, 299, 87, 315, 179, 338, 8…
+#> $ is_modified                   <lgl> FALSE, FALSE, FALSE, FALSE, FALSE, FALSE…
 ```
 
-### Notes on By Cow outlier detection
+### Notes on By Animal outlier detection
 
-The By Cow functions require an x axis (duration) and y axis (intake) to
-be specified for it to use for fitting regressions.Therefore, it is not
-possible to exclude some error types from the By Bin cleaning after
-running the By Cow functions, instead users should re-run
-`f_iterate_cows` and specify the columns they wish to use. For example:
+The By Animal functions require an x axis (duration) and y axis (intake)
+to be specified for it to use for fitting regressions.Therefore, it is
+not possible to exclude some error types from the By Bin cleaning after
+running the By Animal functions, instead users should re-run
+`f_iterate_animals` and specify the columns they wish to use. For
+example:
 
 ``` r
 list_cleaned$df_cleaned %>% 
   mutate(
-    selected_intake_kg_bybin = start_weight - corrected_end_weight_bybin,
+    selected_intake_kg_bybin = start_weight_kg - corrected_end_weight_kg_bybin,
     # Notice time diff is converted to a number with as.numeric():
     selected_duration_sec_bybin =   as.numeric(corrected_end_time - start_time) 
   ) %>% 
   # Re-run with new columns:
- IntakeInspectR::f_iterate_cows(
-    col_cow_id = cow_id,
-    col_bin_id = feed_bin_id,
+ IntakeInspectR::f_iterate_animals(
+    col_animal_id = animal_id,
+    col_bin_id = bin_id,
     col_date = date,
     col_start_time =  start_time,
     col_intake =  selected_intake_kg_bybin, # NEW column
@@ -731,27 +760,27 @@ calculated, we can easily calculate daily intakes:
 
 daily_intakes <- 
   simplified_final_df  %>% 
-  group_by( cow_id, date ) %>% 
+  group_by( animal_id, date ) %>% 
   summarise(
     daily_intake_kg_asfed = sum(final_intake_kg, na.rm=TRUE)
   )
 
 daily_intakes
 #> # A tibble: 659 × 3
-#> # Groups:   cow_id [133]
-#>    cow_id date       daily_intake_kg_asfed
-#>     <dbl> <date>                     <dbl>
-#>  1   2000 2022-01-01                  41.8
-#>  2   2000 2022-01-02                  51.4
-#>  3   2000 2022-01-03                  49.6
-#>  4   2000 2022-01-04                  53  
-#>  5   2000 2022-01-05                  49  
-#>  6   2001 2022-01-01                  53.4
-#>  7   2001 2022-01-02                  48.2
-#>  8   2001 2022-01-03                  56.0
-#>  9   2001 2022-01-04                  54.6
-#> 10   2001 2022-01-05                  44.3
-#> # … with 649 more rows
+#> # Groups:   animal_id [133]
+#>    animal_id date       daily_intake_kg_asfed
+#>        <dbl> <date>                     <dbl>
+#>  1      2000 2022-01-01                  41.8
+#>  2      2000 2022-01-02                  51.4
+#>  3      2000 2022-01-03                  50.3
+#>  4      2000 2022-01-04                  53  
+#>  5      2000 2022-01-05                  49  
+#>  6      2001 2022-01-01                  53.9
+#>  7      2001 2022-01-02                  48.8
+#>  8      2001 2022-01-03                  58.2
+#>  9      2001 2022-01-04                  54.6
+#> 10      2001 2022-01-05                  46.5
+#> # ℹ 649 more rows
 ```
 
 ### Visualise all daily intakes
@@ -766,7 +795,7 @@ daily_intakes %>%
 
 <img src="man/figures/README-unnamed-chunk-25-1.png" width="100%" />
 
-### Visualise per cow daily intake
+### Visualise per animal daily intake
 
 It can be useful to monitor daily feed intake over time and a low intake
 might be important to follow up on.
@@ -776,28 +805,28 @@ daily_intakes %>%
   arrange(daily_intake_kg_asfed) %>% 
   head(10)
 #> # A tibble: 10 × 3
-#> # Groups:   cow_id [5]
-#>    cow_id date       daily_intake_kg_asfed
-#>     <dbl> <date>                     <dbl>
-#>  1   2018 2022-01-04                  13.1
-#>  2   2126 2022-01-02                  19.0
-#>  3   2072 2022-01-03                  19.2
-#>  4   2128 2022-01-02                  21.1
-#>  5   2128 2022-01-01                  21.3
-#>  6   2128 2022-01-04                  21.4
-#>  7   2128 2022-01-05                  21.7
-#>  8   2128 2022-01-03                  22.2
-#>  9   2126 2022-01-04                  22.8
-#> 10   2014 2022-01-03                  23.7
+#> # Groups:   animal_id [5]
+#>    animal_id date       daily_intake_kg_asfed
+#>        <dbl> <date>                     <dbl>
+#>  1      2018 2022-01-04                  13.1
+#>  2      2126 2022-01-02                  19  
+#>  3      2072 2022-01-03                  19.7
+#>  4      2128 2022-01-02                  21.1
+#>  5      2128 2022-01-01                  21.3
+#>  6      2128 2022-01-04                  21.4
+#>  7      2128 2022-01-05                  21.7
+#>  8      2128 2022-01-03                  22.2
+#>  9      2126 2022-01-04                  23.5
+#> 10      2014 2022-01-02                  24.0
 ```
 
 ``` r
 daily_intakes %>% 
-  filter(cow_id %in% c(2126, 2072, 2121, 2100)) %>% 
+  filter(animal_id %in% c(2126, 2072, 2121, 2100)) %>% 
   ggplot(aes( x = date, y = daily_intake_kg_asfed))+
   geom_point()+
   geom_line()+
-  facet_wrap(vars(cow_id))+
+  facet_wrap(vars(animal_id))+
   ggplot2::ylim(c(0,NA))+
   theme_classic()
 ```

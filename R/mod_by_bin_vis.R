@@ -37,18 +37,21 @@ mod_by_bin_vis_ui <- function(id){
           gridlayout::grid_card(
             area = "user_input",
 
-            wrapper = function(x) bslib::card_body(x, fill=FALSE, fillable=FALSE),
+            wrapper = function(x) bslib::card_body(x, fill=TRUE, fillable=FALSE),
 
-              bslib::card_body(
-                fill=FALSE,
+
+
+            bslib::card_body(
+              fill=FALSE,
               max_height = "300px", # so that it doesn't push the toggled UI below off the screen
+              shinyjs::hidden(h4(id = ns('bypass_warning'), "By Bin Cleaning has been bypassed")),
               verbatimTextOutput(ns("selected_rows"), placeholder = FALSE)
-              ),
+            ),
 
 
-              bslib::card_body(
+            bslib::card_body(
               id = ns("toggle_plot_inputs"), # name needed for toggle to unhide
-              fill=FALSE, #card won't change size inside of parent
+              fill=TRUE, #card won't change size inside of parent
               fillable=TRUE, #contents of card will fill out
               selectInput(
                 inputId = ns('bin_id'),
@@ -62,32 +65,32 @@ mod_by_bin_vis_ui <- function(id){
                 choices = list(
                   is_end_time_overlap_error = 'is_end_time_overlap_error',
                   is_corrected_intake_bybin = 'is_corrected_intake_bybin',
-                  check_end_weights = 'check_end_weights',
-                  check_start_weights = 'check_start_weights'
+                  check_end_weight_kgs = 'check_end_weight_kgs',
+                  check_start_weight_kgs = 'check_start_weight_kgs'
                 ),
-                selected = 'check_end_weights'
+                selected = 'check_end_weight_kgs'
               )
             ),
 
             # bslib::card_body(
-              radioButtons(
-                inputId = ns("data_type"),
-                label = "Select data type:",
-                choices = list(
-                  raw = "raw",
-                  corrected = "corrected"
-                )
-              ),
+            radioButtons(
+              inputId = ns("data_type"),
+              label = "Select data type:",
+              choices = list(
+                raw = "raw",
+                corrected = "corrected"
+              )
+            ),
             br(),
 
-              radioButtons(
-                inputId = ns("plot_type_overall"),
-                label = "Select plot type:",
-                choices = list(
-                  histogram = "hist",
-                  regression = "reg"
-                )
-              )),
+            radioButtons(
+              inputId = ns("plot_type_overall"),
+              label = "Select plot type:",
+              choices = list(
+                histogram = "hist",
+                regression = "reg"
+              )
+            )),
 
 
           ################################################ #
@@ -100,16 +103,17 @@ mod_by_bin_vis_ui <- function(id){
             bslib::navset_card_tab( # a card with nav tabs:
               id = ns('display_tabs'), #used for input$ to see active tab
                # wrapper = bslib::card_body,
+              full_screen = TRUE,
 
               bslib::nav_panel(
                 title = "Overall Plots",
                 value = "overall_plots", #for accessing input$ details
                 bslib::card_title("Regression or histogram of all feeding events"),
                 p("Overall visualisation of all feeding events. Select data type (raw/corrected) and plot type (histogram/regression) to view."),
-                bslib::card(
-                  shiny::plotOutput(outputId = ns("p"))  %>%  shinycssloaders::withSpinner(),
-                  full_screen = TRUE
-                )
+                # bslib::card(
+                  shiny::plotOutput(outputId = ns("p"), height = '500px')  %>%  shinycssloaders::withSpinner(),
+                  # full_screen = TRUE
+                # )
               ),
 
               bslib::nav_panel(
@@ -131,25 +135,48 @@ mod_by_bin_vis_ui <- function(id){
               bslib::nav_panel(
                 title = "Plot: Duration vs Intake",
                 value = 'regression', #for accessing input$ details
-                p("Visualise feed duration vs intake for individual feed bins, coloured by the error type selected by user.
+
+                bslib::accordion(
+                  id = ns('accordian_duration_intake'), # must have ID to work
+                  open = FALSE,
+                  bslib::accordion_panel(
+                    title = "Plot description:",
+                    icon = bsicons::bs_icon('info-circle'),
+                    h5("Duration vs Intake Plot"),
+                    p("Visualise feed duration vs intake for individual feed bins. Each point is an individual feeding event coloured by the error type selected in left panel.
                   These plots are interactive, hover over points for more information,
                   click and drag to zoom, click on legend items and see menu that appears top right of plot."),
-                bslib::card(
+                  strong("Hover over bottom right of screen to show 'full screen' button.")
+                  )),
+
+                # bslib::card(
                   plotly::plotlyOutput(outputId = ns("p_duration_intake"),
                                        height = "500px") %>%  shinycssloaders::withSpinner(),
-                  full_screen = TRUE
-                )
+                  # full_screen = TRUE
+                # )
               ),
               bslib::nav_panel(
                 title = "Plot: Timeline",
                 value = 'timeline', #for accessing input$ details
-                p("Visualise the change in feed bin weight over time. An individual feeding event is drawn as a single line with dots on each end, representing the start and end of the event.
+                bslib::accordion(
+                  id = ns('accordian_timeline'), # must have ID to work
+                  open = FALSE,
+                  bslib::accordion_panel(
+                    title = "Plot description:",
+                    icon = bsicons::bs_icon('info-circle'),
+                    h5("Timeline Plot"),
+                    p("Visualise the change in feed bin weight over time. An individual
+                      feeding event is drawn as a single line with dots on each end,
+                      representing the start and end of the event.
                   These plots are interactive, hover over points for more information,
-                  click and drag to zoom, click on legend items and see menu that appears top right of plot."),
-                bslib::card(
-                  plotly::plotlyOutput(outputId = ns("p_timeline"), height = "500px") %>%  shinycssloaders::withSpinner(),
-                  full_screen = TRUE
-                )
+                  click and drag to zoom, click on legend items and see menu that appears top right of plot.
+                  Use the buttons and lower panel to focus on shorter time periods. "),
+                  strong("Hover over bottom right of screen to show 'full screen' button.")
+                  )),
+                # bslib::card(
+                  plotly::plotlyOutput(outputId = ns("p_timeline"), height = "600px") %>%  shinycssloaders::withSpinner(),
+                  # full_screen = TRUE
+                # )
               )
             )
           )
@@ -166,8 +193,17 @@ mod_by_bin_vis_server <- function(id, df_list){
     ns <- session$ns
 
     df <- reactive({
-      df_list()$df_cleaned
+      df_list()$df_list_bybin$df_cleaned
     })
+
+
+    observe({
+      if(df_list()$is_bybin_bypass){
+        shinyjs::show(id = 'bypass_warning')
+      } else {
+        shinyjs::hide(id = 'bypass_warning')
+      }
+      })
 
     ##################################################################### #
     # Overall Plots ----
@@ -181,7 +217,7 @@ mod_by_bin_vis_server <- function(id, df_list){
 
         df() %>%
           f_plot_summary(
-            x = .data$feed_duration,
+            x = .data$duration_sec,
             y = .data$intake,
             type = input$plot_type_overall)
 
@@ -190,7 +226,7 @@ mod_by_bin_vis_server <- function(id, df_list){
       }else if(selectedData() == "corrected") {
         df() %>%
           f_plot_summary(
-            x = .data$corrected_feed_duration_seconds,
+            x = .data$corrected_duration_sec,
             y = .data$corrected_intake_bybin,
             type = input$plot_type_overall)
 
@@ -208,7 +244,7 @@ mod_by_bin_vis_server <- function(id, df_list){
     # create df in reactive first so that it can be accessed downstream
     df_neg <- reactive({
       df <- df() %>%
-          dplyr::group_by(.data$feed_bin_id) %>%
+          dplyr::group_by(.data$bin_id) %>%
           dplyr::summarise(
             n_neg = sum(.data$intake<0),
             sum_neg_kg = sum(.data$intake[.data$intake<0])
@@ -232,7 +268,7 @@ mod_by_bin_vis_server <- function(id, df_list){
     # create table to count number of errors produced for each bin
     df_error <- reactive({
        df <- df() %>%
-        dplyr::group_by(.data$feed_bin_id) %>%
+        dplyr::group_by(.data$bin_id) %>%
         dplyr::summarise(
           n_cor_weights = sum(.data$is_corrected_intake_bybin),
           n_cor_time = sum(.data$is_end_time_overlap_error),
@@ -306,10 +342,10 @@ mod_by_bin_vis_server <- function(id, df_list){
     # Therefore, we can 'update' the UI to include these values
     observe({
       vec_bins <- df() %>%
-          dplyr::select("feed_bin_id") %>%
+          dplyr::select("bin_id") %>%
           dplyr::distinct(.keep_all = TRUE) %>%
-          dplyr::arrange(.data$feed_bin_id) %>%
-          dplyr::pull(.data$feed_bin_id)
+          dplyr::arrange(.data$bin_id) %>%
+          dplyr::pull(.data$bin_id)
 
       freezeReactiveValue(input, 'bin_id') # doesn't evaluate on load when no data available
       updateSelectInput(inputId = 'bin_id', choices = vec_bins)
@@ -319,16 +355,16 @@ mod_by_bin_vis_server <- function(id, df_list){
     # each user input should generate a new graph on-click.
     p_out <- reactive({
       # filter data
-      .df <- df() %>% dplyr::filter(.data$feed_bin_id %in% input$bin_id) %>%
+      .df <- df() %>% dplyr::filter(.data$bin_id %in% input$bin_id) %>%
         # add extra data for hover tooltip
         dplyr::mutate(
-          tooltip = paste('cow_id:', .data$cow_id)
+          tooltip = paste('animal_id:', .data$animal_id)
         )
 
       if(input$data_type == "raw") {
         # Regression:
         p_duration_intake <- .df %>%
-          plot_bin_regression(x = .data$feed_duration,
+          plot_bin_regression(x = .data$duration_sec,
                                   y = .data$intake,
                                   col_colour = .data[[input$colour_aes]],
                                   col_hover_text = .data$tooltip)+ # this format because it comes in as a string
@@ -341,8 +377,8 @@ mod_by_bin_vis_server <- function(id, df_list){
           .df %>% plot_bin_timeline(
             .data$start_time,
             .data$end_time,
-            .data$start_weight,
-            .data$end_weight,
+            .data$start_weight_kg,
+            .data$end_weight_kg,
             col_colour = .data[[input$colour_aes]],
             col_hover_text = .data$tooltip)+
           labs(x = 'Time',
@@ -351,7 +387,7 @@ mod_by_bin_vis_server <- function(id, df_list){
       } else if(input$data_type == "corrected"){
         # Regression:
         p_duration_intake <- .df %>%
-          plot_bin_regression( x = .data$corrected_feed_duration_seconds,
+          plot_bin_regression( x = .data$corrected_duration_sec,
                                    y = .data$corrected_intake_bybin,
                                    col_colour =  .data[[input$colour_aes]])+
           labs(x = 'Corrected Feed Duration (seconds)',
@@ -363,8 +399,8 @@ mod_by_bin_vis_server <- function(id, df_list){
           plot_bin_timeline(
             .data$start_time,
             .data$corrected_end_time,
-            .data$corrected_start_weight_bybin,
-            .data$corrected_end_weight_bybin,
+            .data$corrected_start_weight_kg_bybin,
+            .data$corrected_end_weight_kg_bybin,
             col_colour = .data[[input$colour_aes]],
             col_hover_text = .data$tooltip)+
           labs(x = 'Time',
@@ -387,6 +423,19 @@ mod_by_bin_vis_server <- function(id, df_list){
     output$p_timeline <-  plotly::renderPlotly({
       plotly::ggplotly(p_out()$p_timeline,
                        dynamicTicks = TRUE)%>%
+        plotly::layout(
+          xaxis = list(
+            rangeslider = list(visible = TRUE),
+            rangeselector = list(
+              buttons = list(
+                list(count = 1, label = "1 day", step = "day", stepmode = "backward"),
+                list(count = 1, label = "1 week", step = "week", stepmode = "backward"),
+                list(count = 1, label = "All", step = "all")
+              )
+            )
+          ),
+          yaxis = list(fixedrange = FALSE)
+        ) %>%
         f_change_legend_on_resize()
     })
 

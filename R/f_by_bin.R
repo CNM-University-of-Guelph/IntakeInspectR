@@ -21,7 +21,7 @@ f_count_errors <- function(.df, ...){
 #'
 #' Most steps group the data by day and by feed bin ID, meaning that each day
 #' and feed bin is analysed separately. The final step checks for incorrectly
-#' recorded end times and uses the data grouped by cow ID to evaluate if she
+#' recorded end times and uses the data grouped by animal ID to evaluate if she
 #' visited another feed bin while still being recorded at another feed bin.
 #' It also generates a log file, summarising each error by count and %. This is
 #' stored in a temporary file path which is returned in the output list.
@@ -35,14 +35,14 @@ f_count_errors <- function(.df, ...){
 #' @param feedout_thresh Number. What threshold (kg) should be used to call an
 #'   increase in feed intake a feed out event? Default 10 kg
 #' @param col_bin_ID Name of column with feed bin ID.
-#' @param col_cow_ID Name of column with cow ID.
+#' @param col_animal_id Name of column with animal ID.
 #' @param col_date Name of column with date (formatted as Date) of feeding event.
 #' @param col_start_time,col_end_time Name of columns with start time and end time (formatted as POSIXct
 #'   date-time) recorded by feed bin.
-#' @param col_start_weight,col_end_weight Name of columns with start and end
+#' @param col_start_weight_kg,col_end_weight_kg Name of columns with start and end
 #'   weights (in kg) recorded by feed bin.
 #' @param col_intake Name of column with the feed intake (kg) for the feeding
-#'   event, normally calculated as end_weight - start_weight.
+#'   event, normally calculated as end_weight_kg - start_weight_kg.
 #' @param log Boolean. Should log files be generated?
 #'
 #' @return A list of data frames: `df_0kg`, `df_step2_errors` and `df_cleaned`.
@@ -55,13 +55,13 @@ f_by_bin_clean <- function(
     df_in,
     zero_thresh = 0.3,
     feedout_thresh = 10,
-    col_bin_ID = .data$feed_bin_id,
-    col_cow_ID = .data$cow_id,
+    col_bin_ID = .data$bin_id,
+    col_animal_id = .data$animal_id,
     col_date = .data$date,
     col_start_time = .data$start_time,
     col_end_time = .data$end_time,
-    col_start_weight = .data$start_weight,
-    col_end_weight = .data$end_weight,
+    col_start_weight_kg = .data$start_weight_kg,
+    col_end_weight_kg = .data$end_weight_kg,
     col_intake = .data$intake,
     log = TRUE){
 
@@ -114,8 +114,8 @@ f_by_bin_clean <- function(
                    {{ col_bin_ID }},
                    {{ col_date }},
                    {{ col_start_time  }},
-                   {{ col_start_weight  }},
-                   {{ col_end_weight  }},
+                   {{ col_start_weight_kg  }},
+                   {{ col_end_weight_kg  }},
                    {{ col_intake  }})
 
   step2_errors <- step2$step2_errors
@@ -146,8 +146,8 @@ f_by_bin_clean <- function(
                    {{ col_bin_ID }},
                    {{ col_date }},
                    {{ col_start_time  }},
-                   {{ col_start_weight  }},
-                   {{ col_end_weight  }},
+                   {{ col_start_weight_kg  }},
+                   {{ col_end_weight_kg  }},
                    {{ col_intake  }},
                    col_check_prev_vs_next = .data$check_prev_vs_next
                    )
@@ -155,9 +155,9 @@ f_by_bin_clean <- function(
 
   if(log){
     logr::log_print("Summary of start weight errors:")
-    logr::log_print(f_count_errors(step3, .data$check_end_weights))
+    logr::log_print(f_count_errors(step3, .data$check_end_weight_kgs))
     logr::log_print("Summary of corrected end weights:")
-    logr::log_print(f_count_errors(step3, .data$category_end_weight))
+    logr::log_print(f_count_errors(step3, .data$category_end_weight_kg))
   }
 
   ###################################### #
@@ -173,17 +173,17 @@ f_by_bin_clean <- function(
           {{ col_bin_ID }},
           {{ col_date }},
           {{ col_start_time }},
-          {{ col_start_weight }},
-          {{ col_end_weight }},
+          {{ col_start_weight_kg }},
+          {{ col_end_weight_kg }},
           {{ col_intake }},
-          col_check_end_weights = .data$check_end_weights,
+          col_check_end_weight_kgs = .data$check_end_weight_kgs,
           col_prevEnd = .data$prevEnd,
           col_prevStart = .data$prevStart,
           col_nextStart = .data$nextStart)
 
   if(log){
     logr::log_print("Summary of end weight errors:")
-    logr::log_print(f_count_errors(step4, .data$check_start_weights))
+    logr::log_print(f_count_errors(step4, .data$check_start_weight_kgs))
   }
 
   ###################################### #
@@ -196,15 +196,15 @@ f_by_bin_clean <- function(
 
   step5 <- f_step5_correct_intakes(
     step4,
-    col_corrected_start_weight = .data$corrected_start_weight_bybin,
-    col_corrected_end_weight = .data$corrected_end_weight_bybin,
+    col_corrected_start_weight_kg = .data$corrected_start_weight_kg_bybin,
+    col_corrected_end_weight_kg = .data$corrected_end_weight_kg_bybin,
     col_intake = {{ col_intake }})
 
 
   if(log){
     logr::log_print("Total intakes corrected:")
     logr::log_print(f_count_errors(step5, .data$is_corrected_intake_bybin))
-    logr::log_print("NOTE: errors result in NA for `corrected_end_weight_bybin`. \n
+    logr::log_print("NOTE: errors result in NA for `corrected_end_weight_kg_bybin`. \n
                     Therefore, errors return the value from  `col_intake` for `corrected_intake` and are counted as FALSE here.")
   }
 
@@ -219,7 +219,7 @@ f_by_bin_clean <- function(
 
   step6 <- f_step6_correct_end_times(
     step5,
-    col_cow_ID = {{ col_cow_ID }},
+    col_animal_id = {{ col_animal_id }},
     col_date = {{ col_date }},
     col_start_time = {{ col_start_time }},
     col_end_time = {{ col_end_time }}
@@ -245,5 +245,66 @@ f_by_bin_clean <- function(
 
 }
 
+
+
+
+
+
+#' Bypass 'By Bin' cleaning for Shiny app
+#'
+#' This will return a similar output to f_by_bin_clean that will allow a user to bypass this step in the Shiny app.
+#'
+#' @param df_in Data frame that was uploaded by user
+#' @param log bool. Should log be created.
+#'
+#' @return A list of data frames: `df_0kg`, `df_step2_errors` and `df_cleaned`.
+#' In addition, `log_path` is returned in the list, which is the temporary file path where the log is stored.
+#'
+f_by_bin_bypass_shiny <- function(df_in, log = TRUE){
+
+  if(log){
+    tmp <- tempfile(pattern = "log_", fileext = ".log")
+    print(tmp)
+
+    logr::log_open(tmp, logdir = FALSE, show_notes = FALSE)
+    logr::sep("User selected to bypass 'By Bin' cleaning procedures.")
+    logr::log_print("No cleaning conducted at a bin level. Some visualisations still available.")
+  } else {
+    tmp <- NULL # so that the output list can return tmp as NULL if log == FALSE
+  }
+
+  #' * prevEnd, prevStart, nextEnd, nextStart - used by check_end_weight_kgs and
+  #' downstream functions
+  #' * check_end_weight_kgs - error types as described above
+  #' * corrected_end_weight_kg_bybin - corrected end weights based on check_end_weight_kgs
+  #' * category_end_weight_kg - classification of errors (keep, replace, error)
+
+  df_out <-
+    df_in %>%
+    dplyr::mutate(
+      check_end_weights_kgs = NA_character_,
+      check_start_weight_kgs = NA_character_,
+      category_end_weight_kg = NA_character_,
+      check_end_weight_kgs = NA_character_,
+      is_end_time_overlap_error = FALSE,
+      is_corrected_intake_bybin = FALSE,
+      corrected_duration_sec = 0,
+      corrected_intake_bybin = 0
+    )
+
+
+  # Finish ----
+  if(log){
+    logr::log_close()
+  }
+
+
+  return(list(
+    df_0kg = df_out %>% dplyr::slice(0),
+    df_step2_errors = df_out %>% dplyr::slice(0),
+    df_cleaned = df_out,
+    log_path = tmp
+  ))
+}
 
 

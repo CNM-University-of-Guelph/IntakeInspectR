@@ -32,19 +32,18 @@ mod_welcome_ui <- function(id){
 
             # Page title and subtitle
             h2("Welcome to IntakeInspectR"),
-            # h3("A dashboard for automatically collected feed intake data"),
 
             # Further description
-            p("IntakeInspectR is intended for cleaning an entire data set from
-                 multiple Insentec (RIC) feed bins and multiple animals (we
-                 have assumed 'cows' for now) and generating a file containing
-                 daily intake (kg) for each cow. In addition, data removals
-                 and manipulations are recorded in log files and appended in
-                 columns to the original data. A typical workflow involves
-                 proceeding through steps 1 to 3 at the top of the screen and
-                 following the green buttons throughout. Step 2a cleans the
-                 data based on individual feed bins, then Step 3a cleans the
-                 data based on individual cows.
+            p("
+              IntakeInspectR is intended for cleaning an entire data set from
+              multiple Insentec (RIC) feed bins and multiple animals and
+              generating a file containing daily intake (kg) for each animal.
+              In addition, data removals and manipulations are recorded in log
+              files and appended in columns to the original data. A typical
+              workflow involves proceeding through steps 1 to 3 at the top of
+              the screen and following the green buttons throughout. Step 2a
+              cleans the data based on individual feed bins, then Step 3a
+              cleans the data based on individual animals.
                  "),
             br(),
 
@@ -125,10 +124,10 @@ mod_welcome_ui <- function(id){
     )
   )
 }
-col.names = c('transponder_id', 'cow_id',
-              'feed_bin_id', 'start_time',
-              'end_time', 'feed_duration',
-              'start_weight', 'end_weight',
+col.names = c('transponder_id', 'animal_id',
+              'bin_id', 'start_time',
+              'end_time', 'duration_sec',
+              'start_weight_kg', 'end_weight_kg',
               'diet', 'intake')
 
 #' welcome Server Functions

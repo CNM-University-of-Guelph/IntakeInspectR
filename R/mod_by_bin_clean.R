@@ -19,14 +19,12 @@ mod_by_bin_clean_ui <- function(id){
 
           layout = gridlayout::new_gridlayout(c(
             "2px    0.25fr      0.75fr",
-            "120px header_box  header_box",
-            "0.3fr user_input  summary_box",
-            "0.7fr user_input  Display "
+            "155px user_input  summary_box",
+            "1fr user_input  Display "
           ),
           alternate_layouts = list(
             layout = c(
               "2px       1fr     ",
-              "150px    header_box ",
               "200px    user_input ",
               "300px    summary_box",
               "400px    Display"
@@ -35,57 +33,41 @@ mod_by_bin_clean_ui <- function(id){
           )),
 
 
-          gridlayout::grid_card(
-            area = "header_box",
-            full_screen = FALSE,
-            # min_height = '100px',
-            # max_height = '150px',
-            # wrapper = NULL,
-            # wrapper=function(x) bslib::card_body(x, min_height = '180px', max_height = '200px'),
-            strong("Clean data - grouped by feed bin"),
-            p("
-        This step of the cleaning checks the row-by-row changes in feed bin weights and times.
-        The weights and durations are replaced for some specific conditions,
-        others are flagged as errors (but not replaced in this step). Some data are removed but are available
-        for download as separate files, see detailed overview for more information.")
-          ),
+          ############################################### #
+          # Inputs panel ----
+          ################################################ #
+          gridlayout:: grid_card(
+            area = "user_input",
+            wrapper = function(x) bslib::card_body(x, fill=TRUE, fillable=TRUE ),
 
+            actionButton(ns('execute_clean'), label = "Clean data", class = c("btn-lg btn-success")),
+            # br(),
+            actionButton(ns("button_more_info"), "Detailed overview of the cleaning"),
 
+            actionButton(ns("button_flowchart"), "Flow chart of all steps"),
 
-        ############################################### #
-        # Inputs panel ----
-        ################################################ #
-        gridlayout:: grid_card(
-          area = "user_input",
-          wrapper = function(x) bslib::card_body(x, fill=FALSE, fillable=TRUE ),
+            actionButton(ns('bypass_clean'), label = "Bypass 'by bin' cleaning", class = c("btn-lg btn-outline-success")),
+            # br(),
+            # p("View each functions R Documentation:"),
 
-
-          actionButton(ns('execute_clean'), label = "Clean data", class = c("btn-lg btn-success")),
-          # br(),
-          actionButton(ns("button_more_info"), "Detailed overview of the cleaning"),
-
-          actionButton(ns("button_flowchart"), "Flow chart of all steps"),
-          # br(),
-          # p("View each functions R Documentation:"),
-
-          bslib::accordion(
-            id = ns('accordian'), # must have ID to work
-            open = FALSE,
-            bslib::accordion_panel(
-              title = "Advanced: Change thresholds",
-              numericInput(inputId = ns("feedout_threshold"),
-                           label = "Enter number to define 'feedout_threshold':",
-                           value = 10,
-                           min = 1,
-                           step = 1),
-              numericInput(inputId = ns("zero_threshold"),
-                           label = "Enter number to define 'zero_threshold':",
-                           value = 0.3,
-                           min = 0,
-                           step = 0.1)
-            ),
-            bslib::accordion_panel(
-              title = "Advanced: R Documentation",
+            bslib::accordion(
+              id = ns('accordian'), # must have ID to work
+              open = FALSE,
+              bslib::accordion_panel(
+                title = "Advanced: Change thresholds",
+                numericInput(inputId = ns("feedout_threshold"),
+                             label = "Enter number to define 'feedout_threshold':",
+                             value = 10,
+                             min = 1,
+                             step = 1),
+                numericInput(inputId = ns("zero_threshold"),
+                             label = "Enter number to define 'zero_threshold':",
+                             value = 0.3,
+                             min = 0,
+                             step = 0.1)
+              ),
+              bslib::accordion_panel(
+                title = "Advanced: R Documentation",
                 div(
                   style = "display: flex; flex-direction: column; align-items: center;",
                   actionButton(ns("f_step1"), "Step 1 docs", class = "btn-fixed-size-rdocs btn-outline-success"),
@@ -116,67 +98,138 @@ mod_by_bin_clean_ui <- function(id){
                   br(),
                   downloadButton(ns("download_errors"), "Download removed rows (Step 2 Errors)", class = c('btn-info'))
                 )
+              ),
+              bslib::accordion_panel(
+                title = "Download function outputs",
+                div(
+                  style = "display: flex; flex-direction: column; align-items: center;",
+                  p("These files are the",
+                    tags$code("df_cleaned"),
+                    "output from the list returned by",
+                    tags$code("f_by_bin_clean().")),
+                  p("Consider downloading the .rds file if using with R as it retains date and time formatting."),
+                  downloadButton(ns("download_df_cleaned_rds"), "Download .rds", class = c('btn-info')),
+                  br(),
+                  downloadButton(ns("download_df_cleaned_csv"), "Download .csv", class = c('btn-info'))
+                )
               )
             )
           ),
 
-        ################################################ #
-        # Display panel ----
-        ################################################ #
-        gridlayout::grid_card(
-          area = "Display",
-          full_screen=TRUE,
-          wrapper = function(x) bslib::card_body(x),
-          strong("Log and data structure"),
-          verbatimTextOutput(ns("dynamic_glimpse"), placeholder=TRUE)
+          ################################################ #
+          # Display panel ----
+          ################################################ #
+          gridlayout::grid_card(
+            area = "Display",
+            wrapper = bslib::card_body(class = "p-0", fillable = FALSE, fill = TRUE), # this removes the padding around edges
+            full_screen = TRUE,
 
-        ),
+            bslib::navset_card_pill( # a card with nav tabs:
+              id = ns('display_tabs'), #used for input$ to see active tab
 
-        ################################################ #
-        # Summary boxes ----
-        ################################################ #
-        gridlayout::grid_card(
-          area = "summary_box",
-          wrapper = function(x) bslib::card_body(x, fill = FALSE, fillable=FALSE, class = "p-0 margin-top:0 margin-bottom:0"),
-          bslib::layout_columns(
-            fill=FALSE,
-            fillable=FALSE,
+              bslib::nav_panel(
+                title = "Intro",
+                value = "display_intro", #for accessing input$ details
+                bslib::card_title("Clean data - grouped by feed bin"),
+                p("
+                This step of the cleaning checks the row-by-row changes in feed
+                bin weights and times."),
+                p("The weights and durations are replaced
+                for some specific conditions, others are flagged as errors (but
+                not replaced in this step). In addition, some data are removed but are
+                available for download as separate files, see 'detailed overview' button
+                for more information.
+                "),
+                em("Hover mouse over bottom right of screen to show button to expand view. Use Esc or click Close to return to normal screen."),
 
-            row_heights = 1, # Set individual value box heights, and then layout_columns can change to fit grid_card when it wraps
+                h4("Quick Start"),
+                tags$div(
+                  tags$ol(
+                    tags$li(tags$strong("Ensure data upload:"), " The 'Clean data' button will become active once the data is successfully uploaded."),
+                    tags$li(tags$strong("Execute:"), " Click the 'Clean data' button to initiate the cleaning process. This function utilises predefined thresholds set in the 'Advanced: Change thresholds' drop-down box."),
+                    tags$li(tags$strong("Understand thresholds:"), " Familiarise yourself with the detailed overview and flow chart to understand how the values defined in the 'Advanced: Change thresholds' drop-down affect the cleaning process."),
+                    tags$li(tags$strong("Verify successful cleaning:"), " If the cleaning process is successful, the value boxes at the top of the page will be populated, and the Log, Data Structure, and View Table tabs will also be updated."),
+                    tags$li(tags$strong("Visualise:"), " For the best evaluation of the cleaning results, navigate to the '2b. By Bin - Vis' page and review the tables and plots of the cleaned data.")
+                  )
+                ),
 
-            gap="4px",
+              ),
 
-            bslib::value_box(
-              title = "Feed weights replaced:",
-              #Format to copy default value_box() value size:
-              value = p(textOutput(ns("n_weight_replaced"),, inline = TRUE), style = "font-size: 30px;") ,
-              showcase = bsicons::bs_icon('arrow-repeat'),
-              theme_color = 'info',
-              height = '150px'
-            ),
-            bslib::value_box(
-              title = "Feed durations replaced:",
-              value = p(textOutput(ns("n_durations_replaced"), inline = TRUE), style = "font-size: 30px;") ,
-              showcase = bsicons::bs_icon('arrow-repeat'),
-              theme_color = 'info',
-              height = '150px'
-            ),
-            bslib::value_box(
-              title = "Start weight errors:",
-              value = p(textOutput(ns("n_start_weight_errors"), inline = TRUE), style = "font-size: 30px;"),
-              showcase = bsicons::bs_icon('exclamation-triangle'),
-              theme_color = 'danger',
-              height = '150px'
-            ),
-            bslib::value_box(
-              title = "End weight errors:",
-              value = p(textOutput(ns("n_end_weight_errors"), inline = TRUE), style = "font-size: 30px;"),
-              showcase = bsicons::bs_icon('exclamation-triangle'),
-              theme_color = 'danger',
-              height = '150px'
+              bslib::nav_panel(
+                title = "Log",
+                value = "display_log", #for accessing input$ details
+                bslib::card_title("Log - 'By Bin' cleaning"),
+                p("This log can be copied from this box or downloaded with all other logs on Final Summary tab at end of analysis."),
+                verbatimTextOutput(ns("dynamic_log"), placeholder=TRUE),
+              ),
+
+              bslib::nav_panel(
+                title = "Data Structure",
+                value = "display_structure", #for accessing input$ details
+                bslib::card_title("Data Structure"),
+                p("This shows the column names and dimensions of the data frame returned by the by bin cleaning function.
+                It might be expected that some rows are missing compared to the original file uploaded due to 0 kg and some errors being removed. See the 'Download removed rows' drop down box on the left of the screen if these are of interest."),
+                verbatimTextOutput(ns("dynamic_glimpse"), placeholder=TRUE),
+              ),
+
+              bslib::nav_panel(
+                title = "View Table",
+                value = "display_table", #for accessing input$ details
+                bslib::card_title("View Table"),
+                p("The data frame returned from the cleaning table can be explored here. Use the CSV/Excel buttons to download the visible rows, or download the full file under 'Download function outputs'. "),
+                DT::DTOutput(ns('bybin_DT')) %>%  shinycssloaders::withSpinner(type=7)
+              ),
+
+
+
+            )
+          ),
+
+          ################################################ #
+          # Summary boxes ----va
+          ################################################ #
+          gridlayout::grid_card(
+            area = "summary_box",
+            wrapper = function(x) bslib::card_body(x, fill = FALSE, fillable=FALSE, class = "p-0 margin-top:0 margin-bottom:0"),
+            bslib::layout_columns(
+              fill=FALSE,
+              fillable=FALSE,
+
+              row_heights = 1, # Set individual value box heights, and then layout_columns can change to fit grid_card when it wraps
+
+              gap="4px",
+
+              bslib::value_box(
+                title = "Feed weights replaced:",
+                #Format to copy default value_box() value size:
+                value = p(textOutput(ns("n_weight_replaced"), inline = TRUE), style = "font-size: 30px;") ,
+                showcase = bsicons::bs_icon('arrow-repeat'),
+                theme = 'info',
+                height = '150px'
+              ),
+              bslib::value_box(
+                title = "Feed durations replaced:",
+                value = p(textOutput(ns("n_durations_replaced"), inline = TRUE), style = "font-size: 30px;") ,
+                showcase = bsicons::bs_icon('arrow-repeat'),
+                theme = 'info',
+                height = '150px'
+              ),
+              bslib::value_box(
+                title = "Start weight errors:",
+                value = p(textOutput(ns("n_start_weight_kg_errors"), inline = TRUE), style = "font-size: 30px;"),
+                showcase = bsicons::bs_icon('exclamation-triangle'),
+                theme = 'danger',
+                height = '150px'
+              ),
+              bslib::value_box(
+                title = "End weight errors:",
+                value = p(textOutput(ns("n_end_weight_kg_errors"), inline = TRUE), style = "font-size: 30px;"),
+                showcase = bsicons::bs_icon('exclamation-triangle'),
+                theme = 'danger',
+                height = '150px'
+              )
             )
           )
-        )
         )
     )
   )
@@ -190,9 +243,9 @@ mod_by_bin_clean_server <- function(id, df){
   moduleServer( id, function(input, output, session){
     ns <- session$ns
 
-      # Check data has been uploaded:
+    # Check data has been uploaded:
     df_uploaded <- reactive({
-     if(tibble::is_tibble(df())){  return(df())   }
+      if(tibble::is_tibble(df())){  return(df())   }
     })
 
     # setup a reactive value -- used for changing ui output based on events later
@@ -202,27 +255,54 @@ mod_by_bin_clean_server <- function(id, df){
     # Data cleaning ----
     ######################################################## #
 
+    selected_list_bybin <- reactiveValues()
+    is_bybin_bypass <- reactiveVal(FALSE)
+
+    observe({
+        shinybusy::show_modal_spinner(spin = 'orbit', text = 'Cleaning data...')
+
+        bslib::nav_select('display_tabs', 'display_log')
+
+        list_cleaned <-
+          f_by_bin_clean(df_uploaded(),
+                         zero_thresh = input$zero_threshold, # default 0.3
+                         feedout_thresh = input$feedout_threshold, # default 10
+                         col_bin_ID = .data$bin_id,
+                         col_date = .data$date,
+                         col_start_time = .data$start_time,
+                         col_start_weight_kg = .data$start_weight_kg,
+                         col_end_weight_kg = .data$end_weight_kg,
+                         col_intake = .data$intake,
+                         log = TRUE)
+
+        # override reactive variable
+        selected_list_bybin$current <- list_cleaned
+
+        is_bybin_bypass(FALSE)
+
+        shinybusy::remove_modal_spinner()
+
+      }) %>% bindEvent(input$execute_clean)
+
+
+    ######
+    # Bypass
+
+    observe({
+      bslib::nav_select('display_tabs', 'display_log')
+
+      list_cleaned <- f_by_bin_bypass_shiny(df_uploaded(), log = TRUE)
+      # override reactive variable
+      selected_list_bybin$current <- list_cleaned
+
+      is_bybin_bypass(TRUE)
+    }) %>% bindEvent(input$bypass_clean)
+
+
+    # Get most recent list_cleaned_data when either the execute_clean or bypass_clean button is pressed.
     list_cleaned_data <- reactive({
-
-      shinybusy::show_modal_spinner(spin = 'orbit', text = 'Cleaning data...')
-
-      list_cleaned <-
-        f_by_bin_clean(df_uploaded(),
-                       zero_thresh = input$zero_threshold, # default 0.3
-                       feedout_thresh = input$feedout_threshold, # default 10
-                       col_bin_ID = .data$feed_bin_id,
-                       col_date = .data$date,
-                       col_start_time = .data$start_time,
-                       col_start_weight = .data$start_weight,
-                       col_end_weight = .data$end_weight,
-                       col_intake = .data$intake,
-                       log = TRUE)
-
-      shinybusy::remove_modal_spinner()
-
-      return(list_cleaned)
-    }) %>% bindEvent(input$execute_clean)
-
+      return(selected_list_bybin$current)
+    }) %>% bindEvent(c(input$execute_clean, input$bypass_clean), ignoreInit = TRUE)
 
 
 
@@ -231,7 +311,7 @@ mod_by_bin_clean_server <- function(id, df){
 
     # observe table to override output to show in window:
     observe({
-      print_out$glimpse <- tibble::as_tibble(list_cleaned_data()$df_cleaned)
+      print_out$df_cleaned <- tibble::as_tibble(list_cleaned_data()$df_cleaned)
 
       # read in log file to print to glimpse window:
       log$by_bin <- readLines(list_cleaned_data()$log_path)
@@ -242,14 +322,30 @@ mod_by_bin_clean_server <- function(id, df){
 
     # dynamically change display:
     #https://mastering-shiny.org/reactivity-components.html#one-output-modified-by-multiple-inputs
+    output$dynamic_log <- renderPrint({
+      cat(paste(log$by_bin, collapse = "\n"))
+    })
+
     output$dynamic_glimpse <- renderPrint({
-      if(tibble::is_tibble(print_out$glimpse)){
-        # print log file, then a glimpse of data:
-        cat(paste(log$by_bin, collapse = "\n"))
-        cat("\n")
-        dplyr::glimpse(print_out$glimpse)
+      if(tibble::is_tibble(print_out$df_cleaned)){ # requires that analysis was run
+        dplyr::glimpse(print_out$df_cleaned)
       }
     })
+
+
+    # View table
+
+    output$bybin_DT <- DT::renderDT({
+      print_out$df_cleaned %>%
+        fct_DT_pages(
+          pageLength = 20,
+          scrollY = 380
+          )
+    })
+
+
+
+
 
     ################################################################# #
     # Value Boxes: ----
@@ -280,24 +376,24 @@ mod_by_bin_clean_server <- function(id, df){
 
 
     # end weight errors
-    output$n_end_weight_errors <- renderText({
+    output$n_end_weight_kg_errors <- renderText({
 
       req(list_cleaned_data())
 
       fct_check_for_valuebox_bin(
         list_cleaned_data()$df_cleaned,
-        .data$category_end_weight,
+        .data$category_end_weight_kg,
         "error"
       )
     })
 
 
-    output$n_start_weight_errors <- renderText({
+    output$n_start_weight_kg_errors <- renderText({
       req(list_cleaned_data())
 
       fct_check_for_valuebox_bin(
         list_cleaned_data()$df_cleaned,
-        .data$check_start_weights,
+        .data$check_start_weight_kgs,
         "error"
       )
 
@@ -319,6 +415,12 @@ mod_by_bin_clean_server <- function(id, df){
     observe({
       shinyjs::toggleState("download_0kg", condition = input$execute_clean > 0)
       shinyjs::toggleState("download_errors", condition = input$execute_clean > 0)
+      shinyjs::toggleState("download_df_cleaned_csv", condition = input$execute_clean > 0)
+      shinyjs::toggleState("download_df_cleaned_rds", condition = input$execute_clean > 0)
+
+      #hide bypass if data has been cleaned
+      # shinyjs::toggleState("bypass_clean", condition = !input$execute_clean > 0)
+
     })
 
     ################ #
@@ -368,7 +470,7 @@ mod_by_bin_clean_server <- function(id, df){
 
     output$download_0kg <- downloadHandler(
       filename = function() {
-        paste0("rows_removed_0kg_intake_",format(Sys.time(), "%Y%m%d_%H%M%S"), ".csv")
+        paste0("by_bin_rows_removed_0kg_intake_",format(Sys.time(), "%Y%m%d_%H%M%S"), ".csv")
       },
       content = function(file) {
         data.table::fwrite(list_cleaned_data()$df_0kg, file = file)
@@ -378,7 +480,7 @@ mod_by_bin_clean_server <- function(id, df){
 
     output$download_errors<- downloadHandler(
       filename = function() {
-        paste0("rows_removed_step2_errors_",format(Sys.time(), "%Y%m%d_%H%M%S"), ".csv")
+        paste0("by_bin_rows_removed_step2_errors_",format(Sys.time(), "%Y%m%d_%H%M%S"), ".csv")
       },
       content = function(file) {
         data.table::fwrite(list_cleaned_data()$df_step2_errors, file = file)
@@ -387,7 +489,37 @@ mod_by_bin_clean_server <- function(id, df){
     )
 
 
-    return(reactive(list_cleaned_data()))
+
+    output$download_df_cleaned_rds <- downloadHandler(
+      filename = function() {
+        paste0("by_bin_df_cleaned_",
+               format(Sys.time(), "%Y%m%d_%H%M%S"), ".rds")
+      },
+      content = function(file) {
+        saveRDS(list_cleaned_data()$df_cleaned, file = file)
+      }
+    )
+    output$download_df_cleaned_csv <- downloadHandler(
+      filename = function() {
+        paste0("by_bin_df_cleaned_",
+               format(Sys.time(), "%Y%m%d_%H%M%S"), ".csv")
+      },
+      content = function(file) {
+        data.table::fwrite(list_cleaned_data()$df_cleaned, file = file)
+      },
+      contentType = "text/csv"
+    )
+
+
+
+    return(reactive({
+      list(
+        df_list_bybin = list_cleaned_data(),
+        is_bybin_bypass = is_bybin_bypass(),
+        log_path = list_cleaned_data()$log_path
+        )
+      })
+      )
   })
 }
 

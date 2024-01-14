@@ -26,10 +26,10 @@
 #' @param col_date Name of column with date (formatted as Date) of feeding event
 #' @param col_start_time Name of column with start time (formatted as POSIXct
 #'   date-time) recorded by feed bin.
-#' @param col_start_weight,col_end_weight Name of columns with start and end
+#' @param col_start_weight_kg,col_end_weight_kg Name of columns with start and end
 #'   weights (in kg) recorded by feed bin.
 #' @param col_intake Name of column with the feed intake (kg) for the feeding
-#'   event, normally calculated as end_weight - start_weight.
+#'   event, normally calculated as end_weight_kg - start_weight_kg.
 #'
 #' @return A list of 3 data frames is returned. 1) `step2_full` - with no rows
 #'   filtered, 2) The errors are removed and stored in `step2_errors`, and 3)
@@ -43,8 +43,8 @@ f_step2 <- function(df_in,
                     col_bin_ID,
                     col_date,
                     col_start_time,
-                    col_start_weight,
-                    col_end_weight,
+                    col_start_weight_kg,
+                    col_end_weight_kg,
                     col_intake){
 
   step2_full <-
@@ -53,13 +53,13 @@ f_step2 <- function(df_in,
     dplyr::group_by({{ col_date }}, {{ col_bin_ID }}) %>%
     dplyr::arrange( {{ col_start_time }}) %>%
     dplyr::mutate(
-      prevEnd = data.table::shift({{ col_end_weight }}, type = 'lag'),
-      prevStart = data.table::shift({{ col_start_weight }}, type = 'lag'),
-      nextEnd = data.table::shift({{ col_start_weight }}, type = 'lead'),
-      nextStart = data.table::shift({{ col_start_weight}}, type = 'lead'),
+      prevEnd = data.table::shift({{ col_end_weight_kg }}, type = 'lag'),
+      prevStart = data.table::shift({{ col_start_weight_kg }}, type = 'lag'),
+      nextEnd = data.table::shift({{ col_start_weight_kg }}, type = 'lead'),
+      nextStart = data.table::shift({{ col_start_weight_kg}}, type = 'lead'),
       # dplyr versions of lag/lead don't work with lazy_dt()
 
-      # Subtract row below start_weight from row before end_weight (used in check_prev_vs_next)
+      # Subtract row below start_weight_kg from row before end_weight_kg (used in check_prev_vs_next)
       prevEnd_vs_nextStart = .data$prevEnd - .data$nextStart,
       check_prev_vs_next = dplyr::case_when(
         # if difference between row above and row below == 0, then current row is error
@@ -116,14 +116,14 @@ f_step2 <- function(df_in,
 #'   end weights that it can do so safely.
 #'
 #'   For example, a typical error occurs when the weight recorded at the end of
-#'   a feeding event (`end_weight`) is greater than the weight recorded at the
-#'   beginning of the feeding event (`start_weight`), resulting in a negative
+#'   a feeding event (`end_weight_kg`) is greater than the weight recorded at the
+#'   beginning of the feeding event (`start_weight_kg`), resulting in a negative
 #'   feed intake. This is likely due to the inability of the sensor (load cell)
-#'   to get a stable weight, for example when a cow bumps the feed bin when
+#'   to get a stable weight, for example when a animal bumps the feed bin when
 #'   exiting. Therefore, if the start weight of the next feeding event
-#'   (`nextStart`) is lower than both the `start_weight` and `end_weight`, then
+#'   (`nextStart`) is lower than both the `start_weight_kg` and `end_weight_kg`, then
 #'   this function flags it as a `replace:` error. This means it is logical to
-#'   replace the `end_weight` with `nextStart` as it is assumed that no other
+#'   replace the `end_weight_kg` with `nextStart` as it is assumed that no other
 #'   feed was removed between these times as no other feeding events were
 #'   recorded for that feed bin.
 #'
@@ -141,7 +141,7 @@ f_step2 <- function(df_in,
 #' below them, so removing them improves the ability of this script to detect
 #' row-by-row errors.
 #'
-#' Then, a new column called `check_end_weights` is added to the original data
+#' Then, a new column called `check_end_weight_kgs` is added to the original data
 #' frame and contains 3 types of categories:
 #'
 #'    * `error:` - These entries are flagged as errors because they do not make
@@ -152,7 +152,7 @@ f_step2 <- function(df_in,
 #' re-estimate them with a regression.
 #'    * `keep:` - These entries are considered good and will not be changed.
 #' Most entries should be included in this category.
-#'    * `replace:` - These entries are flagged to have the `end_weight` replaced
+#'    * `replace:` - These entries are flagged to have the `end_weight_kg` replaced
 #' with the start weight of the next feeding event (`nextStart`)
 #'
 #' ## Description of each error type
@@ -162,27 +162,27 @@ f_step2 <- function(df_in,
 #' to [dplyr::case_when()].
 #'
 #' 1. `error: negative with errors`: This error is flagged when the `nextStart`
-#' < `end_weight` & `nextStart` > `start_weight`. In this case, the intake is
+#' < `end_weight_kg` & `nextStart` > `start_weight_kg`. In this case, the intake is
 #' negative but the values are not consistent with the next starting weight and
 #' can not be safely replaced.
 #'
 #' 2. `replace: negative intake`: This is the classic case that is described
-#' above in the description of this function where the `end_weight` should be
-#' replace by `nextStart`. It is flagged when: `nextStart` < `end_weight` &
-#' `nextStart` <= `start_weight` & `intake` <= `-1 * zero_thresh` where
+#' above in the description of this function where the `end_weight_kg` should be
+#' replace by `nextStart`. It is flagged when: `nextStart` < `end_weight_kg` &
+#' `nextStart` <= `start_weight_kg` & `intake` <= `-1 * zero_thresh` where
 #' `zero_thresh` is the parameter of this function that represents the threshold
 #' for determining what should be considered not 0 kg (defaults to 0.3 kg).
 #'
 #' 3a. `keep: feed removed >= zero_thresh`: This is opposite of `replace:
 #' negative intake`, where the `intake` is >= the `zero_thresh`. Then, if the
-#' `end_weight` is more than `zero_thresh`  higher than `nextStart` then it indicates
+#' `end_weight_kg` is more than `zero_thresh`  higher than `nextStart` then it indicates
 #' feed was removed, and it was more than `zero_thresh`.
 #'
 #' 3b. `keep: feed removed: minor (< zero_thresh)`: The alternative to 3a is that
 #' feed was removed, but that it was basically 0 kg (i.e. < `zero_thresh`)
 #'
 #' 4a. Feed out:  `error: feed out event with neg intake`:  When the difference
-#' between `nextStart` and `end_weight` is greater than the parameter
+#' between `nextStart` and `end_weight_kg` is greater than the parameter
 #' `feedout_thresh`. A reasonable estimate is 10 kg, as it is unlikely that less
 #' than 10kg of feed is added, but there are times when this might be different
 #' in research. In this case, if the intake is still a negative event
@@ -191,14 +191,14 @@ f_step2 <- function(df_in,
 #' #' 4b. Feed out: `keep: feed out event`: as above, except when intake is positive.
 #'
 #' 5. `error: weight increase < feedout_thresh`: This is flagged when the
-#' `nextStart` > `end_weight` but the difference is < `feedout_thresh` and >= the
+#' `nextStart` > `end_weight_kg` but the difference is < `feedout_thresh` and >= the
 #' inverse of `zero_thresh` (i.e. `-1 * zero_thresh`). The inverse is used because
 #' it represents the level of error around 0 kg that can be considered close
 #' enough to 0 kg to accept as 'minor'.
 #'
 #' 6. `replace: minor increase`: As above, except that the difference is between
 #' +/- `zero_thresh` and therefore considered 'minor' increase and therefore
-#' replacing the `end_weight` with the `nextStart` is more realistic and without
+#' replacing the `end_weight_kg` with the `nextStart` is more realistic and without
 #' significant effects on intake values.
 #'
 #' 7. `error: negative last row`: The data are stored by day, and the last event
@@ -210,9 +210,9 @@ f_step2 <- function(df_in,
 #' it is flagged as 'keep'.
 #'
 #' 9. `keep`: The only rows to remain after all other checks should have an
-#' `end_weight` that is equal to `startNext`.
+#' `end_weight_kg` that is equal to `startNext`.
 #'
-#' 10. `CHECK FUNCTION: no conditions TRUE for check_end_weight` Finally, a
+#' 10. `CHECK FUNCTION: no conditions TRUE for check_end_weight_kg` Finally, a
 #' default value is included to return this warning for each row that is not
 #' caught by any of the previous conditions. This should not be returned, and if
 #' it is then it means there is somehow a condition that is unique to the
@@ -229,20 +229,20 @@ f_step2 <- function(df_in,
 #' @param col_date Name of column with date (formatted as Date) of feeding event
 #' @param col_start_time Name of column with start time (formatted as POSIXct
 #'   date-time) recorded by feed bin.
-#' @param col_start_weight,col_end_weight Name of columns with start and end
+#' @param col_start_weight_kg,col_end_weight_kg Name of columns with start and end
 #'   weights (in kg) recorded by feed bin.
 #' @param col_intake Name of column with the feed intake (kg) for the feeding
-#'   event, normally calculated as end_weight - start_weight.
+#'   event, normally calculated as end_weight_kg - start_weight_kg.
 #' @param col_check_prev_vs_next Name of column generated by [f_step2()]
 #'   typically called `check_prev_vs_next`
 #'
 #' @return The original `df_step2` data frame, with the following additional
 #'   columns:
-#' * prevEnd, prevStart, nextEnd, nextStart - used by check_end_weights and
+#' * prevEnd, prevStart, nextEnd, nextStart - used by check_end_weight_kgs and
 #' downstream functions
-#' * check_end_weights - error types as described above
-#' * corrected_end_weight_bybin - corrected end weights based on check_end_weights
-#' * category_end_weight - classification of errors (keep, replace, error)
+#' * check_end_weight_kgs - error types as described above
+#' * corrected_end_weight_kg_bybin - corrected end weights based on check_end_weight_kgs
+#' * category_end_weight_kg - classification of errors (keep, replace, error)
 #'
 #' @export
 #'
@@ -251,11 +251,11 @@ f_step2 <- function(df_in,
 #' f_step3(df_step2_ok,
 #'   zero_thresh =  -0.3,
 #'   feedout_thresh =  10 ,
-#'   col_bin_ID = feed_bin_id,
+#'   col_bin_ID = bin_id,
 #'   col_date = date,
 #'   col_start_time = start_time,
-#'   col_start_weight = start_weight,
-#'   col_end_weight = end_weight,
+#'   col_start_weight_kg = start_weight_kg,
+#'   col_end_weight_kg = end_weight_kg,
 #'   col_check_prev_vs_next = check_prev_vs_next
 #' )
 #' }
@@ -264,11 +264,11 @@ f_step3 <-
   function(df_step2_ok,
            zero_thresh = 0.3, # +/- this amount is considered "0 kg"
            feedout_thresh = 10,
-           col_bin_ID = .data$feed_bin_id,
+           col_bin_ID = .data$bin_id,
            col_date = .data$date,
            col_start_time = .data$start_time,
-           col_start_weight = .data$start_weight,
-           col_end_weight = .data$end_weight,
+           col_start_weight_kg = .data$start_weight_kg,
+           col_end_weight_kg = .data$end_weight_kg,
            col_intake = .data$intake,
            col_check_prev_vs_next = .data$check_prev_vs_next){
 
@@ -283,64 +283,64 @@ f_step3 <-
       dplyr::arrange( {{ col_start_time }}) %>%
       dplyr::mutate(
         # These are repeated as we are using filtered data from step 2, not original data.
-        prevEnd = data.table::shift({{ col_end_weight }}, type = 'lag'),
-        prevStart = data.table::shift({{ col_start_weight }}, type = 'lag'),
-        nextEnd = data.table::shift({{ col_start_weight }}, type = 'lead'),
-        nextStart = data.table::shift({{ col_start_weight}}, type = 'lead'),
+        prevEnd = data.table::shift({{ col_end_weight_kg }}, type = 'lag'),
+        prevStart = data.table::shift({{ col_start_weight_kg }}, type = 'lag'),
+        nextEnd = data.table::shift({{ col_start_weight_kg }}, type = 'lead'),
+        nextStart = data.table::shift({{ col_start_weight_kg}}, type = 'lead'),
 
-        check_end_weights = dplyr::case_when(
+        check_end_weight_kgs = dplyr::case_when(
 
           ###############################
-          # When nextStart < end_weight:
+          # When nextStart < end_weight_kg:
 
           # 1. check if start weight of row below is less than end weight but greater than start weight. It should be impossible.
-          nextStart < {{ col_end_weight }} &
-            nextStart >  {{ col_start_weight }}  ~ 'error: negative with errors',
+          nextStart < {{ col_end_weight_kg }} &
+            nextStart >  {{ col_start_weight_kg }}  ~ 'error: negative with errors',
 
-          # 2. re-check it here to return 'replace_end_weight', as long as 'intake' is negative
-          nextStart < {{ col_end_weight }} &
-            nextStart <= {{ col_start_weight }} &
+          # 2. re-check it here to return 'replace_end_weight_kg', as long as 'intake' is negative
+          nextStart < {{ col_end_weight_kg }} &
+            nextStart <= {{ col_start_weight_kg }} &
             {{ col_intake }} <= (-1 * zero_thresh) ~ 'replace: negative intake',
 
           # 3a. Opposite of 2 (i.e. >= zero_thresh)
-          nextStart < {{ col_end_weight }} &
-            nextStart <= {{ col_start_weight }} &
+          nextStart < {{ col_end_weight_kg }} &
+            nextStart <= {{ col_start_weight_kg }} &
             {{ col_intake }} > (-1 * zero_thresh) &
             # i.e. it wasn't caught above as negative intake, therefore check
-            # why nextStart != {{ col_end_weight }}
+            # why nextStart != {{ col_end_weight_kg }}
             # check how much was added:
-            ({{ col_end_weight }} - nextStart) >= zero_thresh ~ 'keep: feed removed >= zero_thresh',
+            ({{ col_end_weight_kg }} - nextStart) >= zero_thresh ~ 'keep: feed removed >= zero_thresh',
 
           # 3b.
-          nextStart < {{ col_end_weight }} &
-            nextStart <= {{ col_start_weight }} &
+          nextStart < {{ col_end_weight_kg }} &
+            nextStart <= {{ col_start_weight_kg }} &
             {{ col_intake }} > (-1 * zero_thresh) &
             # check how much was added:
-            ({{ col_end_weight }} - nextStart) < zero_thresh ~ 'keep: feed removed: minor (< zero_thresh)',
+            ({{ col_end_weight_kg }} - nextStart) < zero_thresh ~ 'keep: feed removed: minor (< zero_thresh)',
 
           ###############################
-          # When nextStart > end_weight:
+          # When nextStart > end_weight_kg:
 
           # 4a. Define feed out events as an increase in weight of > threshold (default 10 kg)
-          nextStart > {{ col_end_weight }} &
-            nextStart - {{ col_end_weight }} >= feedout_thresh &
+          nextStart > {{ col_end_weight_kg }} &
+            nextStart - {{ col_end_weight_kg }} >= feedout_thresh &
             {{ col_intake }} <= (-1 * zero_thresh) ~ 'error: feed out event with neg intake',
 
           # 4b. Feed out without negative intake
-          nextStart > {{ col_end_weight }} &
-            nextStart - {{ col_end_weight }} >= feedout_thresh &
+          nextStart > {{ col_end_weight_kg }} &
+            nextStart - {{ col_end_weight_kg }} >= feedout_thresh &
             {{ col_intake }} > (-1 * zero_thresh) ~ 'keep: feed out event',
 
           # 5. Error when feed value increases between feedout_thresh and zero_thresh:
-          nextStart > {{ col_end_weight }} &
-            nextStart - {{ col_end_weight }} < feedout_thresh &
-            nextStart - {{ col_end_weight }} >= zero_thresh ~ 'error: weight increase < feedout_thresh',
+          nextStart > {{ col_end_weight_kg }} &
+            nextStart - {{ col_end_weight_kg }} < feedout_thresh &
+            nextStart - {{ col_end_weight_kg }} >= zero_thresh ~ 'error: weight increase < feedout_thresh',
 
 
           # 6. if weight is between 0 and 0.3, it's minor error and thus should be replaced :
-          nextStart > {{ col_end_weight }} &
-            nextStart - {{ col_end_weight }} < zero_thresh &
-            nextStart - {{ col_end_weight }} > (-1 * zero_thresh) ~ 'replace: minor increase',
+          nextStart > {{ col_end_weight_kg }} &
+            nextStart - {{ col_end_weight_kg }} < zero_thresh &
+            nextStart - {{ col_end_weight_kg }} > (-1 * zero_thresh) ~ 'replace: minor increase',
 
 
           ###############################
@@ -353,10 +353,10 @@ f_step3 <-
           is.na(nextStart) & {{ col_intake }} >= 0 ~ 'keep: last row',
 
           # 9. finally, if the nextStart == end weight, then keep. Note: dplyr::near is safer than using ==
-          dplyr::near(nextStart, {{ col_end_weight }}) ~ 'keep',
+          dplyr::near(nextStart, {{ col_end_weight_kg }}) ~ 'keep',
 
           # .default - this value is returned if all other conditions are not TRUE. There shouldn't be any.
-          TRUE ~ 'CHECK FUNCTION: no conditions TRUE for check_end_weight')
+          TRUE ~ 'CHECK FUNCTION: no conditions TRUE for check_end_weight_kg')
       ) # return a lazy_dt() which is then collected below.
 
     ############################################## #
@@ -365,20 +365,20 @@ f_step3 <-
     step3_corrected <-
       step3_check %>%  # step3_check is already lazy_dt()
       dplyr::mutate(
-        corrected_end_weight_bybin = dplyr::case_when(
-          stringr::str_detect(check_end_weights, 'replace') ~ nextStart,
-          stringr::str_detect(check_end_weights, 'keep') ~ {{ col_end_weight }},
-          stringr::str_detect(check_end_weights, 'error') ~ NA_real_,
-          stringr::str_detect(check_end_weights, 'CHECK') ~ NA_real_,
+        corrected_end_weight_kg_bybin = dplyr::case_when(
+          stringr::str_detect(check_end_weight_kgs, 'replace') ~ nextStart,
+          stringr::str_detect(check_end_weight_kgs, 'keep') ~ {{ col_end_weight_kg }},
+          stringr::str_detect(check_end_weight_kgs, 'error') ~ NA_real_,
+          stringr::str_detect(check_end_weight_kgs, 'CHECK') ~ NA_real_,
 
           TRUE ~ -2000 # defaults to an extreme value for easy detection of algorithm.
 
         ),
         # used for counting and summarising output:
-        category_end_weight = dplyr::case_when(
-          dplyr::near(.data$corrected_end_weight_bybin, {{ col_end_weight }}) ~ 'keep',
-          !dplyr::near(.data$corrected_end_weight_bybin, {{ col_end_weight }}) ~ 'replace',
-          is.na(.data$corrected_end_weight_bybin) ~ 'error',
+        category_end_weight_kg = dplyr::case_when(
+          dplyr::near(.data$corrected_end_weight_kg_bybin, {{ col_end_weight_kg }}) ~ 'keep',
+          !dplyr::near(.data$corrected_end_weight_kg_bybin, {{ col_end_weight_kg }}) ~ 'replace',
+          is.na(.data$corrected_end_weight_kg_bybin) ~ 'error',
           TRUE ~ 'CHECK'
         )
       ) %>%
@@ -396,10 +396,10 @@ f_step3 <-
 #' Occasionally the start weights are recorded incorrectly and can be determined
 #' using similar logic to [f_step3()].
 #'
-#' If there is an abnormality, the column check_start_weights will classify as
+#' If there is an abnormality, the column check_start_weight_kgs will classify as
 #' either: `'keep: WARNING: start and end weight > prevEnd'` or
 #' `'replace: start weight too high'`. Both of these flags check that
-#' `prevEnd - start_weight is < 10 kg and > 0.3kg`, based on [f_step2()] thresholds.
+#' `prevEnd - start_weight_kg is < 10 kg and > 0.3kg`, based on [f_step2()] thresholds.
 #'  Then, they also both check that the end weight is ~ equal to following start
 #'  weight (using the `zero_thresh` to determine equality). Therefore, the difference
 #'  between the 'keep' and the 'replace' is based on the check of the end weight
@@ -419,29 +419,29 @@ f_step3 <-
 #' @param col_date Name of column with date (formatted as Date) of feeding event
 #' @param col_start_time Name of column with start time (formatted as POSIXct
 #'   date-time) recorded by feed bin.
-#' @param col_start_weight,col_end_weight Name of columns with start and end
+#' @param col_start_weight_kg,col_end_weight_kg Name of columns with start and end
 #'   weights (in kg) recorded by feed bin.
 #' @param col_intake Name of column with the feed intake (kg) for the feeding
-#'   event, normally calculated as end_weight - start_weight.
-#' @param col_check_end_weights,col_prevEnd,col_prevStart,col_nextStart Names of
+#'   event, normally calculated as end_weight_kg - start_weight_kg.
+#' @param col_check_end_weight_kgs,col_prevEnd,col_prevStart,col_nextStart Names of
 #'   columns computed by [f_step3()]
 #'
 #' @return The original data frame with the additional columns:
 #'  * prev_step3_check
-#'  * check_start_weights
-#'  * corrected_start_weight_bybin
+#'  * check_start_weight_kgs
+#'  * corrected_start_weight_kg_bybin
 #' @export
 #'
 f_step4 <-
   function(df_step3,
            zero_thresh = 0.3,
-           col_bin_ID = .data$feed_bin_id,
+           col_bin_ID = .data$bin_id,
            col_date = .data$date,
            col_start_time = .data$start_time,
-           col_start_weight = .data$start_weight,
-           col_end_weight = .data$end_weight,
+           col_start_weight_kg = .data$start_weight_kg,
+           col_end_weight_kg = .data$end_weight_kg,
            col_intake = .data$intake,
-           col_check_end_weights = .data$check_end_weights,
+           col_check_end_weight_kgs = .data$check_end_weight_kgs,
            col_prevEnd,
            col_prevStart,
            col_nextStart){
@@ -453,24 +453,24 @@ f_step4 <-
       dplyr::arrange( {{ col_start_time }}) %>%
       dplyr::mutate(
         # get the error for the row above from step3
-        prev_step3_check = data.table::shift({{ col_check_end_weights }}, type = 'lag'),
+        prev_step3_check = data.table::shift({{ col_check_end_weight_kgs }}, type = 'lag'),
 
-        check_start_weights = dplyr::case_when(
+        check_start_weight_kgs = dplyr::case_when(
 
-          stringr::str_detect(.data$prev_step3_check, 'error: weight increase < feedout_thresh') & # same as checking prevEnd - start_weight is < 10 kg and > 0.3kg
-            abs({{ col_end_weight }} - {{ col_nextStart }}) <= zero_thresh & # check that the end weight is ~ equal to following start weight (confirming the entry is not completely wrong)
-            {{ col_end_weight }} > {{ col_prevEnd }}  ~ 'keep: WARNING: start and end weight > prevEnd', #note: start was checked by first check
+          stringr::str_detect(.data$prev_step3_check, 'error: weight increase < feedout_thresh') & # same as checking prevEnd - start_weight_kg is < 10 kg and > 0.3kg
+            abs({{ col_end_weight_kg }} - {{ col_nextStart }}) <= zero_thresh & # check that the end weight is ~ equal to following start weight (confirming the entry is not completely wrong)
+            {{ col_end_weight_kg }} > {{ col_prevEnd }}  ~ 'keep: WARNING: start and end weight > prevEnd', #note: start was checked by first check
 
-          stringr::str_detect(.data$prev_step3_check, 'error: weight increase < feedout_thresh') & # same as checking prevEnd - start_weight is < 10 kg and > 0.3kg
-            abs({{ col_end_weight }} - {{ col_nextStart }}) <= zero_thresh & # check that the end weight is ~ equal to following start weight (confirming the entry is not completely wrong)
-            {{ col_end_weight }} <= {{ col_prevEnd }}  ~ 'replace: start weight too high',
+          stringr::str_detect(.data$prev_step3_check, 'error: weight increase < feedout_thresh') & # same as checking prevEnd - start_weight_kg is < 10 kg and > 0.3kg
+            abs({{ col_end_weight_kg }} - {{ col_nextStart }}) <= zero_thresh & # check that the end weight is ~ equal to following start weight (confirming the entry is not completely wrong)
+            {{ col_end_weight_kg }} <= {{ col_prevEnd }}  ~ 'replace: start weight too high',
 
           TRUE ~ 'keep'
         ),
 
-        corrected_start_weight_bybin = dplyr::case_when(
-          stringr::str_detect(.data$check_start_weights, 'replace') ~ {{ col_prevEnd }},
-          stringr::str_detect(.data$check_start_weights, 'keep') ~ {{ col_start_weight }},
+        corrected_start_weight_kg_bybin = dplyr::case_when(
+          stringr::str_detect(.data$check_start_weight_kgs, 'replace') ~ {{ col_prevEnd }},
+          stringr::str_detect(.data$check_start_weight_kgs, 'keep') ~ {{ col_start_weight_kg }},
           TRUE ~ -2000 # return extreme default for fault finding if case_when doesn't catch all cases
         )
       ) %>% tibble::as_tibble()
@@ -483,15 +483,15 @@ f_step4 <-
 
 #' By Bin - Step 5 - Correct intakes
 #'
-#' This function calculates a corrected intake as corrected_start_weight_bybin - corrected_end_weight_bybin.
+#' This function calculates a corrected intake as corrected_start_weight_kg_bybin - corrected_end_weight_kg_bybin.
 #' It also handles the situation where errors are produced by [f_step3()] which means a corrected
 #' intake cannot be calculated, and therefore it returns the original intake.
 #'
 #' @param df_step4 Data frame produced by [f_step4()]
-#' @param col_corrected_end_weight Name of column with corrected end weight (normally produced by [f_step3()])
-#' @param col_corrected_start_weight Name of column with corrected start weight (normally produced by [f_step4()])
+#' @param col_corrected_end_weight_kg Name of column with corrected end weight (normally produced by [f_step3()])
+#' @param col_corrected_start_weight_kg Name of column with corrected start weight (normally produced by [f_step4()])
 #' @param col_intake Name of column with the feed intake (kg) for the feeding
-#'   event, normally calculated as end_weight - start_weight.
+#'   event, normally calculated as end_weight_kg - start_weight_kg.
 #'
 #' @return data frame of df_step4 with the following additional columns:
 #' * corrected_intake_bybin = NOTE: col_intake returned when NA (from error)
@@ -500,8 +500,8 @@ f_step4 <-
 #'
 f_step5_correct_intakes <-
   function(df_step4,
-           col_corrected_end_weight,
-           col_corrected_start_weight,
+           col_corrected_end_weight_kg,
+           col_corrected_start_weight_kg,
            col_intake){
 
     df_step5 <-
@@ -509,9 +509,9 @@ f_step5_correct_intakes <-
       dtplyr::lazy_dt() %>%
       dplyr::mutate(
         corrected_intake_bybin = dplyr::if_else(
-          is.na({{ col_corrected_end_weight }}), #if NA it means it's an error
+          is.na({{ col_corrected_end_weight_kg }}), #if NA it means it's an error
           true = {{ col_intake }}, # if error (i.e. not 'replace'), return original intake
-          false = {{ col_corrected_start_weight }} - {{ col_corrected_end_weight }}),
+          false = {{ col_corrected_start_weight_kg }} - {{ col_corrected_end_weight_kg }}),
 
         is_corrected_intake_bybin = !dplyr::near(.data$corrected_intake_bybin, {{ col_intake }} )
       ) %>% tibble::as_tibble()
@@ -523,35 +523,35 @@ f_step5_correct_intakes <-
 #'
 #' This function checks for errors in the time recorded by the feed bin without making
 #' any assumptions about a biologically possible rate of intake. This is technically
-#' a 'by cow' step, as it compares start and end times within a cow (across feed bins)
-#' to see if the cow visited another feed bin while still being recorded as present
+#' a 'by animal' step, as it compares start and end times within a animal (across feed bins)
+#' to see if the animal visited another feed bin while still being recorded as present
 #' at a feed bin (i.e. overlapping events). If this is found, it will trim the first
 #' event to end 10 sec before the next recorded feeding event.
 #'
 #' @param df_step5 Data frame produced by [f_step5()]
-#' @param col_cow_ID Name of column with cow ID.
+#' @param col_animal_id Name of column with animal ID.
 #' @param col_date Name of column with date (formatted as Date) of feeding event
 #' @param col_start_time,col_end_time Name of column with start and end time (formatted as POSIXct
 #'   date-time) recorded by feed bin.
 
 #' @return The original data frame with the following additional columns:
-#' nextStartTime, is_end_time_overlap_error, corrected_end_time, corrected_feed_duration_diff, corrected_feed_duration_seconds
+#' nextStartTime, is_end_time_overlap_error, corrected_end_time, corrected_duration_sec_diff, corrected_duration_sec
 #' @export
 #'
 f_step6_correct_end_times <-
   function(df_step5,
-           col_cow_ID = .data$cow_id,
+           col_animal_id = .data$animal_id,
            col_date = .data$date,
            col_start_time = .data$start_time,
            col_end_time = .data$end_time){
 
     df_step5 %>%
       dtplyr::lazy_dt() %>%
-      dplyr::group_by({{ col_date }}, {{ col_cow_ID }}) %>%
+      dplyr::group_by({{ col_date }}, {{ col_animal_id }}) %>%
       dplyr::arrange( {{ col_start_time }}) %>%
       dplyr::mutate(
         nextStartTime = data.table::shift({{ col_start_time}}, type = 'lead'),
-        # is the end time later in time than the time of the next feeding event by the cow
+        # is the end time later in time than the time of the next feeding event by the animal
         is_end_time_overlap_error = dplyr::if_else(
           is.na(.data$nextStartTime), # check if NA - NA due to last event of day
           true = FALSE, # if last event of day, assume no error (i.e. FALSE)
@@ -562,7 +562,7 @@ f_step6_correct_end_times <-
           true = .data$nextStartTime - lubridate::seconds(10),
           false = {{ col_end_time }}),
 
-        corrected_feed_duration_diff = .data$corrected_end_time - {{ col_start_time }},
-        corrected_feed_duration_seconds = as.numeric(.data$corrected_feed_duration_diff)
+        corrected_duration_sec_diff = .data$corrected_end_time - {{ col_start_time }},
+        corrected_duration_sec = as.numeric(.data$corrected_duration_sec_diff)
       ) %>% tibble::as_tibble()
   }
