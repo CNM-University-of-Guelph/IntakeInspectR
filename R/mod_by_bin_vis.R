@@ -39,14 +39,17 @@ mod_by_bin_vis_ui <- function(id){
 
             wrapper = function(x) bslib::card_body(x, fill=TRUE, fillable=FALSE),
 
-              bslib::card_body(
-                fill=FALSE,
+
+
+            bslib::card_body(
+              fill=FALSE,
               max_height = "300px", # so that it doesn't push the toggled UI below off the screen
+              shinyjs::hidden(h4(id = ns('bypass_warning'), "By Bin Cleaning has been bypassed")),
               verbatimTextOutput(ns("selected_rows"), placeholder = FALSE)
-              ),
+            ),
 
 
-              bslib::card_body(
+            bslib::card_body(
               id = ns("toggle_plot_inputs"), # name needed for toggle to unhide
               fill=TRUE, #card won't change size inside of parent
               fillable=TRUE, #contents of card will fill out
@@ -70,24 +73,24 @@ mod_by_bin_vis_ui <- function(id){
             ),
 
             # bslib::card_body(
-              radioButtons(
-                inputId = ns("data_type"),
-                label = "Select data type:",
-                choices = list(
-                  raw = "raw",
-                  corrected = "corrected"
-                )
-              ),
+            radioButtons(
+              inputId = ns("data_type"),
+              label = "Select data type:",
+              choices = list(
+                raw = "raw",
+                corrected = "corrected"
+              )
+            ),
             br(),
 
-              radioButtons(
-                inputId = ns("plot_type_overall"),
-                label = "Select plot type:",
-                choices = list(
-                  histogram = "hist",
-                  regression = "reg"
-                )
-              )),
+            radioButtons(
+              inputId = ns("plot_type_overall"),
+              label = "Select plot type:",
+              choices = list(
+                histogram = "hist",
+                regression = "reg"
+              )
+            )),
 
 
           ################################################ #
@@ -190,8 +193,17 @@ mod_by_bin_vis_server <- function(id, df_list){
     ns <- session$ns
 
     df <- reactive({
-      df_list()$df_cleaned
+      df_list()$df_list_bybin$df_cleaned
     })
+
+
+    observe({
+      if(df_list()$is_bybin_bypass){
+        shinyjs::show(id = 'bypass_warning')
+      } else {
+        shinyjs::hide(id = 'bypass_warning')
+      }
+      })
 
     ##################################################################### #
     # Overall Plots ----

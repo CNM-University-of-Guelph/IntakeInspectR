@@ -247,3 +247,66 @@ f_by_bin_clean <- function(
 
 
 
+
+
+
+#' Bypass 'By Bin' cleaning for Shiny app
+#'
+#' This will return a similar output to f_by_bin_clean that will allow a user to bypass this step in the Shiny app.
+#'
+#' @param df_in Data frame that was uploaded by user
+#' @param log bool. Should log be created.
+#'
+#' @return A list of data frames: `df_0kg`, `df_step2_errors` and `df_cleaned`.
+#' In addition, `log_path` is returned in the list, which is the temporary file path where the log is stored.
+#'
+#' @noRd
+
+f_by_bin_bypass_shiny <- function(df_in, log = TRUE){
+
+  if(log){
+    tmp <- tempfile(pattern = "log_", fileext = ".log")
+    print(tmp)
+
+    logr::log_open(tmp, logdir = FALSE, show_notes = FALSE)
+    logr::sep("User selected to bypass 'By Bin' cleaning procedures.")
+    logr::log_print("No cleaning conducted at a bin level. Some visualisations still available.")
+  } else {
+    tmp <- NULL # so that the output list can return tmp as NULL if log == FALSE
+  }
+
+  #' * prevEnd, prevStart, nextEnd, nextStart - used by check_end_weight_kgs and
+  #' downstream functions
+  #' * check_end_weight_kgs - error types as described above
+  #' * corrected_end_weight_kg_bybin - corrected end weights based on check_end_weight_kgs
+  #' * category_end_weight_kg - classification of errors (keep, replace, error)
+
+  df_out <-
+    df_in %>%
+    dplyr::mutate(
+      check_end_weights_kgs = NA_character_,
+      check_start_weight_kgs = NA_character_,
+      category_end_weight_kg = NA_character_,
+      check_end_weight_kgs = NA_character_,
+      is_end_time_overlap_error = FALSE,
+      is_corrected_intake_bybin = FALSE,
+      corrected_duration_sec = 0,
+      corrected_intake_bybin = 0
+    )
+
+
+  # Finish ----
+  if(log){
+    logr::log_close()
+  }
+
+
+  return(list(
+    df_0kg = df_out %>% dplyr::slice(0),
+    df_step2_errors = df_out %>% dplyr::slice(0),
+    df_cleaned = df_out,
+    log_path = tmp
+  ))
+}
+
+

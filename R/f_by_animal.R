@@ -166,6 +166,10 @@ f_iterate_animals <-
     logr::log_print(  outlier_summary )
   }
 
+  # Finish ----
+  if(log){
+    logr::log_close()
+  }
 
 
 

@@ -294,7 +294,7 @@ mod_by_animal_clean_server <- function(id, df_list){
 
 
     df <- reactive({
-      df_list()$df_cleaned
+      df_list()$df_list_bybin$df_cleaned
     })
 
 
@@ -305,6 +305,18 @@ mod_by_animal_clean_server <- function(id, df_list){
       if(tibble::is_tibble(df())){
         shinyjs::enable(id = 'execute_detect_outliers')
       }
+    })
+
+
+    observe({
+      if(df_list()$is_bybin_bypass){
+        shinyWidgets::updateTreeInput('selected_error_types_by_bin', selected = "")
+        shinyjs::hide(id = "selected_error_types_by_bin")
+      } else{
+        shinyWidgets::updateTreeInput('selected_error_types_by_bin', selected = "By Bin Corrections")
+        shinyjs::show(id = "selected_error_types_by_bin")
+      }
+
     })
 
 

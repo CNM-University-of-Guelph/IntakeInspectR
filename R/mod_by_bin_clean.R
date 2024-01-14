@@ -40,12 +40,13 @@ mod_by_bin_clean_ui <- function(id){
             area = "user_input",
             wrapper = function(x) bslib::card_body(x, fill=TRUE, fillable=TRUE ),
 
-
             actionButton(ns('execute_clean'), label = "Clean data", class = c("btn-lg btn-success")),
             # br(),
             actionButton(ns("button_more_info"), "Detailed overview of the cleaning"),
 
             actionButton(ns("button_flowchart"), "Flow chart of all steps"),
+
+            actionButton(ns('bypass_clean'), label = "Bypass 'by bin' cleaning", class = c("btn-lg btn-outline-success")),
             # br(),
             # p("View each functions R Documentation:"),
 
@@ -254,29 +255,54 @@ mod_by_bin_clean_server <- function(id, df){
     # Data cleaning ----
     ######################################################## #
 
-    list_cleaned_data <- reactive({
+    selected_list_bybin <- reactiveValues()
+    is_bybin_bypass <- reactiveVal(FALSE)
 
-      shinybusy::show_modal_spinner(spin = 'orbit', text = 'Cleaning data...')
+    observe({
+        shinybusy::show_modal_spinner(spin = 'orbit', text = 'Cleaning data...')
 
+        bslib::nav_select('display_tabs', 'display_log')
+
+        list_cleaned <-
+          f_by_bin_clean(df_uploaded(),
+                         zero_thresh = input$zero_threshold, # default 0.3
+                         feedout_thresh = input$feedout_threshold, # default 10
+                         col_bin_ID = .data$bin_id,
+                         col_date = .data$date,
+                         col_start_time = .data$start_time,
+                         col_start_weight_kg = .data$start_weight_kg,
+                         col_end_weight_kg = .data$end_weight_kg,
+                         col_intake = .data$intake,
+                         log = TRUE)
+
+        # override reactive variable
+        selected_list_bybin$current <- list_cleaned
+
+        is_bybin_bypass(FALSE)
+
+        shinybusy::remove_modal_spinner()
+
+      }) %>% bindEvent(input$execute_clean)
+
+
+    ######
+    # Bypass
+
+    observe({
       bslib::nav_select('display_tabs', 'display_log')
 
-      list_cleaned <-
-        f_by_bin_clean(df_uploaded(),
-                       zero_thresh = input$zero_threshold, # default 0.3
-                       feedout_thresh = input$feedout_threshold, # default 10
-                       col_bin_ID = .data$bin_id,
-                       col_date = .data$date,
-                       col_start_time = .data$start_time,
-                       col_start_weight_kg = .data$start_weight_kg,
-                       col_end_weight_kg = .data$end_weight_kg,
-                       col_intake = .data$intake,
-                       log = TRUE)
+      list_cleaned <- f_by_bin_bypass_shiny(df_uploaded(), log = TRUE)
+      # override reactive variable
+      selected_list_bybin$current <- list_cleaned
 
-      shinybusy::remove_modal_spinner()
+      is_bybin_bypass(TRUE)
+    }) %>% bindEvent(input$bypass_clean)
 
-      return(list_cleaned)
-    }) %>% bindEvent(input$execute_clean)
 
+    # Get most recent list_cleaned_data when either the execute_clean or bypass_clean button is pressed.
+    list_cleaned_data <- reactive({
+      return(selected_list_bybin$current)
+    }) %>% bindEvent(c(input$execute_clean, input$bypass_clean), ignoreInit = TRUE)
 
 
 
@@ -392,6 +418,9 @@ mod_by_bin_clean_server <- function(id, df){
       shinyjs::toggleState("download_df_cleaned_csv", condition = input$execute_clean > 0)
       shinyjs::toggleState("download_df_cleaned_rds", condition = input$execute_clean > 0)
 
+      #hide bypass if data has been cleaned
+      # shinyjs::toggleState("bypass_clean", condition = !input$execute_clean > 0)
+
     })
 
     ################ #
@@ -483,7 +512,14 @@ mod_by_bin_clean_server <- function(id, df){
 
 
 
-    return(reactive(list_cleaned_data()))
+    return(reactive({
+      list(
+        df_list_bybin = list_cleaned_data(),
+        is_bybin_bypass = is_bybin_bypass(),
+        log_path = list_cleaned_data()$log_path
+        )
+      })
+      )
   })
 }
 

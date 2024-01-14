@@ -37,30 +37,16 @@ mod_final_summary_ui <- function(id){
             wrapper = function(x) bslib::card_body(x, fill=FALSE, fillable=TRUE, class = "align-items-top"),
 
             h3("Downloads:"),
-
-            # shinyWidgets::treeInput(
-            #   inputId = ns('selected_error_types_by_bin'),
-            #   label = "Select corrections to customise final intake and duration values, then press button to calculate values ready for download.",
-            #   returnValue = 'text',
-            #   selected = 'By Bin',
-            #   choices = shinyWidgets::create_tree(
-            #     data.frame(
-            #       Step = c("By Bin", "By Bin", "By Bin"),
-            #       Error = c("correct end weight", "correct start weight", "correct overlapping end times"),
-            #       stringsAsFactors = FALSE
-            #     ),
-            #     levels = c('Step', 'Error')
-            #   )
-            # ),
+            htmlOutput(ns('display_bybin_cols'), inline = TRUE),
 
             shinyWidgets::treeInput(
               inputId = ns('selected_error_types_by_animal'),
               label = NULL,
               returnValue = 'text',
-              selected = 'By Animal',
+              selected = 'By Animal Corrections',
               choices = shinyWidgets::create_tree(
                 data.frame(
-                  Step = c( "By Animal", "By Animal"),
+                  Step = c( "By Animal Corrections", "By Animal Corrections"),
                   Error = c("replace duration outliers", "replace intake outliers"),
                   stringsAsFactors = FALSE
                 ),
@@ -79,32 +65,25 @@ mod_final_summary_ui <- function(id){
           # Display panel ----
           ################################################ #
 
-          gridlayout:: grid_card(
+          gridlayout::grid_card(
             area = "Display",
-            wrapper = bslib::card_body(fillable = FALSE, fill = TRUE),
-            full_screen = FALSE,
+            wrapper = bslib::card_body(class = "p-0", fillable = TRUE, fill = TRUE), # this removes the padding around edges
+            full_screen = TRUE,
 
-            bslib::navset_tab( # a card with nav tabs:
+            bslib::navset_card_pill( # a card with nav tabs:
               id = ns('display_tabs'), #used for input$ to see active tab
-
-               # wrapper = function(x) bslib::card_body(x, fillable = FALSE, fill = TRUE),
 
               bslib::nav_panel(
                 title = "Download - all events",
                 value = "full_download", #for accessing input$ details
-
-                bslib::card(
-                  bslib::card_body(
-                    fillable=FALSE,
-                    strong("Cleaned data"),
-                    br(),
-                    p(
-                      "The final datasets is available for download using the buttons below."),
-                    p("The simplified version
+                bslib::card_title("Cleaned data"),
+                p(
+                  "The final datasets is available for download using the buttons below."),
+                p("The simplified version
                       gives the minimum information to differentiate each event and
                       uses the cleaned/modified durations (sec) and intakes (as-fed
                       kg) as selected."),
-                      p("The full data frame can also be downloaded, including all
+                p("The full data frame can also be downloaded, including all
                       columns added throughout the cleaning (except the copies of
                       previous and next row data). This would be particularly useful
                       for examining the different errors that are flagged and setting
@@ -112,48 +91,42 @@ mod_final_summary_ui <- function(id){
                       code can also be modified directly, allowing users to run
                       modified versions of this dashboard."),
 
-                      br(),
+                shinyWidgets::radioGroupButtons(
+                  inputId = ns("download_filetype_selection"),
+                  label = "Select format for downloads:",
+                  individual = TRUE,
+                  choices = c(".rds", ".csv", ".txt"),
+                  selected = ".csv",
+                  status = "success" # equive to  class = 'btn-success'
+                ),
+                br(),
 
-                    shinyWidgets::radioGroupButtons(
-                      inputId = ns("download_filetype_selection"),
-                      label = "Select format for downloads:",
-                      individual = TRUE,
-                      choices = c(".rds", ".csv", ".txt"),
-                      selected = ".csv",
-                      status = "success" # equive to  class = 'btn-success'
-                    ),
-                    br(),
+                downloadButton(ns("download_simplified"), "Cleaned data - simplified", class = 'btn-info btn-fixed-size-summary'),
+                downloadButton(ns("download_full"), "Cleaned data - all columns", class = 'btn-info btn-fixed-size-summary'),
 
-                    downloadButton(ns("download_simplified"), "Cleaned data - simplified", class = 'btn-info btn-fixed-size-summary'),
-                    br(),
-                    downloadButton(ns("download_full"), "Cleaned data - all columns", class = 'btn-info btn-fixed-size-summary'),
+                em("Summarised data is available to view and download in the other tabs on this page."),
 
-                    p(strong(em("Summarised data is available to view and download in the other tabs on this page."))),
-                    br(),
+                strong("Preview of simplified and full data structure (after clicking 'calculate final values'):"),
+                verbatimTextOutput(outputId = ns('glimpse_out'), placeholder = TRUE),
+              ),
 
-
-                    strong("Logs"),
-                    p("It is recommended that the log files are downloaded with the data.
-              These will be especially useful for reporting the proportion
-              of data that is removed before downstream analyses and publications."),
-
-              downloadButton(ns('download_logs'), label = 'Log files (as single .txt file)', class = 'btn-info btn-fixed-size-summary'),
-              br(),
-
-              strong("Preview of simplified and full data (after clicking 'calculate final values'):"),
-              verbatimTextOutput(outputId = ns('glimpse_out'), placeholder = TRUE)
-                  )
-
-                )
-
-
+              bslib::nav_panel(
+                title = "Logs",
+                value = 'logs',
+                bslib::card_title("Logs"),
+                p("
+                      It is recommended that the log files are downloaded with the data. These will be especially useful for reporting the proportion of data that is removed before downstream analyses and publications.
+                      "),
+                downloadButton(ns('download_logs'), label = 'Log files (as single .txt file)', class = 'btn-info btn-fixed-size-summary'),
+                br(),
+                strong("Log for 'calculate final values':"),
+                verbatimTextOutput(ns("final_log"), placeholder = TRUE)
               ),
 
               bslib::nav_panel(
                 title = 'All daily intakes',
-                bslib::card(
-                  bslib::card_title("Summarised Data"),
-                  p("
+                bslib::card_title("Summarised Data"),
+                p("
               These summary tabs have a table that has download buttons at the
               top that will copy to clipboard or download as a CSV or Excel
               file. It is common to calculate a daily feed intake for each
@@ -165,8 +138,8 @@ mod_final_summary_ui <- function(id){
               # br(),
 
               bslib::layout_columns(
-                fill=FALSE,
-                fillable=FALSE,
+                fill=TRUE,
+                fillable=TRUE,
 
                 row_heights = 1,
                 col_widths = c(4,2,-6), # negative means empty cols
@@ -180,94 +153,77 @@ mod_final_summary_ui <- function(id){
                              max = 100,
                              step = 5)
               ),
+              br(),
 
               bslib::card(
                 full_screen = TRUE,
+                min_height = '420px',
                 shiny::plotOutput(outputId = ns('violin_plot_intake'), height = '400px') %>%
-                  shinycssloaders::withSpinner(type=7)
+                  shinycssloaders::withSpinner(type=7),
 
               ),
-
+#
               bslib::card(
                 full_screen = TRUE,
                 min_height = '500px',
                 DT::DTOutput(ns('daily_intake_table')) %>%  shinycssloaders::withSpinner(type=7)
 
               )
-                )
-
-
               ),
 
               bslib::nav_panel(
                 title = 'Individual daily intakes',
+                p("
+                  Daily feed intake from individual animals can be visualised here. Multiple animals can be selected, each given their own colour on the plot.
+                "),
+                # br(),
+
+                bslib::layout_columns(
+                  fill=FALSE,
+                  fillable=TRUE,
+
+                  row_heights = 1,
+                  col_widths = c(5,-1,2,-4), # negative means empty cols
+                  gap="4px",
+
+                  shinyWidgets::pickerInput(
+                    inputId = ns("animal_id_ind_plots"),
+                    label = "Select animal/s to plot",
+                    choices = NULL,
+                    options = list(
+                      `actions-box` = TRUE),
+                    multiple = TRUE
+                  ),
+                  actionButton(ns("generate_ind_plot"), label = "Update Plot", class = "btn-success btn-vertical-center")
+                ),
 
                 bslib::card(
-
-                p("
-              Daily feed intake from individual animals can be visualised here. Multiple animals can be selected, each given their own colour on the plot.
-              "),
-              # br(),
-
-              bslib::layout_columns(
-                fill=FALSE,
-                fillable=FALSE,
-
-                row_heights = 1,
-                col_widths = c(5,2,-5), # negative means empty cols
-                gap="4px",
-
-                shinyWidgets::pickerInput(
-                  inputId = ns("animal_id_ind_plots"),
-                  label = "Select animal/s to plot",
-                  choices = NULL,
-                  options = list(
-                    `actions-box` = TRUE),
-                  multiple = TRUE
-                ),
-                actionButton(ns("generate_ind_plot"), label = "Update Plot", class = "btn-success btn-vertical-center")
-
-              ),
-              # br(),
-
-              bslib::card(
-                full_screen = TRUE,
-                plotly::plotlyOutput(outputId = ns("plot_ind_animals"), height = "600px") %>%  shinycssloaders::withSpinner()
-              )
-
+                  full_screen = TRUE,
+                  min_height = '620px',
+                  plotly::plotlyOutput(outputId = ns("plot_ind_animals"), height = "600px") %>%  shinycssloaders::withSpinner()
                 )
-
               ),
-
-
-
 
               bslib::nav_panel(
                 title = 'Rate of intake',
-                bslib::card(
-                  bslib::card_title("Mean rate of intake across all events for each animal"),
+                bslib::card_title("Mean rate of intake across all events for each animal"),
                 # br(),
                 bslib::card(
                   shiny::plotOutput(outputId = ns('rate_histogram'), height = '350px') %>%  shinycssloaders::withSpinner(type=7),
                   # br(),
                   DT::DTOutput(ns('intake_rate_table')) %>%  shinycssloaders::withSpinner(type=7)
                 )
-                )
-
               ),
 
               bslib::nav_panel(
                 title = 'Feed Duration',
-                bslib::card(
-                  bslib::card_title("Mean feed duration across all events for each animal"),
+                bslib::card_title("Mean feed duration across all events for each animal"),
                 # br(),
                 bslib::card(
                   shiny::plotOutput(outputId = ns('duration_histogram'), height = '350px') %>%  shinycssloaders::withSpinner(type=7),
                   br(),
                   DT::DTOutput(ns('duration_table')) %>%  shinycssloaders::withSpinner(type=7)
                 )
-                )
-
               )
             )
           )
@@ -293,32 +249,37 @@ mod_final_summary_server <- function(id, df_list_bybin, df_list_byanimal){
     # Prepare final data based on user input ----
     ############################################## #
 
-    observe({
-      # Error handler
-      # If any from 'By Animal' are selected, then it must use 'by bin'
-      if(any(c("replace duration outliers", "replace intake outliers") %in% input$selected_error_types_by_animal)){
-        # make sure all of 'by bin' are selected, with warning:
-        if( ! all(c("correct end weight", "correct start weight", "correct overlapping end times") %in% input$selected_error_types_by_bin)){
-          # Currently this isn't possible. Show warning and reset by bin
-
-          # shinyWidgets::show_alert(title = "By Animal must use By Bin", text = "Currently 'By Animal' outlier detection and cleaning defaults to using all cleaning methods from 'By Bin' step.
-          #                          This can be changed by running codes manually in R, but will be added to app in future. Therefore, all of 'By Bin' has been re-selected.
-          #                          To customise 'By Bin', deselect 'By Animal' first.
-          #                          ",
-          #                          type = 'error',
-          #                          showCloseButton = TRUE)
-
-          # shinyWidgets::updateTreeInput('selected_error_types_by_bin', selected = 'By Bin')
-
-        }
-      }
-
+    bybin_col_selections <- reactive({
+      col_intake <- df_list_byanimal()$user_inputs_to_parse_to_vis$selected_intake_column
+      col_duration <- df_list_byanimal()$user_inputs_to_parse_to_vis$selected_duration_column
+      return(list(
+        col_intake = col_intake,
+        col_duration = col_duration
+      ))
     })
+
+    # Display the columns that were selected prior to executing 'by animal'
+    output$display_bybin_cols <- renderText({
+      paste("<b>'By Bin' selected Intake:</b>",bybin_col_selections()$col_intake,
+            "<br><br>", "<b>'By Bin' selected Duration:</b>", bybin_col_selections()$col_duration, "<br>")
+    })
+
 
     final_data_full <-   reactive({
 
+      #log
+      tmp <- tempfile(pattern = "log_", fileext = ".log")
+      logr::log_open(tmp, logdir = FALSE, show_notes = FALSE)
+      logr::sep(" Preparing final data outputs ")
+
       # If keep all corrections:
-      if(all('By Bin' %in% input$selected_error_types_by_bin & 'By Animal' %in% input$selected_error_types_by_animal)){
+      if(all('corrected_intake_bybin' %in% bybin_col_selections()$col_intake &
+             'corrected_duration_sec' %in% bybin_col_selections()$col_duration &
+             'By Animal Corrections' %in% input$selected_error_types_by_animal)){
+
+        logr::log_print("All cleaning accepted from 'By Bin' and 'By Cow'.")
+        logr::log_print("'selected_final_intake_kg' and 'selected_final_duration_sec' incorporate replaced values from 'By Bin' and all outliers corrected from 'By Animal'.")
+        logr::log_print("Check logs to see what thresholds were applied at each step, and how much data was modified.")
 
         df_out <- df_list_byanimal()$merged_df %>%
           # remove prev and next columns
@@ -329,37 +290,89 @@ mod_final_summary_server <- function(id, df_list_bybin, df_list_byanimal){
           )
 
       }  else {
-        # return the data based on user input
-        df_list_byanimal()$merged_df %>%
-          dplyr::mutate(
-            selected_final_intake_kg = dplyr::case_when(
-              "replace intake outliers" %in% input$selected_error_types_by_animal ~ new_y,
-              all(c('correct end weight', 'correct start weight') %in% input$selected_error_types_by_bin) ~ corrected_intake_bybin,
-              'correct end weight' %in% input$selected_error_types_by_bin ~ (start_weight_kg - corrected_end_weight_kg_bybin),
-              'correct start weight' %in% input$selected_error_types_by_bin ~ (corrected_start_weight_kg_bybin - end_weight_kg),
-              TRUE ~ intake
-            ),
-            selected_final_duration_sec = dplyr::case_when(
-              "replace duration outliers" %in% input$selected_error_types_by_animal ~ new_x,
-              "correct overlapping end times" %in% input$selected_error_types_by_bin ~ corrected_duration_sec,
-              TRUE ~ duration_sec
+        # Select final intake, with logging
+        if("replace intake outliers" %in% input$selected_error_types_by_animal){
+          logr::log_print("'By Animal' Outliers are re-estimated in final intakes.")
+          logr::log_print(paste("`selected_final_intake_kg` is `new_y` column"))
+
+          df_out_intake <- df_list_byanimal()$merged_df %>%
+            dplyr::mutate(
+              selected_final_intake_kg = .data$new_y
+              )
+
+        } else{
+          logr::log_print("'By Animal' Outliers are ignored in final intakes.")
+          logr::log_print(paste("`selected_final_intake_kg` is", bybin_col_selections()$col_intake, "from 'By Bin' cleaning only."))
+
+          df_out_intake <-df_list_byanimal()$merged_df %>%
+            dplyr::mutate(
+              selected_final_intake_kg = !!rlang::sym(bybin_col_selections()$col_intake)
             )
-          ) %>%
-          dplyr::select( !tidyselect::starts_with(c("prev", "next")))
+        }
+
+        # Select final duration, with logging
+        if("replace duration outliers" %in% input$selected_error_types_by_animal){
+          logr::log_print("'By Animal' Outliers are re-estimated in final durations.")
+          logr::log_print(paste("`selected_final_duration_sec` is `new_x` column"))
+
+          df_out <- df_out_intake %>%
+            dplyr::mutate(
+              selected_final_duration_sec = .data$new_x
+            )
+
+        } else{
+          logr::log_print("'By Animal' Outliers are ignored in final durations.")
+          logr::log_print(paste("`selected_final_duration_sec` is", bybin_col_selections()$col_duration, "from 'By Bin' cleaning only."))
+
+          df_out <- df_out_intake %>%
+            dplyr::mutate(
+              selected_final_duration_sec = !!rlang::sym(bybin_col_selections()$col_duration)
+            )
+        }
+
+
+
+
+        logr::log_print("Check logs to see what thresholds were applied at each step, and how much data was modified.")
+        # # return the data based on user input
+        # df_list_byanimal()$merged_df %>%
+        #   dplyr::mutate(
+        #     selected_final_intake_kg = dplyr::case_when(
+        #       "replace intake outliers" %in% input$selected_error_types_by_animal ~ .data$new_y,
+        #       .default = !!rlang::sym(bybin_col_selections()$col_intake)
+        #     ),
+        #     selected_final_duration_sec = dplyr::case_when(
+        #       "replace duration outliers" %in% input$selected_error_types_by_animal ~ .data$new_x,
+        #       .default = !!rlang::sym(bybin_col_selections()$col_duration)
+        #     )
+        #   )
 
       }
+
+      # Finish Log ----
+      logr::log_close()
+
+      return(list(
+        df = df_out  %>%  dplyr::select( !tidyselect::starts_with(c("prev", "next"))),
+        log_path = tmp))
 
     }) %>% bindEvent(input$recalculate_values)
 
 
+    output$final_log <- renderPrint({
+      # read in log file to print to glimpse window:
+      log_final <- readLines(final_data_full()$log_path)
+      cat(paste(log_final, collapse = "\n"))
+
+    })
 
 
     # Create simplified version of data with less columns
     simplified_final_df <- reactive({
-      req(final_data_full())
+      req(final_data_full()$df)
 
       # prepare simplified data
-        final_data_full() %>%
+        final_data_full()$df %>%
         dplyr::select(
           "bin_id",
           "animal_id",
@@ -388,7 +401,7 @@ mod_final_summary_server <- function(id, df_list_bybin, df_list_byanimal){
       simplified_final_df() %>% dplyr::glimpse()
       print("--------------------------------------------------------------")
       print("Full data:")
-      final_data_full() %>% dplyr::glimpse()
+      final_data_full()$df %>% dplyr::glimpse()
       })
 
 
@@ -438,10 +451,10 @@ mod_final_summary_server <- function(id, df_list_bybin, df_list_byanimal){
 
         # save:
         if(input$download_filetype_selection == '.rds'){
-          saveRDS(final_data_full(), file = file)
+          saveRDS(final_data_full()$df, file = file)
 
         } else if(input$download_filetype_selection %in% c('.csv', '.txt')){
-          data.table::fwrite(final_data_full(), file = file)
+          data.table::fwrite(final_data_full()$df, file = file)
         }
 
       }
@@ -458,7 +471,8 @@ mod_final_summary_server <- function(id, df_list_bybin, df_list_byanimal){
         # Combine the log contents into a single vector
         combined_logs<- c(
           readLines(df_list_bybin()$log_path),
-          readLines(df_list_byanimal()$log_path)
+          readLines(df_list_byanimal()$log_path),
+          readLines(final_data_full()$log_path)
           )
 
 
@@ -475,7 +489,7 @@ mod_final_summary_server <- function(id, df_list_bybin, df_list_byanimal){
 
     df_daily_intakes <- reactive({
 
-      final_data_full() %>%
+      final_data_full()$df %>%
         dplyr::group_by(.data$animal_id, .data$date) %>%
         # summarise data using either raw or cleaned data:
         dplyr::summarise(
@@ -564,14 +578,14 @@ mod_final_summary_server <- function(id, df_list_bybin, df_list_byanimal){
     ################################# #
 
     summary_table <-  reactive({
-      final_data_full() %>%
+      final_data_full()$df %>%
         dplyr::mutate(
-          selected_slop_kg_sec = .data$selected_final_intake_kg / .data$selected_final_duration_sec
+          instaneous_rate_of_intake_kg_sec_ = .data$selected_final_intake_kg / .data$selected_final_duration_sec
         ) %>%
         dplyr::group_by(.data$animal_id) %>%
-        dplyr::summarise(selected_slope_kg_sec = mean(.data$selected_slop_kg_sec , na.rm=TRUE),
+        dplyr::summarise(instaneous_rate_of_intake_kg_sec = mean(.data$instaneous_rate_of_intake_kg_sec_ , na.rm=TRUE),
                          selected_final_duration_sec = mean(.data$selected_final_duration_sec, na.rm=TRUE)) %>%
-        dplyr::mutate(selected_slope_g_min = .data$selected_slope_kg_sec*1000*60 %>% round(2),
+        dplyr::mutate(instaneous_rate_of_intake_g_min = .data$instaneous_rate_of_intake_kg_sec*1000*60 %>% round(2),
                       selected_final_duration_min = .data$selected_final_duration_sec/60 %>% round(2))
     })
 
@@ -579,12 +593,12 @@ mod_final_summary_server <- function(id, df_list_bybin, df_list_byanimal){
     output$rate_histogram <- renderPlot({
       req(!is.null(df_list_byanimal()))
 
-      mean_rate <- summary_table()$selected_slope_g_min %>%
+      mean_rate <- summary_table()$instaneous_rate_of_intake_g_min %>%
         mean(na.rm=TRUE) %>%
         round(2)
 
       summary_table() %>%
-        ggplot2::ggplot(aes(x = .data$selected_slope_g_min)) +
+        ggplot2::ggplot(aes(x = .data$instaneous_rate_of_intake_g_min)) +
         ggplot2::geom_histogram(bins = 50, fill ='darkgreen',colour = 'grey') +  # Themes, text size = 12 and black
         ggplot2::geom_vline(aes(xintercept = mean_rate))+
         ggplot2::geom_label(aes(x = mean_rate, y = 3, label = paste('mean:', mean_rate)))+
@@ -596,9 +610,9 @@ mod_final_summary_server <- function(id, df_list_bybin, df_list_byanimal){
 
     output$intake_rate_table <- DT::renderDT({
       summary_table() %>%
-        dplyr::select('animal_id', 'selected_slope_g_min') %>%
-        dplyr::mutate(selected_slope_g_min = .data$selected_slope_g_min %>% round(1)) %>%
-        dplyr::arrange(dplyr::desc(.data$selected_slope_g_min)) %>%
+        dplyr::select('animal_id', 'instaneous_rate_of_intake_g_min') %>%
+        dplyr::mutate(instaneous_rate_of_intake_g_min = .data$instaneous_rate_of_intake_g_min %>% round(1)) %>%
+        dplyr::arrange(dplyr::desc(.data$instaneous_rate_of_intake_g_min)) %>%
         fct_DT_nopages(scrollY = 300)
     })
 
