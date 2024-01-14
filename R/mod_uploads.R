@@ -20,62 +20,47 @@ mod_uploads_ui <- function(id){
           layout = gridlayout::new_gridlayout(
             c(
               "2px       0.25fr     0.75fr",
-              "0.12fr    button_box button_box",
-              "0.25fr     user_input summary",
-              "0.63fr    user_input display_data "
+              "155px     user_input summary",
+              "1fr    user_input display_data "
             ),
 
-          alternate_layouts = list(
-            layout = c(
-              "2px       1fr     ",
-              "200px    button_box ",
-              "400px    user_input ",
-              "400px    summary",
-
-              "400px    display_data"
-            ),
-            width_bounds = c(max = 900)
-          )),
-
-
-
-
-          gridlayout::grid_card(
-            area = "button_box",
-             wrapper = function(x) bslib::card_body(x, fill = FALSE),
-
-
-          bslib::layout_columns(
-            fill = FALSE,
-
-            actionButton(ns("button_instructions"), "Upload Instructions", class = "btn-lg"),
-
-            actionButton(ns("button_more_info"), "More about the data",  class = "btn-lg")
-          )
-
-
-          ),
+            alternate_layouts = list(
+              layout = c(
+                "2px       1fr     ",
+                "400px    user_input ",
+                "400px    summary",
+                "400px    display_data"
+              ),
+              width_bounds = c(max = 900)
+            )),
 
           gridlayout::grid_card(
             area = "user_input",
              wrapper = function(x) bslib::card_body(x, fill=TRUE, fillable=FALSE),
-            fileInput(ns("DAT_in"),
-                      "Upload File/s (.DAT, .CSV, .TXT):",
-                      multiple = TRUE,
-                      buttonLabel =  "Browse...", # this uses the .btn-file class. JS script above makes it always match btn-success
-                      accept = c(".DAT", ".dat",
-                                 ".CSV", ".csv",
-                                 ".TXT", ".txt")),
-            br(),
-            shinyWidgets::switchInput(inputId = ns("use_demo_data"),
-                                      value = FALSE,
-                                      onLabel = "TRUE", # TRUE
-                                      offLabel = "FALSE", # FALSE
-                                      label = "Use demo data?",
-                                      labelWidth = '100px',
-                                      width='auto',
-                                      inline=FALSE),
-            br(),
+            bslib::card(
+              wrapper = function(x) bslib::card_body(x,
+                                                     fill=TRUE, #card won't change size inside of parent
+                                                     fillable=TRUE #contents of card will fill out
+              ),
+
+              fileInput(ns("DAT_in"),
+                        "Upload File/s (.DAT, .CSV, .TXT):",
+                        multiple = TRUE,
+                        buttonLabel =  "Browse...", # this uses the .btn-file class. JS script above makes it always match btn-success
+                        accept = c(".DAT", ".dat",
+                                   ".CSV", ".csv",
+                                   ".TXT", ".txt")),
+              actionButton(ns("button_instructions"), "Upload Instructions", class = "btn-lg"),
+
+              shinyWidgets::switchInput(inputId = ns("use_demo_data"),
+                                        value = FALSE,
+                                        onLabel = "TRUE", # TRUE
+                                        offLabel = "FALSE", # FALSE
+                                        label = "Use demo data?",
+                                        labelWidth = '150px',
+                                        width='auto',
+                                        inline=FALSE),
+              ),
 
             bslib::accordion(
               id = ns('accordian_custom_colnames'), # must have ID to work
@@ -98,7 +83,6 @@ mod_uploads_ui <- function(id){
 
             # hide until data uploaded:
             shinyjs::hidden(
-              # bslib::card_body(
               bslib::card(
                 id = ns("toggle_date_inputs"), # name needed for toggle to unhide
                 wrapper = function(x) bslib::card_body(x,
@@ -142,10 +126,7 @@ mod_uploads_ui <- function(id){
             bslib::layout_columns(
               fill=FALSE,
               fillable=FALSE,
-
               row_heights = 1,
-              # height = '140px',
-
               gap="4px",
               bslib::value_box(
                 title = "Number of feed bins:",
@@ -153,20 +134,20 @@ mod_uploads_ui <- function(id){
                 value = textOutput(ns("bin_n")),
                 showcase = bsicons::bs_icon("basket2"),
                 height = "150px",
-                theme = "primary"
+                theme = "secondary"
               ),
               bslib::value_box(
                 title = "Number of animals:",
                 value = textOutput(ns("animal_n")) ,
                 showcase = fct_animal_icon('white'),
                 height = "150px",
-                theme = "primary"
+                theme = "secondary"
               ),
               bslib::value_box(
                 title = "Histogram of intake events",
                 value = "",
                 showcase = plotly::plotlyOutput(ns("hist_events")),
-                theme = "primary",
+                theme = "secondary",
                 showcase_layout = bslib::showcase_left_center(
                   width = 0.5,
                    # max_height = "100px",
@@ -413,9 +394,9 @@ mod_uploads_server <- function(id){
 
     ####################################################
     # Buttons
-    observe({
-      fct_show_custom_modal(fct_modal_content_uploads_more_info(), title = "More about the data")
-    }) %>% bindEvent({ input$button_more_info })
+    # observe({
+    #   fct_show_custom_modal(fct_modal_content_uploads_more_info(), title = "More about the data")
+    # }) %>% bindEvent({ input$button_more_info })
 
     observe({
       fct_show_custom_modal(fct_modal_content_uploads_instructions(), title = "Instructions")

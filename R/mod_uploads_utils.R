@@ -302,16 +302,126 @@ fct_show_custom_modal <- function(content, title=NULL) {
 }
 
 
-#' Function to store text for 'more info' button for mod_uploads.R
+# #' Function to store text for 'more info' button for mod_uploads.R
+# #' Normally parsed to fct_show_custom_modal()
+# #'
+# #' @return a list of HTML
+# #' @noRd
+# fct_modal_content_uploads_more_info <- function() {
+#   html <- list(
+#     #h4("More about the data"),
+#     p(
+#       "The Insentec Roughage Intake Control (RIC) System is one type
+#                  of system used by livestock researchers. This system consists of
+#                  feed bins which are suspended on load cells that constantly
+#                  measure the weight of the bin and the feed inside it. When a animal
+#                  visits the feed bin, a RFID reader checks the animal's ear tag,
+#                  determines if it is allowed access and opens a gate (on some
+#                  models) and records the starting time and weight of the feed bin
+#                  of the feeding event. The system uses 2 lasers to determine if
+#                  the animal's head is still over the feed bin, and once it detects
+#                  that the animal has left it will record the end time and weight.
+#                  This 'event' corresponds to 1 row of data in the database. This
+#                  data can be messy and researchers often do not have the ability to
+#                  easily visualise all of these individual events before
+#                  calculating mean daily feed intake values.\n\nThis dashboard allows
+#                  you to upload raw data from the insentec feed
+#                  system in multiple flat file formats. The minimum information required is:
+#                  "),
+#     HTML("<ul>
+#                    <li> Animal ID </li>
+#                    <li> Feed Bin ID </li>
+#                    <li> Start Time (and date) </li>
+#                    <li> End Time (and date) </li>
+#                    <li> Start Weight </li>
+#                    <li> End Weight </li>
+#                  </ul>"),
+#     br(),
+#     p("For more information see Upload Instructions")
+#   )
+#   return(html)
+# }
+
+#' Function to store text for instructions for mod_uploads.R
 #' Normally parsed to fct_show_custom_modal()
 #'
 #' @return a list of HTML
 #' @noRd
-fct_modal_content_uploads_more_info <- function() {
-  html <- list(
-    #h4("More about the data"),
-    p(
-      "The Insentec Roughage Intake Control (RIC) System is one type
+fct_modal_content_uploads_instructions <- function() {
+  bslib::navset_card_pill( # a card with nav tabs:
+
+    bslib::nav_panel(
+      title = ".CSV and .TXT files",
+      #h4("Instructions"),
+      em("Multiple files will be joined together automatically, see details below."),
+      p("When uploading .CSV and .TXT files they can be delimited by commas, spaces, tabs, or any other delimiter that is
+      accepted by", tags$code(a(href = "https://rdatatable.gitlab.io/data.table/reference/fread.html",
+                                target="_blank",
+                                "data.table::fread(...,sep='auto')")),
+      ". These files must also include the same column names for each file and be
+      in the same order for each file uploaded simultaneously. The following column
+      names are required (in any order):"),
+
+      HTML(paste("<ul>",
+                 paste("<li>",
+                       c('animal_id', 'bin_id', 'start_time',
+                         'end_time', 'duration_sec', 'start_weight_kg', 'end_weight_kg',
+                         'date'
+                       ), "</li>", sep = "", collapse = ""),
+                 "</ul>", sep = "")),
+      p("
+      A warning will be displayed if a file is uploaded with incorrect column names. You
+      can then use the 'Advanced: Custom column names' drop down box to rename
+      the columns that were uploaded to the required column names.
+      "),
+
+      p("Currently the date must be provided separately from the start_time and end_time column. The date
+      should be in a format that can be parsed to",
+      tags$code(a(href="https://lubridate.tidyverse.org/reference/ymd.html",
+                  target="_blank",
+                  "lubridate::ymd()")),
+      " (e.g. '2022-04-28' or '220428').
+      The start_time and end_time should be in a format that can be parsed to",
+      tags$code(a(href="https://lubridate.tidyverse.org/reference/hms.html",
+                  target = "_blank",
+                  "lubridate::hms()."))
+      ),
+
+      p("If using .csv or .txt files you can upload additional columns beyond those required by IntakeInspectR and they will
+      be retained throughout analysis. If there is an `intake` column among the
+      additional columns, it will be ignored as intake is always calculated based on
+      the provided `start_weight_kg` and `end_weight_kg` columns."),
+
+      strong("Filtering feed bin and animal IDs"),
+      br(),
+      p("After uploading the files, use the provided controls to filter the data
+      by dates, feed bin IDs, and animal IDs. However, please ensure that all data
+      for a feed bin is included. If you filter the data to include only some
+      animals, but other animals also used the same feed bin, the cleaning process may not work as expected."),
+
+
+    ),
+    bslib::nav_panel(
+      title = ".DAT files from Insentec (Hokofarm RIC)",
+      em("Multiple files will be joined together automatically, see details below."),
+      strong(".DAT Files"),
+      p("When uploading .DAT files, please note that they are specific to the
+      Insentec (RIC) system and therefore these should not have column names.
+      However, the columns should be in the following order, as they will be
+      assigned the following column names (only these first 10 columns will be imported):"),
+
+      HTML(paste("<ul>",
+                 paste("<li>",
+                       c('transponder_id', 'animal_id', 'bin_id', 'start_time',
+                         'end_time', 'duration_sec', 'start_weight_kg', 'end_weight_kg',
+                         'diet', 'intake'
+                       ), "</li>", sep = "", collapse = ""),
+                 "</ul>", sep = "")),
+      p("In addition, the file names for .DAT files must include the date as 6 digits in the format YYMMDD,
+      and no other numbers should be in the file name, e.g. `VR220428.DAT`. This is the only way the Insentec system records the date for the files."),
+      h5("More about the Insentec system"),
+      p(
+        "The Insentec Roughage Intake Control (RIC) System is one type
                  of system used by livestock researchers. This system consists of
                  feed bins which are suspended on load cells that constantly
                  measure the weight of the bin and the feed inside it. When a animal
@@ -324,102 +434,122 @@ fct_modal_content_uploads_more_info <- function() {
                  This 'event' corresponds to 1 row of data in the database. This
                  data can be messy and researchers often do not have the ability to
                  easily visualise all of these individual events before
-                 calculating mean daily feed intake values.\n\nThis dashboard allows
-                 you to upload raw data from the insentec feed
-                 system in multiple flat file formats. The minimum information required is:
-                 "),
-    HTML("<ul>
-                   <li> Animal ID </li>
-                   <li> Feed Bin ID </li>
-                   <li> Start Time (and date) </li>
-                   <li> End Time (and date) </li>
-                   <li> Start Weight </li>
-                   <li> End Weight </li>
-                 </ul>"),
-    br(),
-    p("For more information see Upload Instructions")
+                 calculating mean daily feed intake values. ")
+    ),
+    bslib::nav_panel(
+      title = "",
+      p("This dashboard allows you to upload raw data from automatic feed bins
+        in multiple flat file formats. See The minimum information required is:"),
+      HTML("<ul>
+        <li> Animal ID </li>
+        <li> Feed Bin ID </li>
+        <li> Start Time (and date) </li>
+        <li> End Time (and date) </li>
+        <li> Start Weight </li>
+        <li> End Weight </li>
+        </ul>")
+    )
   )
-  return(html)
-}
-
-#' Function to store text for instructions for mod_uploads.R
-#' Normally parsed to fct_show_custom_modal()
-#'
-#' @return a list of HTML
-#' @noRd
-fct_modal_content_uploads_instructions <- function() {
-   list(
-    #h4("Instructions"),
-    p("Either .DAT, .CSV or .TXT files can be uploaded.
-      Multiple files will be joined together automatically.
-      See detailed instructions for each file type below."),
-    br(),
-
-    strong(".DAT Files"),
-    br(),
-    p("When uploading .DAT files, please note that they are specific to the
-      Insentec (RIC) system and therefore these should not have column names.
-      However, the columns should be in the following order, as they will be
-      assigned the following column names (only these first 10 columns will be imported):"),
-
-    HTML(paste("<ul>",
-               paste("<li>",
-                     c('transponder_id', 'animal_id', 'bin_id', 'start_time',
-                       'end_time', 'duration_sec', 'start_weight_kg', 'end_weight_kg',
-                       'diet', 'intake'
-                     ), "</li>", sep = "", collapse = ""),
-               "</ul>", sep = "")),
-    br(),
-    p("In addition, the file names for .DAT files must include the date as 6 digits in the format YYMMDD,
-      and no other numbers should be in the file name, e.g. `VR220428.DAT`. This is the only way the Insentec system records the date for the files."),
-
-    strong(".CSV and .TXT Files"),
-    br(),
-    p("When uploading .CSV and .TXT files they can be delimited by commas, spaces, tabs, or any other delimiter that is
-      accepted by", tags$code(a(href = "https://rdatatable.gitlab.io/data.table/reference/fread.html",
-                                target="_blank",
-                                "data.table::fread(...,sep='auto')")),
-      ". These files must also include the same column names for each file and be
-      in the same order for each file uploaded simultaneously. The following column
-      names are required (in any order):"),
-
-    HTML(paste("<ul>",
-               paste("<li>",
-                     c('animal_id', 'bin_id', 'start_time',
-                       'end_time', 'duration_sec', 'start_weight_kg', 'end_weight_kg',
-                       'date'
-                     ), "</li>", sep = "", collapse = ""),
-               "</ul>", sep = "")),
-    p("
-      If a file is uploaded with incorrect names a warning will be shown. You
-      can then use the 'Advanced: Custom column names' drop down box to rename
-      the columns that were uploaded to the required column names.
-      "),
-
-    p("Currently the date must be provided separately from the start_time and end_time. The date
-      should be in a format that can be parsed to",
-      tags$code(a(href="https://lubridate.tidyverse.org/reference/ymd.html",
-                  target="_blank",
-                  "lubridate::ymd()")),
-      " (e.g. '2022-04-28' or '220428').
-      The start_time and end_time should be in a format that can be parsed to",
-      tags$code(a(href="https://lubridate.tidyverse.org/reference/hms.html",
-                  target = "_blank",
-                  "lubridate::hms()."))
-      ),
-
-    p("If using .csv or .txt files you can upload additional columns beyond the required ones and they will
-      be retained throughout analysis. If there is an `intake` column among the
-      additional columns, it will be ignored as intake is always calculated based on
-      the provided `start_weight_kg` and `end_weight_kg` columns."),
-
-    strong("Filtering feed bin and animal IDs"),
-    br(),
-    p("After uploading the files, use the provided controls to filter the data
-      by dates, feed bin IDs, and animal IDs. However, please ensure that all data
-      for a feed bin is included. If you filter the data to include only some
-      animals, but other animals also used the same feed bin, the cleaning process may not work as expected.")
-  )
+  #
+  #  list(
+  #   #h4("Instructions"),
+  #   p("Either .DAT, .CSV or .TXT files can be uploaded.
+  #     Multiple files will be joined together automatically.
+  #     See detailed instructions for each file type below."),
+  #   br(),
+  #
+  #   strong(".DAT Files"),
+  #   br(),
+  #   p("When uploading .DAT files, please note that they are specific to the
+  #     Insentec (RIC) system and therefore these should not have column names.
+  #     However, the columns should be in the following order, as they will be
+  #     assigned the following column names (only these first 10 columns will be imported):"),
+  #
+  #   HTML(paste("<ul>",
+  #              paste("<li>",
+  #                    c('transponder_id', 'animal_id', 'bin_id', 'start_time',
+  #                      'end_time', 'duration_sec', 'start_weight_kg', 'end_weight_kg',
+  #                      'diet', 'intake'
+  #                    ), "</li>", sep = "", collapse = ""),
+  #              "</ul>", sep = "")),
+  #   br(),
+  #   p("In addition, the file names for .DAT files must include the date as 6 digits in the format YYMMDD,
+  #     and no other numbers should be in the file name, e.g. `VR220428.DAT`. This is the only way the Insentec system records the date for the files."),
+  #
+  #   strong(".CSV and .TXT Files"),
+  #   br(),
+  #   p("When uploading .CSV and .TXT files they can be delimited by commas, spaces, tabs, or any other delimiter that is
+  #     accepted by", tags$code(a(href = "https://rdatatable.gitlab.io/data.table/reference/fread.html",
+  #                               target="_blank",
+  #                               "data.table::fread(...,sep='auto')")),
+  #     ". These files must also include the same column names for each file and be
+  #     in the same order for each file uploaded simultaneously. The following column
+  #     names are required (in any order):"),
+  #
+  #   HTML(paste("<ul>",
+  #              paste("<li>",
+  #                    c('animal_id', 'bin_id', 'start_time',
+  #                      'end_time', 'duration_sec', 'start_weight_kg', 'end_weight_kg',
+  #                      'date'
+  #                    ), "</li>", sep = "", collapse = ""),
+  #              "</ul>", sep = "")),
+  #   p("
+  #     If a file is uploaded with incorrect names a warning will be shown. You
+  #     can then use the 'Advanced: Custom column names' drop down box to rename
+  #     the columns that were uploaded to the required column names.
+  #     "),
+  #
+  #   p("Currently the date must be provided separately from the start_time and end_time. The date
+  #     should be in a format that can be parsed to",
+  #     tags$code(a(href="https://lubridate.tidyverse.org/reference/ymd.html",
+  #                 target="_blank",
+  #                 "lubridate::ymd()")),
+  #     " (e.g. '2022-04-28' or '220428').
+  #     The start_time and end_time should be in a format that can be parsed to",
+  #     tags$code(a(href="https://lubridate.tidyverse.org/reference/hms.html",
+  #                 target = "_blank",
+  #                 "lubridate::hms()."))
+  #     ),
+  #
+  #   p("If using .csv or .txt files you can upload additional columns beyond the required ones and they will
+  #     be retained throughout analysis. If there is an `intake` column among the
+  #     additional columns, it will be ignored as intake is always calculated based on
+  #     the provided `start_weight_kg` and `end_weight_kg` columns."),
+  #
+  #   strong("Filtering feed bin and animal IDs"),
+  #   br(),
+  #   p("After uploading the files, use the provided controls to filter the data
+  #     by dates, feed bin IDs, and animal IDs. However, please ensure that all data
+  #     for a feed bin is included. If you filter the data to include only some
+  #     animals, but other animals also used the same feed bin, the cleaning process may not work as expected."),
+  #
+  #   p(
+  #     "The Insentec Roughage Intake Control (RIC) System is one type
+  #                of system used by livestock researchers. This system consists of
+  #                feed bins which are suspended on load cells that constantly
+  #                measure the weight of the bin and the feed inside it. When a animal
+  #                visits the feed bin, a RFID reader checks the animal's ear tag,
+  #                determines if it is allowed access and opens a gate (on some
+  #                models) and records the starting time and weight of the feed bin
+  #                of the feeding event. The system uses 2 lasers to determine if
+  #                the animal's head is still over the feed bin, and once it detects
+  #                that the animal has left it will record the end time and weight.
+  #                This 'event' corresponds to 1 row of data in the database. This
+  #                data can be messy and researchers often do not have the ability to
+  #                easily visualise all of these individual events before
+  #                calculating mean daily feed intake values.\n\nThis dashboard allows
+  #                you to upload raw data from the insentec feed
+  #                system in multiple flat file formats. The minimum information required is:
+  #                "),
+  #   HTML("<ul>
+  #                  <li> Animal ID </li>
+  #                  <li> Feed Bin ID </li>
+  #                  <li> Start Time (and date) </li>
+  #                  <li> End Time (and date) </li>
+  #                  <li> Start Weight </li>
+  #                  <li> End Weight </li>
+  #                </ul>")
+  # )
 }
 
 ##############################################################################
@@ -460,7 +590,7 @@ fct_animal_icon <- function(col){
  fct_plotly_hist_transp <- function(df_in, x, x_lab = "") {
     df_in %>%
      dplyr::mutate(x_new = {{ x }}) %>%
-     plotly::plot_ly(x = ~x_new, type = "histogram") %>%
+     plotly::plot_ly(x = ~x_new, type = "histogram",marker = list(color = "white")) %>%
      plotly::layout(
        showlegend = FALSE,
 
