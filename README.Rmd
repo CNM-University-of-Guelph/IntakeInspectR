@@ -1,8 +1,12 @@
 ---
 output: github_document
 ---
-# IntakeInspectR <img src="man/figures/logo.png" align="right" height="139" alt="" />
 <!-- README.md is generated from README.Rmd. Please edit that file -->
+
+# IntakeInspectR {align="center"}
+
+# ![](man/figures/logo.png){align="center" alt="" height="139"}
+
 
 ```{r, include = FALSE}
 knitr::opts_chunk$set(
@@ -12,8 +16,6 @@ knitr::opts_chunk$set(
   out.width = "100%"
 )
 ```
-
-# IntakeInspectR
 
 <!-- badges: start -->
 
@@ -75,12 +77,14 @@ View data layout:
 df_uploaded %>% glimpse()
 ```
 
-
 ### Custom data
+
 If using data stored in .DAT, .CSV or .TXT then some additional steps are required to ensure that the date/times are formatted correctly.
 
 #### Insentec DAT files
+
 Firstly, .DAT files from the Insentec system normally hold all data for a single day, with the date stored only in the file name. Normally they do not have column names either. The built in function `fct_import_DAT_default` can be used for importing these files, or inspect the code in this function to modify as-required. This function will also format dates/times.
+
 ``` r
 list_of_paths_DAT <- list.files("./path_to/DAT files", pattern = ".DAT", full.names = TRUE)
 list_of_names_DAT <- list.files("./path_to/DAT files", pattern = ".DAT")
@@ -90,10 +94,10 @@ example_import <-
                          .y = list_of_names_DAT)
 ```
 
-
-#### Manually importing .csv files 
+#### Manually importing .csv files
 
 This code assumes you have some .csv files all in the same folder, which are then each imported into a list of data frames. This list is then bound into a single data frame (assumes all column names were the same), and then the start_time, end_time and date are formatted. This example assumes that the start_time and end_time are characters with the format HH:MM:SS or similar, which are concatenated with a date column that has the format YYYY-MM-DD or similar (see `?lubridate::ymd_hms` for more information about parsing formats).
+
 ``` r
 # Get file paths to use for iterating 
 list_of_paths_CSV <- list.files("./path_to/CSV files", pattern = ".csv", full.names = TRUE)
