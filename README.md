@@ -3,8 +3,7 @@
 
 # IntakeInspectR
 
-# <img src="man/figures/logo.png" data-align="center" alt=""
-height="139" />
+<img src="man/figures/logo.png" data-align="center" alt="" height="139" />
 
 <!-- badges: start -->
 <!-- badges: end -->
