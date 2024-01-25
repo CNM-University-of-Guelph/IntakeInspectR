@@ -1,7 +1,7 @@
 ---
 output: github_document
 ---
-
+# IntakeInspectR <img src="man/figures/logo.png" align="right" height="139" alt="" />
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
 ```{r, include = FALSE}
@@ -401,10 +401,14 @@ merged_by_animal %>%
 
 #### Visualise some individual animals
 
-```{r fig.width=12, fig.height=9}
+```{r fig.height=9, fig.width=12, message=FALSE, warning=FALSE}
 merged_by_animal %>%
   filter(animal_id %in% c(2040,2043,2107,2007)) %>% 
   IntakeInspectR::fct_plot_by_animal(
+    max_intake_rate_kg_min = 1.5,
+    min_intake_rate_kg_min = 0.05,
+    outlier_exemption_max_duration = 1,
+    outlier_exemption_max_intake = 0.3,
     col_intake = .data$corrected_intake_bybin,
     col_duration = .data$corrected_duration_sec,
     pt_size = 3)+

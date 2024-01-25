@@ -1,4 +1,6 @@
 
+# IntakeInspectR <img src="man/figures/logo.png" align="right" height="139" alt="" />
+
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
 # IntakeInspectR
@@ -267,7 +269,7 @@ list_cleaned$df_cleaned %>% glimpse()
 #> $ is_end_time_overlap_error       <lgl> FALSE, FALSE, FALSE, FALSE, FALSE, FAL…
 #> $ corrected_end_time              <dttm> 2022-01-01 00:05:08, 2022-01-01 00:08…
 #> $ corrected_duration_sec_diff     <drtn> 118 secs, 309 secs, 470 secs, 372 sec…
-#> $ corrected_duration_sec_seconds  <dbl> 118, 309, 470, 372, 46, 306, 206, 39, …
+#> $ corrected_duration_sec          <dbl> 118, 309, 470, 372, 46, 306, 206, 39, …
 ```
 
 ## 2b. By Bin - Visualise
@@ -424,7 +426,7 @@ by_animal_list_out <-
     col_date = date,
     col_start_time =  start_time,
     col_intake =  corrected_intake_bybin,
-    col_duration = corrected_duration_sec_seconds,
+    col_duration = corrected_duration_sec,
     sd_thresh = 20, 
     max_duration_min = 60,
     min_intake_rate_kg_min = 0.05,
@@ -432,7 +434,8 @@ by_animal_list_out <-
     outlier_exemption_max_duration = 1,
     outlier_exemption_max_intake = 0.2,
     shiny.session = NULL, # use NULL if not inside a shiny app
-    log = FALSE
+    log = FALSE,
+    verbose = FALSE
   )
 #> [1] "only 166 sets, so all sets will be tried"
 #> [1] "only 138 sets, so all sets will be tried"
@@ -488,9 +491,9 @@ merged_by_animal %>% glimpse()
 #> $ is_end_time_overlap_error       <lgl> FALSE, FALSE, FALSE, FALSE, FALSE, FAL…
 #> $ corrected_end_time              <dttm> 2022-01-01 00:05:08, 2022-01-01 00:09…
 #> $ corrected_duration_sec_diff     <drtn> 118 secs, 243 secs, 208 secs, 299 sec…
-#> $ corrected_duration_sec_seconds  <dbl> 118, 243, 208, 299, 87, 315, 179, 338,…
-#> $ .fitted                         <dbl> 0.3930548, 0.8094264, 0.6928424, 0.995…
-#> $ .resid                          <dbl> 0.106945203, 0.390573595, 0.007157645,…
+#> $ corrected_duration_sec          <dbl> 118, 243, 208, 299, 87, 315, 179, 338,…
+#> $ .fitted                         <dbl> 0.3930547, 0.8094263, 0.6928423, 0.995…
+#> $ .resid                          <dbl> 0.106945254, 0.390573702, 0.007157736,…
 #> $ manual_outlier_classification   <chr> "Not Outlier", "Not Outlier", "Not Out…
 #> $ is_manual_outlier               <lgl> FALSE, FALSE, FALSE, FALSE, FALSE, FAL…
 #> $ instant_rate_of_intake_kg_min   <dbl> 0.25423729, 0.29629630, 0.20192308, 0.…
@@ -519,7 +522,7 @@ on this single plot for an overview.
 merged_by_animal %>%
    IntakeInspectR:::fct_plot_by_animal_overall(
     col_intake = corrected_intake_bybin,
-    col_duration = corrected_duration_sec_seconds,
+    col_duration = corrected_duration_sec,
     pt_size = 3)+
   labs(x = 'Corrected Feed Duration (seconds)',
        y = 'Corrected Feed Intake (kg)')
@@ -564,14 +567,16 @@ merged_by_animal %>%
 merged_by_animal %>%
   filter(animal_id %in% c(2040,2043,2107,2007)) %>% 
   IntakeInspectR::fct_plot_by_animal(
+    max_intake_rate_kg_min = 1.5,
+    min_intake_rate_kg_min = 0.05,
+    outlier_exemption_max_duration = 1,
+    outlier_exemption_max_intake = 0.3,
     col_intake = .data$corrected_intake_bybin,
-    col_duration = .data$corrected_duration_sec_seconds,
+    col_duration = .data$corrected_duration_sec,
     pt_size = 3)+
   labs(x = 'Corrected Feed Duration (seconds)',
        y = 'Corrected Feed Intake (kg)')  +
   facet_wrap(vars(animal_id), scales = 'free')
-#> Warning in ggplot2::geom_point(aes(colour = .data$outlier_pos_neg, fill =
-#> .data$outlier_classification, : Ignoring unknown aesthetics: text
 ```
 
 <img src="man/figures/README-unnamed-chunk-19-1.png" width="100%" />
@@ -611,7 +616,7 @@ df_all_steps <-
     # By Bin - Overlapping end times:
     is_end_time_overlap_error,
     corrected_end_time,
-    corrected_duration_sec_seconds,
+    corrected_duration_sec,
     
     # By Animal - Outlier detection
     is_manual_outlier,
@@ -641,7 +646,7 @@ df_all_steps %>% glimpse()
 #> $ is_corrected_intake_bybin       <lgl> FALSE, FALSE, FALSE, FALSE, FALSE, FAL…
 #> $ is_end_time_overlap_error       <lgl> FALSE, FALSE, FALSE, FALSE, FALSE, FAL…
 #> $ corrected_end_time              <dttm> 2022-01-01 00:05:08, 2022-01-01 00:09…
-#> $ corrected_duration_sec_seconds  <dbl> 118, 243, 208, 299, 87, 315, 179, 338,…
+#> $ corrected_duration_sec          <dbl> 118, 243, 208, 299, 87, 315, 179, 338,…
 #> $ is_manual_outlier               <lgl> FALSE, FALSE, FALSE, FALSE, FALSE, FAL…
 #> $ manual_outlier_classification   <chr> "Not Outlier", "Not Outlier", "Not Out…
 #> $ is_outlier                      <lgl> FALSE, FALSE, FALSE, FALSE, FALSE, FAL…
