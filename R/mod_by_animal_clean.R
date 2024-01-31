@@ -57,9 +57,7 @@ mod_by_animal_clean_ui <- function(id){
 
             actionButton(ns('execute_detect_outliers'), label = "Execute Outlier Detection", class = "btn-lg btn-success"),
 
-            br(),
             checkboxInput(ns("verbose"), "Verbose (show more detail in log)", value = FALSE),
-
 
             actionButton(ns("button_more_info"), "Detailed overview of outlier detection"),
             br(),
@@ -168,8 +166,8 @@ mod_by_animal_clean_ui <- function(id){
                   This step of the cleaning identifies outliers based on user defined max
                   and min rates of intake (kg/min). Then, further outliers can be flagged
                   by fitting a robust linear model to the duration vs intake data for each animal.
-                  All outliers are temporarily removed to fit a bisector regression, then new
-                  duration or intake values are estimated for each outlier.
+                  All outliers are temporarily removed to fit a bisector regression which is used to estimate
+                  a new duration or intake value for each outlier.
                   "),
 
                 em("Hover mouse over bottom right of screen to show button to expand view. Use Esc or click Close to return to normal screen."),

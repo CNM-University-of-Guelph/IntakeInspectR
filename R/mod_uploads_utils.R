@@ -594,15 +594,15 @@ fct_animal_icon <- function(col){
      plotly::layout(
        showlegend = FALSE,
 
-       xaxis = list(visible = F, showgrid = F, title = x_lab),
-       yaxis = list(visible = F, showgrid = F, title = "Count (log10)", type = "log"),
+       xaxis = list(visible = FALSE, showgrid = FALSE, title = x_lab),
+       yaxis = list(visible = FALSE, showgrid = FALSE, title = "Count (log10)", type = "log"),
        hovermode = "x",
        margin = list(t = 0, r = 0, l = 0, b = 0),
        font = list(color = "white"),
        paper_bgcolor = "transparent",
        plot_bgcolor = "transparent"
      ) %>%
-     plotly::config(displayModeBar = F) %>%
+     plotly::config(displayModeBar = FALSE) %>%
      # this will modify the axis so that are visible when the value box is expanded
      htmlwidgets::onRender(
        "function(el) {

@@ -33,10 +33,13 @@ mod_final_summary_ui <- function(id){
           ################################################ #
           gridlayout:: grid_card(
             area = "user_input",
-
             wrapper = function(x) bslib::card_body(x, fill=FALSE, fillable=TRUE, class = "align-items-top"),
 
             h3("Downloads:"),
+            p("Select which outliers from 'By Animal' should be replaced in the final data.
+              The previously selected 'By Bin' corrections are also displayed below.
+              Click 'Prepare Final Data' will calculate 'final' values in the simplified table for download, but all possible combinations of corrections are available in the full data."),
+
             htmlOutput(ns('display_bybin_cols'), inline = TRUE),
 
             shinyWidgets::treeInput(
@@ -54,7 +57,7 @@ mod_final_summary_ui <- function(id){
               )
             ),
 
-            actionButton(ns('recalculate_values'), label = "Calculate final values", class = "btn-lg btn-success")
+            actionButton(ns('recalculate_values'), label = "Prepare Final Data", class = "btn-lg btn-success")
 
 
           ),

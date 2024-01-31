@@ -409,6 +409,7 @@ mod_by_bin_clean_server <- function(id, df){
     # Hide cleaning button until after data is uploaded
     observe({
       shinyjs::toggleState("execute_clean", condition = tibble::is_tibble(df())) #indicating data has been uploaded
+      shinyjs::toggleState("bypass_clean", condition = tibble::is_tibble(df()))
     })
 
     # Hide download buttons until after cleaning
@@ -417,9 +418,6 @@ mod_by_bin_clean_server <- function(id, df){
       shinyjs::toggleState("download_errors", condition = input$execute_clean > 0)
       shinyjs::toggleState("download_df_cleaned_csv", condition = input$execute_clean > 0)
       shinyjs::toggleState("download_df_cleaned_rds", condition = input$execute_clean > 0)
-
-      #hide bypass if data has been cleaned
-      # shinyjs::toggleState("bypass_clean", condition = !input$execute_clean > 0)
 
     })
 
