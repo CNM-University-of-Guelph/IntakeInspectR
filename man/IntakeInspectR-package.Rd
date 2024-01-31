@@ -6,6 +6,8 @@
 \alias{IntakeInspectR-package}
 \title{IntakeInspectR: Data cleaning and visualisation for automatically collected feed intake data}
 \description{
+\if{html}{\figure{logo.png}{options: style='float: right' alt='logo' width='120'}}
+
 A set of tools to help researchers clean their raw feed intake data by checking for common errors and visualise their data.
 }
 \seealso{
