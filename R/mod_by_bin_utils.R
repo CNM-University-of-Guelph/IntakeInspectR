@@ -40,7 +40,6 @@ fct_show_modal_bin_functions <- function(doc, output, session){
 
       # If running from an installed package, the help files should be accessed here:
       package_Rd_db <- tools::Rd_db(package='IntakeInspectR')
-      print(package_Rd_db)
       fct_Rd_to_HTML(package_Rd_db[[filename]])
     })
   })
