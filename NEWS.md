@@ -1,3 +1,5 @@
+# IntakeInspectR 2.1.1
+
 # IntakeInspectR 2.1.0
 
 * 'By Cow' cleaning now uses biologically relevant thresholds of rate of intakes for each feeding event. The original statistical approach can also be applied if desired.
