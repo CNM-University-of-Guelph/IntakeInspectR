@@ -15,6 +15,9 @@
 
 golem::run_dev()
 
+# bump version
+usethis::use_version(which = 'patch')
+
 # Save some data as demo data:
 # This is created by running python cleaning within this app and saving .rds
 
