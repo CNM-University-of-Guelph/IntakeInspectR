@@ -11,17 +11,16 @@
 #' is assigned to an output$ . Then, this output is called inside a
 #' `showModal(modalDialog( uiOutput(HERE)))`
 #'
-#' @param Rd_filepath An .Rd file, normally in man/ e.g. "./man/f_flag_and_replace_outliers.Rd"
+#' @param Rd_file An .Rd file, can be from app_sys(paste0("man/", filename)) or parsed directly e.g. from tools::Rd_db('IntakeInspectR')
 #'
-#' @return HTML file itself
-#'
+#' @return HTML file
 
-fct_Rd_to_HTML = function(Rd_filepath){
+fct_Rd_to_HTML = function(Rd_file){
   # 1) create a temp file for step 2 to use. tmp object is the filepath.
   tmp <- tempfile()
 
   # 2) read the .Rd file and convert to a HTML file
-  tools::Rd2HTML(tools::parse_Rd(file = Rd_filepath),
+  tools::Rd2HTML(Rd_file,
                  out = tmp,
                  no_links = TRUE,
                  standalone = FALSE,

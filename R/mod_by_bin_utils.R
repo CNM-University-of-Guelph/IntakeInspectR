@@ -30,7 +30,18 @@ fct_show_modal_bin_functions <- function(doc, output, session){
                      'f_outlier_func' = "f_flag_and_replace_outliers.Rd")
 
   output$tmp_output <- renderUI({
-    fct_Rd_to_HTML(Rd_filepath = app_sys(paste0("man/", filename)))
+    # this handles accessing help .Rd files differently if in developer (running from run_dev) or package is installed and using run_app()
+    tryCatch({
+      Rd_filepath <- app_sys(paste0("man/", filename))
+      fct_Rd_to_HTML(tools::parse_Rd(file = Rd_filepath))
+    }, error = function(e) {
+      # Handle the error or use an alternative function
+      print(paste("Error:", e$message))
+
+      # If running from an installed package, the help files should be accessed here:
+      package_Rd_db <- tools::Rd_db('IntakeInspectR')
+      fct_Rd_to_HTML(package_Rd_db[filename])
+    })
   })
 
   #show .Rd file in modal:
