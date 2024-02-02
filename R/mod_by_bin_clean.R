@@ -435,7 +435,7 @@ mod_by_bin_clean_server <- function(id, df){
     ################ #
     observe({
       # Read the SVG file
-      svgContent <- readLines(con = app_sys("app/www/by_bin_workflow_v2.svg"), warn = FALSE)
+      svgContent <- readLines(con = app_sys("app/www/by_bin_workflow_v4.svg"), warn = FALSE)
 
       showModal(
         modalDialog(
