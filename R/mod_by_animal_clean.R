@@ -379,9 +379,6 @@ mod_by_animal_clean_server <- function(id, df_list){
 
           list_out <-
             df() %>%
-            dplyr::mutate(
-              corrected_intake_bybin_startweight = .data$corrected_start_weight_kg_bybin - .data$end_weight_kg
-            ) %>%
             .execute_iterate_animals(
               corrected_intake_bybin_startweight,
               !!rlang::sym(selected_duration_col)
@@ -391,9 +388,6 @@ mod_by_animal_clean_server <- function(id, df_list){
         } else if('end weight' %in% input$selected_error_types_by_bin) {
           list_out <-
             df() %>%
-            dplyr::mutate(
-              corrected_intake_bybin_endweight = .data$start_weight_kg - .data$corrected_end_weight_kg_bybin
-            ) %>%
             .execute_iterate_animals(
               corrected_intake_bybin_endweight,
               !!rlang::sym(selected_duration_col)
@@ -597,6 +591,7 @@ mod_by_animal_clean_server <- function(id, df_list){
         max_intake_rate_kg_min = input$max_intake_rate_kg_min,
         outlier_exemption_max_duration  = input$outlier_exemption_max_duration,
         outlier_exemption_max_intake = input$outlier_exemption_max_intake,
+        sd_threshold = input$sd_threshold,
         # store user selected column names for intake and duration so it can be parsed for plotting
         selected_intake_column = list_outlier_detection()$selected_intake_column,
         selected_duration_column = list_outlier_detection()$selected_duration_column
