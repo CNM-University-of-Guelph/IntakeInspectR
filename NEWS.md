@@ -1,4 +1,4 @@
-# IntakeInspectR (dev)
+# IntakeInspectR 2.1.3
 
 * breaking change: 'replace: minor increase' 
 * changed to 'keep: minor increase' to be consistent with the minor decrease classed as a 'keep'
