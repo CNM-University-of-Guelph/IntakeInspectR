@@ -435,7 +435,7 @@ mod_by_bin_clean_server <- function(id, df){
     ################ #
     observe({
       # Read the SVG file
-      svgContent <- readLines(con = app_sys("app/www/by_bin_workflow_v2.svg"), warn = FALSE)
+      svgContent <- readLines(con = app_sys("app/www/by_bin_workflow_v5.svg"), warn = FALSE)
 
       showModal(
         modalDialog(
@@ -508,13 +508,22 @@ mod_by_bin_clean_server <- function(id, df){
       contentType = "text/csv"
     )
 
+    user_bybin_thresholds <- reactive({
+      list(
+        zero_thresh = input$zero_threshold, # default 0.3
+        feedout_thresh = input$feedout_threshold # default 10
+      )
+
+    })
+
 
 
     return(reactive({
       list(
         df_list_bybin = list_cleaned_data(),
         is_bybin_bypass = is_bybin_bypass(),
-        log_path = list_cleaned_data()$log_path
+        log_path = list_cleaned_data()$log_path,
+        user_bybin_thresholds = user_bybin_thresholds()
         )
       })
       )

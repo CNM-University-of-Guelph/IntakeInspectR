@@ -230,6 +230,14 @@ f_by_bin_clean <- function(
     logr::log_print(f_count_errors(step6, .data$is_end_time_overlap_error))
   }
 
+  # Add extra columns for different options of intake corrections:
+  df_out <-
+    step6 %>%
+    dplyr::mutate(
+      corrected_intake_bybin_startweight = .data$corrected_start_weight_kg_bybin - .data$end_weight_kg,
+      corrected_intake_bybin_endweight = .data$start_weight_kg - .data$corrected_end_weight_kg_bybin
+    )
+
 
   # Finish ----
   if(log){
@@ -239,7 +247,7 @@ f_by_bin_clean <- function(
   return(list(
     df_0kg = df_0kg,
     df_step2_errors = step2_errors,
-    df_cleaned = step6,
+    df_cleaned = df_out,
     log_path = tmp
   ))
 

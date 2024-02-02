@@ -4,13 +4,13 @@
 \alias{fct_Rd_to_HTML}
 \title{Convert Rd to HTML}
 \usage{
-fct_Rd_to_HTML(Rd_filepath)
+fct_Rd_to_HTML(Rd_file)
 }
 \arguments{
-\item{Rd_filepath}{An .Rd file, normally in man/ e.g. "./man/f_flag_and_replace_outliers.Rd"}
+\item{Rd_file}{An .Rd file, can be from app_sys(paste0("man/", filename)) or parsed directly e.g. from tools::Rd_db('IntakeInspectR')}
 }
 \value{
-HTML file itself
+HTML file
 }
 \description{
 This is used to convert the documentation .Rd files into HTML that can be

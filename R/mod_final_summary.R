@@ -248,9 +248,24 @@ mod_final_summary_server <- function(id, df_list_bybin, df_list_byanimal){
   moduleServer( id, function(input, output, session){
     ns <- session$ns
 
+
+
     ############################################## #
     # Prepare final data based on user input ----
     ############################################## #
+    thresholds <- reactive({
+      #for reporting, not used in calcs
+      return(list(
+        zero_threshold = df_list_bybin()$user_bybin_thresholds$zero_thresh,
+        feedout_threshold = df_list_bybin()$user_bybin_thresholds$feedout_thresh,
+        sd_threshold = df_list_byanimal()$user_inputs_to_parse_to_vis$sd_threshold,
+        max_duration_min = df_list_byanimal()$user_inputs_to_parse_to_vis$max_duration_min,
+        min_intake_rate_kg_min = df_list_byanimal()$user_inputs_to_parse_to_vis$min_intake_rate_kg_min,
+        max_intake_rate_kg_min = df_list_byanimal()$user_inputs_to_parse_to_vis$max_intake_rate_kg_min,
+        outlier_exemption_max_duration = df_list_byanimal()$user_inputs_to_parse_to_vis$outlier_exemption_max_duration,
+        outlier_exemption_max_intake = df_list_byanimal()$user_inputs_to_parse_to_vis$outlier_exemption_max_intake
+      ))
+    })
 
     bybin_col_selections <- reactive({
       col_intake <- df_list_byanimal()$user_inputs_to_parse_to_vis$selected_intake_column
@@ -267,6 +282,10 @@ mod_final_summary_server <- function(id, df_list_bybin, df_list_byanimal){
             "<br><br>", "<b>'By Bin' selected Duration:</b>", bybin_col_selections()$col_duration, "<br>")
     })
 
+    # store character strings of final selections, to help with final code reproduce
+    list_final_selections <-
+      reactiveValues(user_selected_final_intake = NA_character_,
+                     user_selected_final_duration = NA_character_)
 
     final_data_full <-   reactive({
 
@@ -280,9 +299,11 @@ mod_final_summary_server <- function(id, df_list_bybin, df_list_byanimal){
              'corrected_duration_sec' %in% bybin_col_selections()$col_duration &
              'By Animal Corrections' %in% input$selected_error_types_by_animal)){
 
-        logr::log_print("All cleaning accepted from 'By Bin' and 'By Cow'.")
+        logr::log_print("All cleaning accepted from 'By Bin' and 'By Animal'.")
         logr::log_print("'selected_final_intake_kg' and 'selected_final_duration_sec' incorporate replaced values from 'By Bin' and all outliers corrected from 'By Animal'.")
-        logr::log_print("Check logs to see what thresholds were applied at each step, and how much data was modified.")
+
+        list_final_selections$user_selected_final_intake <- 'final_intake_kg'
+        list_final_selections$user_selected_final_duration <- 'final_duration_sec'
 
         df_out <- df_list_byanimal()$merged_df %>%
           # remove prev and next columns
@@ -297,6 +318,7 @@ mod_final_summary_server <- function(id, df_list_bybin, df_list_byanimal){
         if("replace intake outliers" %in% input$selected_error_types_by_animal){
           logr::log_print("'By Animal' Outliers are re-estimated in final intakes.")
           logr::log_print(paste("`selected_final_intake_kg` is `new_y` column"))
+          list_final_selections$user_selected_final_intake <- 'new_y'
 
           df_out_intake <- df_list_byanimal()$merged_df %>%
             dplyr::mutate(
@@ -306,6 +328,7 @@ mod_final_summary_server <- function(id, df_list_bybin, df_list_byanimal){
         } else{
           logr::log_print("'By Animal' Outliers are ignored in final intakes.")
           logr::log_print(paste("`selected_final_intake_kg` is", bybin_col_selections()$col_intake, "from 'By Bin' cleaning only."))
+          list_final_selections$user_selected_final_intake <- bybin_col_selections()$col_intake
 
           df_out_intake <-df_list_byanimal()$merged_df %>%
             dplyr::mutate(
@@ -317,6 +340,7 @@ mod_final_summary_server <- function(id, df_list_bybin, df_list_byanimal){
         if("replace duration outliers" %in% input$selected_error_types_by_animal){
           logr::log_print("'By Animal' Outliers are re-estimated in final durations.")
           logr::log_print(paste("`selected_final_duration_sec` is `new_x` column"))
+          list_final_selections$user_selected_final_duration <- 'new_x'
 
           df_out <- df_out_intake %>%
             dplyr::mutate(
@@ -326,6 +350,7 @@ mod_final_summary_server <- function(id, df_list_bybin, df_list_byanimal){
         } else{
           logr::log_print("'By Animal' Outliers are ignored in final durations.")
           logr::log_print(paste("`selected_final_duration_sec` is", bybin_col_selections()$col_duration, "from 'By Bin' cleaning only."))
+          list_final_selections$user_selected_final_duration <- bybin_col_selections()$col_duration
 
           df_out <- df_out_intake %>%
             dplyr::mutate(
@@ -333,24 +358,35 @@ mod_final_summary_server <- function(id, df_list_bybin, df_list_byanimal){
             )
         }
 
-
-
-
-        logr::log_print("Check logs to see what thresholds were applied at each step, and how much data was modified.")
-        # # return the data based on user input
-        # df_list_byanimal()$merged_df %>%
-        #   dplyr::mutate(
-        #     selected_final_intake_kg = dplyr::case_when(
-        #       "replace intake outliers" %in% input$selected_error_types_by_animal ~ .data$new_y,
-        #       .default = !!rlang::sym(bybin_col_selections()$col_intake)
-        #     ),
-        #     selected_final_duration_sec = dplyr::case_when(
-        #       "replace duration outliers" %in% input$selected_error_types_by_animal ~ .data$new_x,
-        #       .default = !!rlang::sym(bybin_col_selections()$col_duration)
-        #     )
-        #   )
-
       }
+
+      logr::sep("R Code to reproduce analysis")
+      logr::log_print("Copy all code below into a .R or .Rmd file to execute:")
+      logr::log_print("# START ###################################################################################")
+
+      logr::log_print(paste0("zero_threshold = ", thresholds()$zero_threshold), blank_after = FALSE)
+      logr::log_print(paste0("feedout_threshold = ", thresholds()$feedout_threshold), blank_after = FALSE)
+
+
+      logr::log_print(paste0("user_selected_intake_col_bybin = '", bybin_col_selections()$col_intake, "'"), blank_after = FALSE)
+      logr::log_print(paste0("user_selected_duration_col_bybin = '", bybin_col_selections()$col_duration, "'"), blank_after = TRUE)
+
+
+      logr::log_print(paste0("user_sd_threshold = ", thresholds()$sd_threshold), blank_after = FALSE)
+      logr::log_print(paste0("user_max_duration_min = ", thresholds()$max_duration_min), blank_after = FALSE)
+      logr::log_print(paste0("user_min_intake_rate_kg_min = ", thresholds()$min_intake_rate_kg_min), blank_after = FALSE)
+      logr::log_print(paste0("user_max_intake_rate_kg_min = ", thresholds()$max_intake_rate_kg_min), blank_after = FALSE)
+      logr::log_print(paste0("user_outlier_exemption_max_duration = ", thresholds()$outlier_exemption_max_duration), blank_after = FALSE)
+      logr::log_print(paste0("user_outlier_exemption_max_intake = ", thresholds()$outlier_exemption_max_intake), blank_after = TRUE)
+
+      logr::log_print(paste0("user_selected_final_duration = '", list_final_selections$user_selected_final_duration, "'"),blank_after = FALSE)
+      logr::log_print(paste0("user_selected_final_intake = '", list_final_selections$user_selected_final_intake, "'"))
+
+      # Implementation of logr::log_code() that reads in another R file instead of the current file.
+      lns <- readLines(con = app_sys("app/www/template_reproduceable_analysis.R"), encoding = "UTF-8")
+      f <- file(logr::log_path(), "a", encoding = "native.enc")
+      writeLines(lns, con = f, useBytes = TRUE)
+      close(f)
 
       # Finish Log ----
       logr::log_close()

@@ -11,17 +11,16 @@
 #' is assigned to an output$ . Then, this output is called inside a
 #' `showModal(modalDialog( uiOutput(HERE)))`
 #'
-#' @param Rd_filepath An .Rd file, normally in man/ e.g. "./man/f_flag_and_replace_outliers.Rd"
+#' @param Rd_file An .Rd file, can be from app_sys(paste0("man/", filename)) or parsed directly e.g. from tools::Rd_db('IntakeInspectR')
 #'
-#' @return HTML file itself
-#'
+#' @return HTML file
 
-fct_Rd_to_HTML = function(Rd_filepath){
+fct_Rd_to_HTML = function(Rd_file){
   # 1) create a temp file for step 2 to use. tmp object is the filepath.
   tmp <- tempfile()
 
   # 2) read the .Rd file and convert to a HTML file
-  tools::Rd2HTML(tools::parse_Rd(file = Rd_filepath),
+  tools::Rd2HTML(Rd_file,
                  out = tmp,
                  no_links = TRUE,
                  standalone = FALSE,
@@ -76,7 +75,19 @@ fct_modal_content_byanimal_more_info <- function() {
       checks that only 1 animal ID is in the data and that there are 5 or rows of
       data, if there are less then outlier detection is not executed."),
     h3("Step 1: Biologically relevant outliers"),
-    p(""),
+    p("Tresholds are used to determine if a feeding event's intake and/or duration are realistic. Firstly,
+      an exemption area is defined (shown as red square on plot) with a max duration and max intake.
+      Events with a duration and intake <= the 'outlier exemption maximum duration (minutes)' and 'outlier exemption maximum intake (kg)'
+      are not classified as outliers or modified."),
+
+    p("Then, a min and max rate of intake (kg/min) is used to decide the limits of how fast and slow an animal can eat.
+      For example, an intake of 2 kg in 30 seconds is not biologically likely (this would correspond to an intake of 4 kg/min).
+      The minimum intake rate should be used with caution, as an animal can theoretically eat very slowly. "),
+    p("Therefore, we also set a max duration (min) so that any very long intakes above this threshold are classed as an outlier. "),
+
+    p("The following linear regressions are then fitted to allow very high intakes or long duration outliers to be re-estimated.
+      It may be the users preference to delete these rows instead of replacing with estimated values.
+      This can be done by downloading the table and filtering using one of the appended columns, e.g. `is_outlier` "),
 
     h3("Step 2: Statistical outliers"),
       p("
@@ -97,7 +108,7 @@ fct_modal_content_byanimal_more_info <- function() {
       under `+ Advanced` to modify) to flag outlier values. The purpose of identifing
       outliers is to estimate new intake or duration values, but users should be
       careful to only identify very extreme values as outliers. The relatively conservative
-      threshold of 5 SD is used as the default value in this analysis. Some values that may appear
+      threshold of 20 SD is used as the default value in this analysis. Some values that may appear
       to be 'outliers' may by physically possible but just not as common for that animal, e.g. a
       animal on a feed restriction experiment may have a larger meal once a day, that is consumed much
       faster than other meal events, which could appear as outliers but are actually real events. "),

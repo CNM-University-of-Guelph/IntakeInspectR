@@ -9,7 +9,11 @@
 #'
 #' @noRd
 app_sys <- function(...) {
-  system.file(..., package = "IntakeInspectR")
+  # Do not delete following line. Golem needs to see it when calling run_dev via golem::check_name_consistency()
+  # system.file(..., package = 'IntakeInspectR')
+
+  # Using this so that it returns an error that can be caught, helpful for rendering .Rd help files.
+  fs::path_package(package = 'IntakeInspectR', ...)
 }
 
 

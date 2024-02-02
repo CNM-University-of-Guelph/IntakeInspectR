@@ -361,7 +361,7 @@ This data is returned as a nested data frame. This makes many operations easier 
 ```{r message=FALSE}
 merged_by_animal <- 
   by_animal_list_out$nested_out %>% 
-  IntakeInspectR:::f_merge_corrected_outlier_data()
+  IntakeInspectR::f_merge_corrected_outlier_data()
 
 merged_by_animal %>% glimpse()
 ```

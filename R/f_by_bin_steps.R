@@ -196,7 +196,7 @@ f_step2 <- function(df_in,
 #' it represents the level of error around 0 kg that can be considered close
 #' enough to 0 kg to accept as 'minor'.
 #'
-#' 6. `replace: minor increase`: As above, except that the difference is between
+#' 6. `keep: minor increase`: As above, except that the difference is between
 #' +/- `zero_thresh` and therefore considered 'minor' increase and therefore
 #' replacing the `end_weight_kg` with the `nextStart` is more realistic and without
 #' significant effects on intake values.
@@ -340,7 +340,7 @@ f_step3 <-
           # 6. if weight is between 0 and 0.3, it's minor error and thus should be replaced :
           nextStart > {{ col_end_weight_kg }} &
             nextStart - {{ col_end_weight_kg }} < zero_thresh &
-            nextStart - {{ col_end_weight_kg }} > (-1 * zero_thresh) ~ 'replace: minor increase',
+            nextStart - {{ col_end_weight_kg }} > (-1 * zero_thresh) ~ 'keep: minor increase',
 
 
           ###############################
