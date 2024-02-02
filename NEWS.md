@@ -1,6 +1,24 @@
+# IntakeInspectR (dev)
+
+* breaking change: 'replace: minor increase' 
+* changed to 'keep: minor increase' to be consistent with the minor decrease classed as a 'keep'
+
+
 # IntakeInspectR 2.1.2
 
+* Added download button to the Uploads page, so that an .rds or .csv of the uploaded, filtered and collated data can be downloaded as the 'raw' version of data
+
+* Added R code to final log that is a full reproducible copy of the analysis, incorporating user selections throughout shiny app.
+
+
+
 # IntakeInspectR 2.1.1
+
+* Fixed Rd to HTML so that it works when package is installed by user, not cloned repos. Problem was with where help .Rd files are stored in different scenarios.
+
+* Added Hex logo
+
+* Minor UI fixes
 
 # IntakeInspectR 2.1.0
 
@@ -21,6 +39,7 @@
 * Users can now bypass the 'By Bin' cleaning if they want to only check for outliers 'By Animal'
 
 * The 'By Animal' cleaning now asks users to select which cleaning they want to use from the previous step. It still lumps all 'end_weight' corrections together. If a user wanted a more detailed selection of say only 1 'replace' type, then this can be done manually in R outside of the Shiny app.
+
 
 # IntakeInspectR v1.0.0
 
