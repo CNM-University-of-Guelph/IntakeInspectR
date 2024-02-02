@@ -5,7 +5,7 @@ output: github_document
 
 # IntakeInspectR {align="center"}
 
-# ![](man/figures/logo.png){align="center" alt="" height="139"}
+![](man/figures/logo.png){align="center" alt="" height="139"}
 
 
 ```{r, include = FALSE}
