@@ -161,14 +161,76 @@ mod_uploads_ui <- function(id){
             ),
 
 
+          # gridlayout::grid_card(
+          #   area = "display_data",
+          #   wrapper = bslib::card_body,
+          #   full_screen = TRUE,
+          #   strong("Data structure:"),
+          #   p("This shows the column names of the data, and the row and column numbers update to match the filters applied. The data can be re-filtered based on the original data that was uploaded but only the filtered data is used in the following pages."),
+          #   verbatimTextOutput(ns("dynamic_glimpse")) %>%  shinycssloaders::withSpinner(type = 7)
+          # ),
+          #
           gridlayout::grid_card(
             area = "display_data",
-            wrapper = bslib::card_body,
+            wrapper = bslib::card_body(class = "p-0", fillable = FALSE, fill = TRUE), # this removes the padding around edges
             full_screen = TRUE,
-            strong("Data structure:"),
-            p("This shows the column names of the data, and the row and column numbers update to match the filters applied. The data can be re-filtered based on the original data that was uploaded but only the filtered data is used in the following pages."),
-            verbatimTextOutput(ns("dynamic_glimpse")) %>%  shinycssloaders::withSpinner(type = 7)
+
+            bslib::navset_card_pill( # a card with nav tabs:
+              id = ns('display_tabs'), #used for input$ to see active tab
+
+              bslib::nav_panel(
+                title = "Intro",
+                value = "display_intro", #for accessing input$ details
+                bslib::card_title("Upload data"),
+                em("Hover mouse over bottom right of screen to show button to expand view. Use Esc or click Close to return to normal screen."),
+
+                h4("Quick Start"),
+                tags$div(
+                  tags$ol(
+                    tags$li(tags$strong("Check file requirements:"), " Click on 'Upload Instructions' for details about which files can be uploaded."),
+                    tags$li(tags$strong("Upload files:"), " Click the 'Browse' button to open a window to select the file from your computer to upload."),
+                    tags$li(tags$strong("OR demo data:"), " Alternatively, click the 'demo data' toggle to use built-in data."),
+                    tags$li(tags$strong("Verify upload:"), " Look at the 'data structure' tab to see that the file successfully uploaded. A warning will be displayed for some problems, such as incorrect column names."),
+                    tags$li(tags$strong("Go to Step 2a:"), " Navigate to the '2b. By Bin - Clean' page to start the cleaning pipeline.")
+                  )
+                )
+
+
+              ),
+
+              bslib::nav_panel(
+                title = "Data Structure",
+                value = "display_structure", #for accessing input$ details
+                bslib::card_title("Data Structure"),
+                p("This shows the column names of the data, and the row and column numbers update to match the filters applied. The data can be re-filtered based on the original data that was uploaded but only the filtered data is used in the following pages."),
+
+                br(),
+                verbatimTextOutput(ns("dynamic_glimpse")) %>%  shinycssloaders::withSpinner(type = 7)
+              ),
+
+              bslib::nav_panel(
+                title = "Download uploaded data",
+                value = "download_data", #for accessing input$ details
+                bslib::card_title("Downloads"),
+                p("Use the following buttons to download either the .rds file (for use in R and retaining date/time formats, etc) or the .csv file. This will be the same data that is displayed in the 'data structure' tab, i.e. multiple files combined and after any filtering."),
+
+                bslib::layout_columns(
+                  fill=TRUE,
+                  fillable=TRUE,
+                  row_heights = 1,
+                  col_widths = c(3,3,-6), # negative means empty cols
+                  gap="4px",
+                  downloadButton(ns("uploaded_df_rds"), "Download .rds", class = c('btn-info')),
+                  downloadButton(ns("uploaded_df_csv"), "Download .csv", class = c('btn-info')),
+                ),
+              ),
+
+
+
+            )
           )
+
+
         )
     )
   )
@@ -243,8 +305,15 @@ mod_uploads_server <- function(id){
       #in addition, collapse custom column name accordian:
       bslib::accordion_panel_close(id = 'accordian_custom_colnames', values = TRUE)
 
-
       return(dates_list_out)
+    })
+
+    observe({
+      # & unhide download buttons
+      # Hide cleaning button until after data is uploaded
+      shinyjs::toggleState("uploaded_df_rds", condition = tibble::is_tibble(variable_out$current_df))
+      shinyjs::toggleState("uploaded_df_csv", condition = tibble::is_tibble(variable_out$current_df))
+
     })
 
     # set range of dates allowed based on df
@@ -402,6 +471,36 @@ mod_uploads_server <- function(id){
       fct_show_custom_modal(fct_modal_content_uploads_instructions(), title = "Instructions")
     }) %>% bindEvent({ input$button_instructions})
 
+
+    ##################################################
+    # Download handlers
+    output$uploaded_df_rds <- downloadHandler(
+      filename = function() {
+        paste0("uploaded_filtered_df_",
+               format(Sys.time(), "%Y%m%d_%H%M%S"), ".rds")
+      },
+      content = function(file) {
+        saveRDS(variable_out$current_df, file = file)
+      }
+    )
+    output$uploaded_df_csv <- downloadHandler(
+      filename = function() {
+        paste0("uploaded_filtered_df_",
+               format(Sys.time(), "%Y%m%d_%H%M%S"), ".csv")
+      },
+      content = function(file) {
+        # format start and end time to match original upload:
+        # This is important if someone uploads, then downloads and then re-uploads.
+        variable_out$current_df %>%
+          dplyr::mutate(
+            start_time = format(start_time, "%H:%M:%S"),
+            end_time = format(end_time, "%H:%M:%S"),
+            date = format(date, "%Y-%m-%d")
+          ) %>%
+          data.table::fwrite( file = file)
+      },
+      contentType = "text/csv"
+    )
 
 
 
