@@ -23,6 +23,7 @@
 #'
 #' @param df_in Data frame to clean with the following columns:
 #' @param col_bin_ID Name of column with feed bin ID.
+#' @param col_date Deprecated. 'By Bin' cleaning is no longer grouped by date and it does not need the date column specified.
 #' @param col_start_time Name of column with start time (formatted as POSIXct
 #'   date-time) recorded by feed bin.
 #' @param col_start_weight_kg,col_end_weight_kg Name of columns with start and end
@@ -40,10 +41,19 @@
 
 f_step2 <- function(df_in,
                     col_bin_ID,
+                    col_date = deprecated(),
                     col_start_time,
                     col_start_weight_kg,
                     col_end_weight_kg,
                     col_intake){
+
+  if (lifecycle::is_present(col_date)) {
+    lifecycle::deprecate_warn(
+      when = "2.1.4",
+      what = "f_step2(col_date)",
+      details = "'By Bin' cleaning is no longer grouped by date and it does not need the date column specified."
+    )
+  }
 
   step2_full <-
     df_in %>%
@@ -224,6 +234,7 @@ f_step2 <- function(df_in,
 #' @param feedout_thresh Number. What threshold (kg) should be used to call an
 #'   increase in feed intake a feed out event? Default 10 kg
 #' @param col_bin_ID Name of column with feed bin ID.
+#' @param col_date Deprecated. 'By Bin' cleaning is no longer grouped by date and it does not need the date column specified.
 #' @param col_start_time Name of column with start time (formatted as POSIXct
 #'   date-time) recorded by feed bin.
 #' @param col_start_weight_kg,col_end_weight_kg Name of columns with start and end
@@ -261,11 +272,21 @@ f_step3 <-
            zero_thresh = 0.3, # +/- this amount is considered "0 kg"
            feedout_thresh = 10,
            col_bin_ID = .data$bin_id,
+           col_date = deprecated(),
            col_start_time = .data$start_time,
            col_start_weight_kg = .data$start_weight_kg,
            col_end_weight_kg = .data$end_weight_kg,
            col_intake = .data$intake,
            col_check_prev_vs_next = .data$check_prev_vs_next){
+
+     if (lifecycle::is_present(col_date)) {
+      lifecycle::deprecate_warn(
+        when = "2.1.4",
+        what = "f_step3(col_date)",
+        details = "'By Bin' cleaning is no longer grouped by date and it does not need the date column specified."
+      )
+    }
+
 
     ############################################## #
     # Execute check_end_rows ----
@@ -411,6 +432,7 @@ f_step3 <-
 #'   intake would be considered 'negative' if it was <= 0.3 kg, rather than <= 0
 #'   kg.
 #' @param col_bin_ID Name of column with feed bin ID.
+#' @param col_date Deprecated. 'By Bin' cleaning is no longer grouped by date and it does not need the date column specified.
 #' @param col_start_time Name of column with start time (formatted as POSIXct
 #'   date-time) recorded by feed bin.
 #' @param col_start_weight_kg,col_end_weight_kg Name of columns with start and end
@@ -430,6 +452,7 @@ f_step4 <-
   function(df_step3,
            zero_thresh = 0.3,
            col_bin_ID = .data$bin_id,
+           col_date = deprecated(),
            col_start_time = .data$start_time,
            col_start_weight_kg = .data$start_weight_kg,
            col_end_weight_kg = .data$end_weight_kg,
@@ -438,6 +461,14 @@ f_step4 <-
            col_prevEnd,
            col_prevStart,
            col_nextStart){
+
+    if (lifecycle::is_present(col_date)) {
+      lifecycle::deprecate_warn(
+        when = "2.1.4",
+        what = "f_step4(col_date)",
+        details = "'By Bin' cleaning is no longer grouped by date and it does not need the date column specified."
+      )
+    }
 
     step4 <-
       df_step3 %>%
@@ -523,6 +554,7 @@ f_step5_correct_intakes <-
 #'
 #' @param df_step5 Data frame produced by [f_step5()]
 #' @param col_animal_id Name of column with animal ID.
+#' @param col_date Deprecated. 'By Bin' cleaning is no longer grouped by date and it does not need the date column specified.
 #' @param col_start_time,col_end_time Name of column with start and end time (formatted as POSIXct
 #'   date-time) recorded by feed bin.
 
@@ -533,8 +565,17 @@ f_step5_correct_intakes <-
 f_step6_correct_end_times <-
   function(df_step5,
            col_animal_id = .data$animal_id,
+           col_date = deprecated(),
            col_start_time = .data$start_time,
            col_end_time = .data$end_time){
+
+    if (lifecycle::is_present(col_date)) {
+      lifecycle::deprecate_warn(
+        when = "2.1.4",
+        what = "f_step6_correct_end_times(col_date)",
+        details = "'By Bin' cleaning is no longer grouped by date and it does not need the date column specified."
+      )
+    }
 
     df_step5 %>%
       dtplyr::lazy_dt() %>%

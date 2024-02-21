@@ -16,7 +16,6 @@ list_cleaned <-
     feedout_thresh = feedout_threshold,
     col_bin_ID = bin_id,
     col_animal_id = animal_id,
-    col_date = date,
     col_start_time = start_time,
     col_end_time = end_time,
     col_start_weight_kg = start_weight_kg,

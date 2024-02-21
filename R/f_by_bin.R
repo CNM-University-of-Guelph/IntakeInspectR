@@ -36,6 +36,7 @@ f_count_errors <- function(.df, ...){
 #'   increase in feed intake a feed out event? Default 10 kg
 #' @param col_bin_ID Name of column with feed bin ID.
 #' @param col_animal_id Name of column with animal ID.
+#' @param col_date Deprecated. 'By Bin' cleaning is no longer grouped by date and it does not need the date column specified.
 #' @param col_start_time,col_end_time Name of columns with start time and end time (formatted as POSIXct
 #'   date-time) recorded by feed bin.
 #' @param col_start_weight_kg,col_end_weight_kg Name of columns with start and end
@@ -48,7 +49,7 @@ f_count_errors <- function(.df, ...){
 #' In addition, `log_path` is returned in the list, which is the temporary file path where the log is stored.
 
 #' @export
-#'
+#' @importFrom lifecycle deprecated
 #'
 f_by_bin_clean <- function(
     df_in,
@@ -56,6 +57,7 @@ f_by_bin_clean <- function(
     feedout_thresh = 10,
     col_bin_ID = .data$bin_id,
     col_animal_id = .data$animal_id,
+    col_date = deprecated(),
     col_start_time = .data$start_time,
     col_end_time = .data$end_time,
     col_start_weight_kg = .data$start_weight_kg,
@@ -78,6 +80,15 @@ f_by_bin_clean <- function(
     logr::sep(" Start of Step 1 - separate 0 kg rows: ")
   } else {
     tmp <- NULL # so that the output list can return tmp as NULL if log == FALSE
+  }
+
+
+  if (lifecycle::is_present(col_date)) {
+    lifecycle::deprecate_warn(
+      when = "2.1.4",
+      what = "f_by_bin_clean(col_date)",
+      details = "'By Bin' cleaning is no longer grouped by date and it does not need the date column specified."
+    )
   }
 
   ####################################### #
@@ -108,12 +119,14 @@ f_by_bin_clean <- function(
     logr::sep(" Start of Step 2 - flag_errors_between_rows: ")
   }
 
-  step2 <- f_step2(df_in = df_no0,
-                   {{ col_bin_ID }},
-                   {{ col_start_time  }},
-                   {{ col_start_weight_kg  }},
-                   {{ col_end_weight_kg  }},
-                   {{ col_intake  }})
+  step2 <- f_step2(
+    df_in = df_no0,
+    col_bin_ID = {{ col_bin_ID }},
+    col_start_time = {{ col_start_time }},
+    col_start_weight_kg = {{ col_start_weight_kg }},
+    col_end_weight_kg = {{ col_end_weight_kg }},
+    col_intake = {{ col_intake }}
+  )
 
   step2_errors <- step2$step2_errors
   step2_ok <- step2$step2_ok
@@ -137,16 +150,17 @@ f_by_bin_clean <- function(
   }
 
 
-  step3 <- f_step3(step2_ok,
-                   zero_thresh = {{ zero_thresh }},
-                   feedout_thresh = {{ feedout_thresh }},
-                   {{ col_bin_ID }},
-                   {{ col_start_time  }},
-                   {{ col_start_weight_kg  }},
-                   {{ col_end_weight_kg  }},
-                   {{ col_intake  }},
-                   col_check_prev_vs_next = .data$check_prev_vs_next
-                   )
+  step3 <- f_step3(
+    df_step2_ok = step2_ok,
+    zero_thresh = {{ zero_thresh }},
+    feedout_thresh = {{ feedout_thresh }},
+    col_bin_ID = {{ col_bin_ID }},
+    col_start_time = {{ col_start_time }},
+    col_start_weight_kg = {{ col_start_weight_kg }},
+    col_end_weight_kg = {{ col_end_weight_kg }},
+    col_intake = {{ col_intake }},
+    col_check_prev_vs_next = .data$check_prev_vs_next
+  )
 
 
   if(log){
@@ -164,17 +178,19 @@ f_by_bin_clean <- function(
     logr::sep(" Start of Step 4 - check start weights: ")
   }
 
-  step4 <- f_step4(step3,
-          zero_thresh = {{ zero_thresh }},
-          {{ col_bin_ID }},
-          {{ col_start_time }},
-          {{ col_start_weight_kg }},
-          {{ col_end_weight_kg }},
-          {{ col_intake }},
-          col_check_end_weight_kgs = .data$check_end_weight_kgs,
-          col_prevEnd = .data$prevEnd,
-          col_prevStart = .data$prevStart,
-          col_nextStart = .data$nextStart)
+  step4 <- f_step4(
+    df_step3 = step3,
+    zero_thresh = {{ zero_thresh }},
+    col_bin_ID = {{ col_bin_ID }},
+    col_start_time = {{ col_start_time }},
+    col_start_weight_kg = {{ col_start_weight_kg }},
+    col_end_weight_kg = {{ col_end_weight_kg }},
+    col_intake = {{ col_intake }},
+    col_check_end_weight_kgs = .data$check_end_weight_kgs,
+    col_prevEnd = .data$prevEnd,
+    col_prevStart = .data$prevStart,
+    col_nextStart = .data$nextStart
+  )
 
   if(log){
     logr::log_print("Summary of end weight errors:")

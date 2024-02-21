@@ -9,6 +9,7 @@ f_step3(
   zero_thresh = 0.3,
   feedout_thresh = 10,
   col_bin_ID = .data$bin_id,
+  col_date = deprecated(),
   col_start_time = .data$start_time,
   col_start_weight_kg = .data$start_weight_kg,
   col_end_weight_kg = .data$end_weight_kg,
@@ -28,6 +29,8 @@ kg.}
 increase in feed intake a feed out event? Default 10 kg}
 
 \item{col_bin_ID}{Name of column with feed bin ID.}
+
+\item{col_date}{Deprecated. 'By Bin' cleaning is no longer grouped by date and it does not need the date column specified.}
 
 \item{col_start_time}{Name of column with start time (formatted as POSIXct
 date-time) recorded by feed bin.}

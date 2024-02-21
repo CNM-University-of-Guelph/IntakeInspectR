@@ -7,6 +7,7 @@
 f_step2(
   df_in,
   col_bin_ID,
+  col_date = deprecated(),
   col_start_time,
   col_start_weight_kg,
   col_end_weight_kg,
@@ -17,6 +18,8 @@ f_step2(
 \item{df_in}{Data frame to clean with the following columns:}
 
 \item{col_bin_ID}{Name of column with feed bin ID.}
+
+\item{col_date}{Deprecated. 'By Bin' cleaning is no longer grouped by date and it does not need the date column specified.}
 
 \item{col_start_time}{Name of column with start time (formatted as POSIXct
 date-time) recorded by feed bin.}

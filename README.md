@@ -211,7 +211,6 @@ list_cleaned <-
           feedout_thresh = 10, 
           col_bin_ID = bin_id,
           col_animal_id = animal_id,
-          col_date = date,
           col_start_time = start_time,
           col_end_time = end_time,
           col_start_weight_kg = start_weight_kg,
@@ -237,7 +236,7 @@ original `end_weight_kg`.
 
 ``` r
 list_cleaned$df_cleaned %>% glimpse()
-#> Rows: 60,056
+#> Rows: 60,044
 #> Columns: 34
 #> $ transponder_id                     <int64> 6.448712e-317, 6.448697e-317, 6.4…
 #> $ bin_id                             <int> 7, 42, 48, 18, 2, 49, 53, 41, 6, 71…
@@ -461,7 +460,7 @@ merged_by_animal <-
   IntakeInspectR::f_merge_corrected_outlier_data()
 
 merged_by_animal %>% glimpse()
-#> Rows: 60,056
+#> Rows: 60,044
 #> Columns: 50
 #> $ transponder_id                     <int64> 13052339, 13052339, 13052339, 130…
 #> $ bin_id                             <int> 7, 8, 8, 9, 9, 9, 8, 7, 7, 8, 8, 7,…
@@ -497,8 +496,8 @@ merged_by_animal %>% glimpse()
 #> $ corrected_duration_sec             <dbl> 118, 243, 208, 299, 87, 315, 179, 3…
 #> $ corrected_intake_bybin_startweight <dbl> 0.5, 1.2, 0.7, 1.0, 0.2, 0.7, 0.5, …
 #> $ corrected_intake_bybin_endweight   <dbl> 0.5, 1.2, 0.7, 1.0, 0.2, 0.7, 0.5, …
-#> $ .fitted                            <dbl> 0.3940673, 0.8115115, 0.6946271, 0.…
-#> $ .resid                             <dbl> 0.105932709, 0.388488545, 0.0053729…
+#> $ .fitted                            <dbl> 0.3940672, 0.8115113, 0.6946270, 0.…
+#> $ .resid                             <dbl> 0.105932764, 0.388488658, 0.0053730…
 #> $ manual_outlier_classification      <chr> "Not Outlier", "Not Outlier", "Not …
 #> $ is_manual_outlier                  <lgl> FALSE, FALSE, FALSE, FALSE, FALSE, …
 #> $ instant_rate_of_intake_kg_min      <dbl> 0.25423729, 0.29629630, 0.20192308,…
@@ -553,7 +552,7 @@ merged_by_animal %>%
 #> # A tibble: 133 × 6
 #>    animal_id neg_intake not_error   pos   neg total_outliers
 #>        <dbl>      <int>     <int> <int> <int>          <int>
-#>  1      2052         23       382    NA     4             27
+#>  1      2052         22       382    NA     4             26
 #>  2      2128          2       311    NA    17             19
 #>  3      2090         13       426    NA     5             18
 #>  4      2040         10       807     2     3             15
@@ -633,7 +632,7 @@ df_all_steps <-
   )
 
 df_all_steps %>% glimpse()
-#> Rows: 60,056
+#> Rows: 60,044
 #> Columns: 23
 #> $ bin_id                          <int> 7, 8, 8, 9, 9, 9, 8, 7, 7, 8, 8, 7, 7,…
 #> $ animal_id                       <dbl> 2003, 2003, 2003, 2003, 2003, 2003, 20…
@@ -680,7 +679,7 @@ df_all_steps %>%
     selected_final_intake_kg, selected_final_duration_sec
   ) %>% 
   glimpse()
-#> Rows: 60,056
+#> Rows: 60,044
 #> Columns: 9
 #> $ bin_id                        <int> 7, 8, 8, 9, 9, 9, 8, 7, 7, 8, 8, 7, 7, 7…
 #> $ animal_id                     <dbl> 2003, 2003, 2003, 2003, 2003, 2003, 2003…
@@ -717,7 +716,7 @@ simplified_final_df <-
   )
 
 simplified_final_df %>% glimpse()
-#> Rows: 60,056
+#> Rows: 60,044
 #> Columns: 10
 #> $ bin_id                        <int> 7, 8, 8, 9, 9, 9, 8, 7, 7, 8, 8, 7, 7, 7…
 #> $ animal_id                     <dbl> 2003, 2003, 2003, 2003, 2003, 2003, 2003…
