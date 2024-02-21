@@ -7,7 +7,6 @@
 f_step2(
   df_in,
   col_bin_ID,
-  col_date,
   col_start_time,
   col_start_weight_kg,
   col_end_weight_kg,
@@ -18,8 +17,6 @@ f_step2(
 \item{df_in}{Data frame to clean with the following columns:}
 
 \item{col_bin_ID}{Name of column with feed bin ID.}
-
-\item{col_date}{Name of column with date (formatted as Date) of feeding event}
 
 \item{col_start_time}{Name of column with start time (formatted as POSIXct
 date-time) recorded by feed bin.}
@@ -36,7 +33,7 @@ A list of 3 data frames is returned. 1) `step2_full` - with no rows
   all rows that are `ok` are returned in `step2_ok` data frame
 }
 \description{
-This function groups data by date and feed bin ID and sorts by start time
+This function groups data by feed bin ID and sorts by date and start time
 before adding columns with the previous end weight, previous start weight,
 next end weight and next start weight. This makes it easy to compare the rows
 before and after the current row. Then, it checks the difference between the

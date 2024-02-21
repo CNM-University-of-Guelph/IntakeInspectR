@@ -3,7 +3,7 @@
 
 #' By Bin - Step 2 - Check row-by-row errors
 #'
-#' This function groups data by date and feed bin ID and sorts by start time
+#' This function groups data by feed bin ID and sorts by date and start time
 #' before adding columns with the previous end weight, previous start weight,
 #' next end weight and next start weight. This makes it easy to compare the rows
 #' before and after the current row. Then, it checks the difference between the
@@ -23,7 +23,6 @@
 #'
 #' @param df_in Data frame to clean with the following columns:
 #' @param col_bin_ID Name of column with feed bin ID.
-#' @param col_date Name of column with date (formatted as Date) of feeding event
 #' @param col_start_time Name of column with start time (formatted as POSIXct
 #'   date-time) recorded by feed bin.
 #' @param col_start_weight_kg,col_end_weight_kg Name of columns with start and end
@@ -41,7 +40,6 @@
 
 f_step2 <- function(df_in,
                     col_bin_ID,
-                    col_date,
                     col_start_time,
                     col_start_weight_kg,
                     col_end_weight_kg,
@@ -50,7 +48,7 @@ f_step2 <- function(df_in,
   step2_full <-
     df_in %>%
     dtplyr::lazy_dt() %>%
-    dplyr::group_by({{ col_date }}, {{ col_bin_ID }}) %>%
+    dplyr::group_by( {{ col_bin_ID }}) %>%
     dplyr::arrange( {{ col_start_time }}) %>%
     dplyr::mutate(
       prevEnd = data.table::shift({{ col_end_weight_kg }}, type = 'lag'),
@@ -226,7 +224,6 @@ f_step2 <- function(df_in,
 #' @param feedout_thresh Number. What threshold (kg) should be used to call an
 #'   increase in feed intake a feed out event? Default 10 kg
 #' @param col_bin_ID Name of column with feed bin ID.
-#' @param col_date Name of column with date (formatted as Date) of feeding event
 #' @param col_start_time Name of column with start time (formatted as POSIXct
 #'   date-time) recorded by feed bin.
 #' @param col_start_weight_kg,col_end_weight_kg Name of columns with start and end
@@ -252,7 +249,6 @@ f_step2 <- function(df_in,
 #'   zero_thresh =  -0.3,
 #'   feedout_thresh =  10 ,
 #'   col_bin_ID = bin_id,
-#'   col_date = date,
 #'   col_start_time = start_time,
 #'   col_start_weight_kg = start_weight_kg,
 #'   col_end_weight_kg = end_weight_kg,
@@ -265,7 +261,6 @@ f_step3 <-
            zero_thresh = 0.3, # +/- this amount is considered "0 kg"
            feedout_thresh = 10,
            col_bin_ID = .data$bin_id,
-           col_date = .data$date,
            col_start_time = .data$start_time,
            col_start_weight_kg = .data$start_weight_kg,
            col_end_weight_kg = .data$end_weight_kg,
@@ -279,7 +274,7 @@ f_step3 <-
     step3_check <-
       df_step2_ok %>% #this should be a lazy_dt() from above, but collected at end with as_tibble()
       dtplyr::lazy_dt() %>%
-      dplyr::group_by({{ col_date }}, {{ col_bin_ID }}) %>%
+      dplyr::group_by( {{ col_bin_ID }}) %>%
       dplyr::arrange( {{ col_start_time }}) %>%
       dplyr::mutate(
         # These are repeated as we are using filtered data from step 2, not original data.
@@ -416,7 +411,6 @@ f_step3 <-
 #'   intake would be considered 'negative' if it was <= 0.3 kg, rather than <= 0
 #'   kg.
 #' @param col_bin_ID Name of column with feed bin ID.
-#' @param col_date Name of column with date (formatted as Date) of feeding event
 #' @param col_start_time Name of column with start time (formatted as POSIXct
 #'   date-time) recorded by feed bin.
 #' @param col_start_weight_kg,col_end_weight_kg Name of columns with start and end
@@ -436,7 +430,6 @@ f_step4 <-
   function(df_step3,
            zero_thresh = 0.3,
            col_bin_ID = .data$bin_id,
-           col_date = .data$date,
            col_start_time = .data$start_time,
            col_start_weight_kg = .data$start_weight_kg,
            col_end_weight_kg = .data$end_weight_kg,
@@ -449,7 +442,7 @@ f_step4 <-
     step4 <-
       df_step3 %>%
       dtplyr::lazy_dt() %>%
-      dplyr::group_by({{ col_date }}, {{ col_bin_ID }}) %>%
+      dplyr::group_by( {{ col_bin_ID }}) %>%
       dplyr::arrange( {{ col_start_time }}) %>%
       dplyr::mutate(
         # get the error for the row above from step3
@@ -530,7 +523,6 @@ f_step5_correct_intakes <-
 #'
 #' @param df_step5 Data frame produced by [f_step5()]
 #' @param col_animal_id Name of column with animal ID.
-#' @param col_date Name of column with date (formatted as Date) of feeding event
 #' @param col_start_time,col_end_time Name of column with start and end time (formatted as POSIXct
 #'   date-time) recorded by feed bin.
 
@@ -541,13 +533,12 @@ f_step5_correct_intakes <-
 f_step6_correct_end_times <-
   function(df_step5,
            col_animal_id = .data$animal_id,
-           col_date = .data$date,
            col_start_time = .data$start_time,
            col_end_time = .data$end_time){
 
     df_step5 %>%
       dtplyr::lazy_dt() %>%
-      dplyr::group_by({{ col_date }}, {{ col_animal_id }}) %>%
+      dplyr::group_by( {{ col_animal_id }}) %>%
       dplyr::arrange( {{ col_start_time }}) %>%
       dplyr::mutate(
         nextStartTime = data.table::shift({{ col_start_time}}, type = 'lead'),
