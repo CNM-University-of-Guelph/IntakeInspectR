@@ -8,7 +8,6 @@ f_step4(
   df_step3,
   zero_thresh = 0.3,
   col_bin_ID = .data$bin_id,
-  col_date = .data$date,
   col_start_time = .data$start_time,
   col_start_weight_kg = .data$start_weight_kg,
   col_end_weight_kg = .data$end_weight_kg,
@@ -28,8 +27,6 @@ intake would be considered 'negative' if it was <= 0.3 kg, rather than <= 0
 kg.}
 
 \item{col_bin_ID}{Name of column with feed bin ID.}
-
-\item{col_date}{Name of column with date (formatted as Date) of feeding event}
 
 \item{col_start_time}{Name of column with start time (formatted as POSIXct
 date-time) recorded by feed bin.}

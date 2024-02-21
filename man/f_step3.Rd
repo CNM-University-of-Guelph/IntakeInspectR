@@ -9,7 +9,6 @@ f_step3(
   zero_thresh = 0.3,
   feedout_thresh = 10,
   col_bin_ID = .data$bin_id,
-  col_date = .data$date,
   col_start_time = .data$start_time,
   col_start_weight_kg = .data$start_weight_kg,
   col_end_weight_kg = .data$end_weight_kg,
@@ -29,8 +28,6 @@ kg.}
 increase in feed intake a feed out event? Default 10 kg}
 
 \item{col_bin_ID}{Name of column with feed bin ID.}
-
-\item{col_date}{Name of column with date (formatted as Date) of feeding event}
 
 \item{col_start_time}{Name of column with start time (formatted as POSIXct
 date-time) recorded by feed bin.}
@@ -170,7 +167,6 @@ f_step3(df_step2_ok,
   zero_thresh =  -0.3,
   feedout_thresh =  10 ,
   col_bin_ID = bin_id,
-  col_date = date,
   col_start_time = start_time,
   col_start_weight_kg = start_weight_kg,
   col_end_weight_kg = end_weight_kg,

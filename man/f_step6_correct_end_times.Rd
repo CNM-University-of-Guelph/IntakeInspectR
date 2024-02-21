@@ -7,7 +7,6 @@
 f_step6_correct_end_times(
   df_step5,
   col_animal_id = .data$animal_id,
-  col_date = .data$date,
   col_start_time = .data$start_time,
   col_end_time = .data$end_time
 )
@@ -16,8 +15,6 @@ f_step6_correct_end_times(
 \item{df_step5}{Data frame produced by [f_step5()]}
 
 \item{col_animal_id}{Name of column with animal ID.}
-
-\item{col_date}{Name of column with date (formatted as Date) of feeding event}
 
 \item{col_start_time, col_end_time}{Name of column with start and end time (formatted as POSIXct
 date-time) recorded by feed bin.}

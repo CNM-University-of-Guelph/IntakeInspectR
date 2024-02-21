@@ -36,7 +36,6 @@ f_count_errors <- function(.df, ...){
 #'   increase in feed intake a feed out event? Default 10 kg
 #' @param col_bin_ID Name of column with feed bin ID.
 #' @param col_animal_id Name of column with animal ID.
-#' @param col_date Name of column with date (formatted as Date) of feeding event.
 #' @param col_start_time,col_end_time Name of columns with start time and end time (formatted as POSIXct
 #'   date-time) recorded by feed bin.
 #' @param col_start_weight_kg,col_end_weight_kg Name of columns with start and end
@@ -57,7 +56,6 @@ f_by_bin_clean <- function(
     feedout_thresh = 10,
     col_bin_ID = .data$bin_id,
     col_animal_id = .data$animal_id,
-    col_date = .data$date,
     col_start_time = .data$start_time,
     col_end_time = .data$end_time,
     col_start_weight_kg = .data$start_weight_kg,
@@ -112,7 +110,6 @@ f_by_bin_clean <- function(
 
   step2 <- f_step2(df_in = df_no0,
                    {{ col_bin_ID }},
-                   {{ col_date }},
                    {{ col_start_time  }},
                    {{ col_start_weight_kg  }},
                    {{ col_end_weight_kg  }},
@@ -144,7 +141,6 @@ f_by_bin_clean <- function(
                    zero_thresh = {{ zero_thresh }},
                    feedout_thresh = {{ feedout_thresh }},
                    {{ col_bin_ID }},
-                   {{ col_date }},
                    {{ col_start_time  }},
                    {{ col_start_weight_kg  }},
                    {{ col_end_weight_kg  }},
@@ -171,7 +167,6 @@ f_by_bin_clean <- function(
   step4 <- f_step4(step3,
           zero_thresh = {{ zero_thresh }},
           {{ col_bin_ID }},
-          {{ col_date }},
           {{ col_start_time }},
           {{ col_start_weight_kg }},
           {{ col_end_weight_kg }},
@@ -220,7 +215,6 @@ f_by_bin_clean <- function(
   step6 <- f_step6_correct_end_times(
     step5,
     col_animal_id = {{ col_animal_id }},
-    col_date = {{ col_date }},
     col_start_time = {{ col_start_time }},
     col_end_time = {{ col_end_time }}
   )
