@@ -360,6 +360,19 @@ mod_final_summary_server <- function(id, df_list_bybin, df_list_byanimal){
 
       }
 
+
+      # Add times with formatting for easier use with Excel
+      df_out <- df_out %>%
+        dplyr::mutate(
+          start_time_simple = format(start_time, "%H:%M:%S"),
+          end_time_simple = format(end_time, "%H:%M:%S")
+        ) %>%
+        dplyr::relocate(
+          tidyselect::ends_with("_simple"),
+          .after = .data$end_time
+        )
+
+
       logr::sep("R Code to reproduce analysis")
       logr::log_print("Copy all code below into a .R or .Rmd file to execute:")
       logr::log_print("# START ###################################################################################")
@@ -416,8 +429,8 @@ mod_final_summary_server <- function(id, df_list_bybin, df_list_byanimal){
           "bin_id",
           "animal_id",
           "date",
-          original_start_time = "start_time",
-          original_end_time = "end_time",
+          original_start_time = "start_time_simple",
+          original_end_time = "end_time_simple",
           original_duration_sec = "duration_sec",
           original_start_weight_kg = "start_weight_kg",
           original_end_weight_kg = "end_weight_kg",
