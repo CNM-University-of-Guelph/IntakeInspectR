@@ -312,6 +312,7 @@ mod_by_bin_clean_server <- function(id, df){
 
     # observe table to override output to show in window:
     observe({
+      req(list_cleaned_data()$df_cleaned)
       print_out$df_cleaned <- tibble::as_tibble(list_cleaned_data()$df_cleaned)
 
       # read in log file to print to glimpse window:

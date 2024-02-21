@@ -193,6 +193,7 @@ mod_by_bin_vis_server <- function(id, df_list){
     ns <- session$ns
 
     df <- reactive({
+      req(df_list()$df_list_bybin$df_cleaned)
       df_list()$df_list_bybin$df_cleaned
     })
 
