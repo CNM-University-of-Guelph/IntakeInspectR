@@ -1,3 +1,6 @@
+# IntakeInspectR 2.1.4
+* Added better format for times in download files, added as extra columns called `start_time_simple` and `end_time_simple`. Easier to use with Excel, but kept original times for use with `.rds` files. The 'simplified' data on the download page now uses the new format. 
+
 # IntakeInspectR 2.1.3
 
 * breaking change: 'replace: minor increase' 
