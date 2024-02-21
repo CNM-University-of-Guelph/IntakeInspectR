@@ -268,7 +268,9 @@ mod_by_bin_clean_server <- function(id, df){
                          zero_thresh = input$zero_threshold, # default 0.3
                          feedout_thresh = input$feedout_threshold, # default 10
                          col_bin_ID = .data$bin_id,
+                         col_animal_id = .data$animal_id,
                          col_start_time = .data$start_time,
+                         col_end_time = .data$end_time,
                          col_start_weight_kg = .data$start_weight_kg,
                          col_end_weight_kg = .data$end_weight_kg,
                          col_intake = .data$intake,

@@ -10,6 +10,7 @@ f_by_bin_clean(
   feedout_thresh = 10,
   col_bin_ID = .data$bin_id,
   col_animal_id = .data$animal_id,
+  col_date = deprecated(),
   col_start_time = .data$start_time,
   col_end_time = .data$end_time,
   col_start_weight_kg = .data$start_weight_kg,
@@ -32,6 +33,8 @@ increase in feed intake a feed out event? Default 10 kg}
 \item{col_bin_ID}{Name of column with feed bin ID.}
 
 \item{col_animal_id}{Name of column with animal ID.}
+
+\item{col_date}{Deprecated. 'By Bin' cleaning is no longer grouped by date and it does not need the date column specified.}
 
 \item{col_start_time, col_end_time}{Name of columns with start time and end time (formatted as POSIXct
 date-time) recorded by feed bin.}
