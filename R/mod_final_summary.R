@@ -12,17 +12,17 @@ mod_final_summary_ui <- function(id){
 
   bslib::nav_panel(
     title = "Final Summary",
+
     div(class = 'resized-tab-container',
         gridlayout::grid_container(
 
           layout = gridlayout::new_gridlayout(c(
-            "1px    0.2fr       0.8fr",
-            "1fr    user_input  Display "
+            "1px  1fr",
+            "1fr  Display "
           ),
           alternate_layouts = list(
             layout = c(
               "1px       1fr     ",
-              "400px    user_input ",
               "800px    Display"
             ),
             width_bounds = c(max = 900)
@@ -31,36 +31,36 @@ mod_final_summary_ui <- function(id){
           ############################################### #
           # Inputs panel ----
           ################################################ #
-          gridlayout:: grid_card(
-            area = "user_input",
-            wrapper = function(x) bslib::card_body(x, fill=FALSE, fillable=TRUE, class = "align-items-top"),
-
-            h3("Downloads:"),
-            p("Select which outliers from 'By Animal' should be replaced in the final data.
-              The previously selected 'By Bin' corrections are also displayed below.
-              Click 'Prepare Final Data' will calculate 'final' values in the simplified table for download, but all possible combinations of corrections are available in the full data."),
-
-            htmlOutput(ns('display_bybin_cols'), inline = TRUE),
-
-            shinyWidgets::treeInput(
-              inputId = ns('selected_error_types_by_animal'),
-              label = NULL,
-              returnValue = 'text',
-              selected = 'By Animal Corrections',
-              choices = shinyWidgets::create_tree(
-                data.frame(
-                  Step = c( "By Animal Corrections", "By Animal Corrections"),
-                  Error = c("replace duration outliers", "replace intake outliers"),
-                  stringsAsFactors = FALSE
-                ),
-                levels = c('Step', 'Error')
-              )
-            ),
-
-            actionButton(ns('recalculate_values'), label = "Prepare Final Data", class = "btn-lg btn-success")
-
-
-          ),
+          # gridlayout:: grid_card(
+          #   area = "user_input",
+          #   wrapper = function(x) bslib::card_body(x, fill=FALSE, fillable=TRUE, class = "align-items-top"),
+          #   br()
+          #   # h3("Downloads:"),
+          #   # p("Select which outliers from 'By Animal' should be replaced in the final data.
+          #   #   The previously selected 'By Bin' corrections are also displayed below.
+          #   #   Click 'Prepare Final Data' will calculate 'final' values in the simplified table for download, but all possible combinations of corrections are available in the full data."),
+          #   #
+          #   # htmlOutput(ns('display_bybin_cols'), inline = TRUE),
+          #   #
+          #   # shinyWidgets::treeInput(
+          #   #   inputId = ns('selected_error_types_by_animal'),
+          #   #   label = NULL,
+          #   #   returnValue = 'text',
+          #   #   selected = 'By Animal Corrections',
+          #   #   choices = shinyWidgets::create_tree(
+          #   #     data.frame(
+          #   #       Step = c( "By Animal Corrections", "By Animal Corrections"),
+          #   #       Error = c("replace duration outliers", "replace intake outliers"),
+          #   #       stringsAsFactors = FALSE
+          #   #     ),
+          #   #     levels = c('Step', 'Error')
+          #   #   )
+          #   # ),
+          #   #
+          #   # actionButton(ns('recalculate_values'), label = "Prepare Final Data", class = "btn-lg btn-success")
+          #
+          #
+          # ),
 
 
 
@@ -70,23 +70,57 @@ mod_final_summary_ui <- function(id){
 
           gridlayout::grid_card(
             area = "Display",
-            wrapper = bslib::card_body(class = "p-0", fillable = TRUE, fill = TRUE), # this removes the padding around edges
-            full_screen = TRUE,
+            wrapper = bslib::card_body(class = "p-0", fillable = TRUE, fill = TRUE, padding = 0), # this removes the padding around edges
+            full_screen = FALSE,
+            bslib::layout_sidebar(
+              padding = '3px',
+              sidebar = bslib::sidebar(
+                id = ns('final_summary_sidebar'),
+                width = 280, open = TRUE, padding = 10,
 
-            bslib::navset_card_pill( # a card with nav tabs:
-              id = ns('display_tabs'), #used for input$ to see active tab
+                h3("Downloads:"),
+                p("Select which outliers from 'By Animal' should be replaced in the final data.
+                The previously selected 'By Bin' corrections are also displayed below.
+                Click 'Prepare Final Data' will calculate 'final' values in the simplified table for download, but all possible combinations of corrections are available in the full data."),
 
-              bslib::nav_panel(
-                title = "Download - all events",
-                value = "full_download", #for accessing input$ details
-                bslib::card_title("Cleaned data"),
-                p(
-                  "The final datasets is available for download using the buttons below."),
-                p("The simplified version
+                htmlOutput(ns('display_bybin_cols'), inline = TRUE),
+
+                shinyWidgets::treeInput(
+                  inputId = ns('selected_error_types_by_animal'),
+                  label = NULL,
+                  returnValue = 'text',
+                  selected = 'By Animal Corrections',
+                  choices = shinyWidgets::create_tree(
+                    data.frame(
+                      Step = c( "By Animal Corrections", "By Animal Corrections"),
+                      Error = c("replace duration outliers", "replace intake outliers"),
+                      stringsAsFactors = FALSE
+                    ),
+                    levels = c('Step', 'Error')
+                  )
+                ),
+
+                actionButton(ns('recalculate_values'), label = "Prepare Final Data", class = "btn-lg btn-success")
+
+
+              ),
+              bslib::navset_card_tab( # a card with nav tabs:
+                id = ns('display_tabs'), #used for input$ to see active tab
+                # ############
+                # # Shared Sidebar
+                # ############
+
+                bslib::nav_panel(
+                  title = "Download - all events",
+                  value = "full_download", #for accessing input$ details
+                  bslib::card_title("Cleaned data"),
+                  p(
+                    "The final datasets is available for download using the buttons below."),
+                  p("The simplified version
                       gives the minimum information to differentiate each event and
                       uses the cleaned/modified durations (sec) and intakes (as-fed
                       kg) as selected."),
-                p("The full data frame can also be downloaded, including all
+                  p("The full data frame can also be downloaded, including all
                       columns added throughout the cleaning (except the copies of
                       previous and next row data). This would be particularly useful
                       for examining the different errors that are flagged and setting
@@ -94,42 +128,43 @@ mod_final_summary_ui <- function(id){
                       code can also be modified directly, allowing users to run
                       modified versions of this dashboard."),
 
-                shinyWidgets::radioGroupButtons(
-                  inputId = ns("download_filetype_selection"),
-                  label = "Select format for downloads:",
-                  individual = TRUE,
-                  choices = c(".rds", ".csv", ".txt"),
-                  selected = ".csv",
-                  status = "success" # equive to  class = 'btn-success'
+                  shinyWidgets::radioGroupButtons(
+                    inputId = ns("download_filetype_selection"),
+                    label = "Select format for downloads:",
+                    individual = TRUE,
+                    choices = c(".rds", ".csv", ".txt"),
+                    selected = ".csv",
+                    status = "success" # equive to  class = 'btn-success'
+                  ),
+                  br(),
+
+                  downloadButton(ns("download_simplified"), "Cleaned data - simplified", class = 'btn-info btn-fixed-size-summary'),
+                  downloadButton(ns("download_full"), "Cleaned data - all columns", class = 'btn-info btn-fixed-size-summary'),
+
+                  em("Summarised data is available to view and download in the other tabs on this page."),
+
+                  strong("Preview of simplified and full data structure (after clicking 'calculate final values'):"),
+                  verbatimTextOutput(outputId = ns('glimpse_out'), placeholder = TRUE),
                 ),
-                br(),
 
-                downloadButton(ns("download_simplified"), "Cleaned data - simplified", class = 'btn-info btn-fixed-size-summary'),
-                downloadButton(ns("download_full"), "Cleaned data - all columns", class = 'btn-info btn-fixed-size-summary'),
 
-                em("Summarised data is available to view and download in the other tabs on this page."),
-
-                strong("Preview of simplified and full data structure (after clicking 'calculate final values'):"),
-                verbatimTextOutput(outputId = ns('glimpse_out'), placeholder = TRUE),
-              ),
-
-              bslib::nav_panel(
-                title = "Logs",
-                value = 'logs',
-                bslib::card_title("Logs"),
-                p("
+                bslib::nav_panel(
+                  title = "Logs",
+                  value = 'logs',
+                  bslib::card_title("Logs"),
+                  p("
                       It is recommended that the log files are downloaded with the data. These will be especially useful for reporting the proportion of data that is removed before downstream analyses and publications.
                       "),
-                downloadButton(ns('download_logs'), label = 'Log files (as single .txt file)', class = 'btn-info btn-fixed-size-summary'),
-                br(),
-                strong("Log for 'calculate final values':"),
-                verbatimTextOutput(ns("final_log"), placeholder = TRUE)
-              ),
-
-              bslib::nav_panel(
-                title = 'All daily intakes',
-                bslib::card_title("Summarised Data"),
-                p("
+                  downloadButton(ns('download_logs'), label = 'Log files (as single .txt file)', class = 'btn-info btn-fixed-size-summary'),
+                  br(),
+                  strong("Log for 'calculate final values':"),
+                  verbatimTextOutput(ns("final_log"), placeholder = TRUE)
+                ),
+                bslib::nav_spacer(),
+                bslib::nav_panel(
+                  title = 'All daily intakes',
+                  bslib::card_title("Summarised Data"),
+                  p("
               These summary tabs have a table that has download buttons at the
               top that will copy to clipboard or download as a CSV or Excel
               file. It is common to calculate a daily feed intake for each
@@ -165,14 +200,14 @@ mod_final_summary_ui <- function(id){
                   shinycssloaders::withSpinner(type=7),
 
               ),
-#
+              #
               bslib::card(
                 full_screen = TRUE,
                 min_height = '500px',
                 DT::DTOutput(ns('daily_intake_table')) %>%  shinycssloaders::withSpinner(type=7)
 
               )
-              ),
+                ),
 
               bslib::nav_panel(
                 title = 'Individual daily intakes',
@@ -207,28 +242,92 @@ mod_final_summary_ui <- function(id){
                 )
               ),
 
-              bslib::nav_panel(
-                title = 'Rate of intake',
-                bslib::card_title("Mean rate of intake across all events for each animal"),
-                # br(),
-                bslib::card(
-                  shiny::plotOutput(outputId = ns('rate_histogram'), height = '350px') %>%  shinycssloaders::withSpinner(type=7),
-                  # br(),
-                  DT::DTOutput(ns('intake_rate_table')) %>%  shinycssloaders::withSpinner(type=7)
-                )
-              ),
+              # bslib::nav_panel(
+              #   title = 'Rate of intake',
+              #   bslib::card_title("Mean rate of intake across all events for each animal"),
+              #   # br(),
+              #   bslib::card(
+              #     shiny::plotOutput(outputId = ns('rate_histogram'), height = '350px') %>%  shinycssloaders::withSpinner(type=7),
+              #     # br(),
+              #     DT::DTOutput(ns('intake_rate_table')) %>%  shinycssloaders::withSpinner(type=7)
+              #   )
+              # ),
+              #
+              # bslib::nav_panel(
+              #   title = 'Feed Duration',
+              #   bslib::card_title("Mean feed duration across all events for each animal"),
+              #   # br(),
+              #   bslib::card(
+              #     shiny::plotOutput(outputId = ns('duration_histogram'), height = '350px') %>%  shinycssloaders::withSpinner(type=7),
+              #     br(),
+              #     DT::DTOutput(ns('duration_table')) %>%  shinycssloaders::withSpinner(type=7)
+              #   )
+              # ),
 
+              ########################################################
+              bslib::nav_spacer(),
               bslib::nav_panel(
-                title = 'Feed Duration',
-                bslib::card_title("Mean feed duration across all events for each animal"),
-                # br(),
-                bslib::card(
-                  shiny::plotOutput(outputId = ns('duration_histogram'), height = '350px') %>%  shinycssloaders::withSpinner(type=7),
-                  br(),
-                  DT::DTOutput(ns('duration_table')) %>%  shinycssloaders::withSpinner(type=7)
+                title = 'Feeding Behaviour',
+
+                bslib::card_body(
+                  class = "p-0",
+                  fillable = TRUE, # CHECK
+                  fill = TRUE,
+
+                  div(id = "feeding-behaviour-navset", # this links to custom CSS
+
+                      bslib::navset_card_pill( # a card with nav tabs:
+                        id = ns('behaviour-navset'), #used for input$ to see active tab
+                        full_screen = TRUE,
+                        bslib::nav_panel(
+                          title = "Intro",
+                          value = "display_intro", #for accessing input$ details
+                          # bslib::card_title(""),
+                          em("Hover mouse over bottom right of screen to show button to expand view. Use Esc or click Close to return to normal screen."),
+
+                          h4("1. Click button to calculate"),
+                          em("Must 'Prepare Final Data' in sidebar first."),
+                          shiny::numericInput(ns('meal_criterion_min'), label = 'Meal Criterion (min) - How many minutes between feeding events before next meal is defined?', value = 5, min = 0, step = 1),
+                          actionButton(ns("execute_behaviour_analysis"), "Execute Behaviour Analysis", class = " btn-success btn-fixed-size-summary"),
+
+                          h4("2. View & Download"),
+                          p("View data in subsequent tabs and use buttons below to download data."),
+                          shinyWidgets::radioGroupButtons(
+                            inputId = ns("download_filetype_selection_behaviour"),
+                            label = "Select format for downloads:",
+                            individual = TRUE,
+                            choices = c(".rds", ".csv", ".txt"),
+                            selected = ".csv",
+                            status = "success"
+                          ),
+
+                          downloadButton(ns("download_daily"), "Daily Behaviours", class = 'btn-info btn-fixed-size-summary'),
+                          downloadButton(ns("download_weekly"), "Weekly Behaviours", class = 'btn-info btn-fixed-size-summary'),
+                          downloadButton(ns("download_raw_meals"), "Individual Meals", class = 'btn-info btn-fixed-size-summary'),
+                        ),
+
+
+                        bslib::nav_panel(
+                          title = "Daily",
+                          value = "display_table_daily", #for accessing input$ details
+                          bslib::card_title("Feeding Behaviours grouped by animal and day"),
+                          DT::DTOutput(ns('daily_behaviour_DT')) %>%  shinycssloaders::withSpinner(type=7)
+                        ),
+                        bslib::nav_panel(
+                          title = "Weekly",
+                          value = "display_table_weekly", #for accessing input$ details
+                          bslib::card_title("Feeding Behaviours grouped by animal and week"),
+                          DT::DTOutput(ns('weekly_behaviour_DT')) %>%  shinycssloaders::withSpinner(type=7)
+                        )
+                      )
+                  )
                 )
+
+              )
+              ########################################################
               )
             )
+
           )
         )
     )
@@ -403,6 +502,10 @@ mod_final_summary_server <- function(id, df_list_bybin, df_list_byanimal){
 
       # Finish Log ----
       logr::log_close()
+      shinybusy::notify_success("Final Data Prepared", position = 'right-bottom')
+
+      # close side bar
+      bslib::toggle_sidebar(id = 'final_summary_sidebar')
 
       return(list(
         df = df_out  %>%  dplyr::select( !tidyselect::starts_with(c("prev", "next"))),
@@ -463,6 +566,17 @@ mod_final_summary_server <- function(id, df_list_bybin, df_list_byanimal){
     ################################# #
     # Download data ----
     ################################# #
+
+    .f_download_filetype_helper <- function(file, df){
+      # save:
+      if(input$download_filetype_selection_behaviour == '.rds'){
+        saveRDS(df, file = file)
+
+      } else if(input$download_filetype_selection_behaviour %in% c('.csv', '.txt')){
+        data.table::fwrite(df, file = file)
+      }
+    }
+
     # Hide download buttons until after button pressed
     observe({
       shinyjs::toggleState("download_simplified", condition = input$recalculate_values > 0)
@@ -478,17 +592,7 @@ mod_final_summary_server <- function(id, df_list_bybin, df_list_byanimal){
                input$download_filetype_selection)
       },
       content = function(file) {
-
-        df_simplified <- simplified_final_df()
-
-        # save:
-        if(input$download_filetype_selection == '.rds'){
-          saveRDS(df_simplified, file = file)
-
-        } else if(input$download_filetype_selection %in% c('.csv', '.txt')){
-          data.table::fwrite(df_simplified, file = file)
-        }
-
+        .f_download_filetype_helper(simplified_final_df())
       }
     )
 
@@ -500,15 +604,7 @@ mod_final_summary_server <- function(id, df_list_bybin, df_list_byanimal){
                input$download_filetype_selection)
       },
       content = function(file) {
-
-        # save:
-        if(input$download_filetype_selection == '.rds'){
-          saveRDS(final_data_full()$df, file = file)
-
-        } else if(input$download_filetype_selection %in% c('.csv', '.txt')){
-          data.table::fwrite(final_data_full()$df, file = file)
-        }
-
+        .f_download_filetype_helper(final_data_full()$df)
       }
     )
 
@@ -622,82 +718,202 @@ mod_final_summary_server <- function(id, df_list_bybin, df_list_byanimal){
     }) %>% bindEvent(input$generate_ind_plot, ignoreNULL=FALSE)
 
 
+     ################################# #
+    # Feeding Behaviour ----
+    ################################# #
+    individual_meals <-
+      reactive({
+        shinybusy::show_modal_spinner(spin = 'orbit', text =  "Calculating Behaviour Metrics...")
 
+        f_combined_meal_analysis(
+          df_in = final_data_full()$df,
+          meal_interval_criteria_min = input$meal_criterion_min,
+        )
+      }) %>% bindEvent(input$execute_behaviour_analysis)
+
+    daily_behaviour <-
+      reactive({
+        daily_summary <- f_behaviour_daily_summary(
+          df_in = final_data_full()$df
+        )
+
+        daily_meal_summary <- f_daily_meal_summaries(
+          df_in = individual_meals()
+          )
+
+        combined_daily_summary <- f_final_daily_summary(
+          daily_summary,
+          daily_meal_summary
+        ) %>%
+          dplyr::mutate(animal_id = as.factor(.data$animal_id))
+        return(combined_daily_summary)
+      }) %>% bindEvent(input$execute_behaviour_analysis)
+
+    weekly_behaviour <-
+      reactive({
+        df_out <- f_behaviour_summary_weekly(
+          daily_behaviour()
+        )
+
+        shinybusy::remove_modal_spinner()
+        shinybusy::notify_success("Behaviours Calculated", position = 'right-bottom')
+
+        return(df_out)
+      }) %>% bindEvent(input$execute_behaviour_analysis)
+
+    # observe to force execution
+    observe({
+      individual_meals()
+      daily_behaviour()
+      weekly_behaviour()
+    })
+
+
+    # Render Tables
+    output$daily_behaviour_DT <- DT::renderDT({
+      daily_behaviour() %>%
+        dplyr::mutate(dplyr::across(tidyselect::where(is.numeric), ~signif(.x, 3))) %>%
+        fct_DT_pages(pageLength = 20, scrollY = 400)
+    })
+
+    output$weekly_behaviour_DT <- DT::renderDT({
+      weekly_behaviour() %>%
+        dplyr::mutate(dplyr::across(tidyselect::where(is.numeric), ~signif(.x, 3))) %>%
+        fct_DT_pages(pageLength = 20, scrollY = 400)
+    })
+
+
+    # disable button until available
+    observe({
+      shinyjs::disable(id = 'execute_behaviour_analysis')
+
+      if(tibble::is_tibble(final_data_full()$df)){
+        shinyjs::enable(id = 'execute_behaviour_analysis')
+      }
+    })
+
+
+
+
+    ################################# #
+    # Download Behaviour data ----
+    ################################# #
+    # Hide download buttons until after button pressed
+    # Hide download buttons until after cleaning
+    observe({
+      shinyjs::toggleState("download_daily", condition = input$execute_behaviour_analysis > 0)
+      shinyjs::toggleState("download_weekly", condition = input$execute_behaviour_analysis > 0)
+      shinyjs::toggleState("download_raw_meals", condition = input$execute_behaviour_analysis > 0)
+    })
+
+
+    # Daily
+    output$download_daily <- downloadHandler(
+      filename = function() {
+        paste0("daily_behaviours_", format(Sys.time(), "%Y%m%d_%H%M%S"),
+               input$download_filetype_selection_behaviour)
+      },
+      content = function(file) {
+        .f_download_filetype_helper(file, daily_behaviour())
+      }
+    )
+
+    # Weekly
+    output$download_weekly <- downloadHandler(
+      filename = function() {
+        paste0("weekly_behaviours_", format(Sys.time(), "%Y%m%d_%H%M%S"),
+               input$download_filetype_selection_behaviour)
+      },
+      content = function(file) {
+        .f_download_filetype_helper(file, weekly_behaviour())
+      }
+    )
+
+    # Raw meals
+    output$download_raw_meals <- downloadHandler(
+      filename = function() {
+        paste0("individual_meal_behaviours_", format(Sys.time(), "%Y%m%d_%H%M%S"),
+               input$download_filetype_selection_behaviour)
+      },
+      content = function(file) {
+        .f_download_filetype_helper(file, individual_meals())
+      }
+    )
 
 
     ################################# #
     # Rate of intake  ----
     ################################# #
-
-    summary_table <-  reactive({
-      final_data_full()$df %>%
-        dplyr::mutate(
-          instaneous_rate_of_intake_kg_sec_ = .data$selected_final_intake_kg / .data$selected_final_duration_sec
-        ) %>%
-        dplyr::group_by(.data$animal_id) %>%
-        dplyr::summarise(instaneous_rate_of_intake_kg_sec = mean(.data$instaneous_rate_of_intake_kg_sec_ , na.rm=TRUE),
-                         selected_final_duration_sec = mean(.data$selected_final_duration_sec, na.rm=TRUE)) %>%
-        dplyr::mutate(instaneous_rate_of_intake_g_min = .data$instaneous_rate_of_intake_kg_sec*1000*60 %>% round(2),
-                      selected_final_duration_min = .data$selected_final_duration_sec/60 %>% round(2))
-    })
-
-
-    output$rate_histogram <- renderPlot({
-      req(!is.null(df_list_byanimal()))
-
-      mean_rate <- summary_table()$instaneous_rate_of_intake_g_min %>%
-        mean(na.rm=TRUE) %>%
-        round(2)
-
-      summary_table() %>%
-        ggplot2::ggplot(aes(x = .data$instaneous_rate_of_intake_g_min)) +
-        ggplot2::geom_histogram(bins = 50, fill ='darkgreen',colour = 'grey') +  # Themes, text size = 12 and black
-        ggplot2::geom_vline(aes(xintercept = mean_rate))+
-        ggplot2::geom_label(aes(x = mean_rate, y = 3, label = paste('mean:', mean_rate)))+
-        ggplot2::theme_classic(base_size = 16) +
-        ggplot2::theme(axis.text = ggplot2::element_text(colour = 'black')) +
-        ggplot2::scale_x_continuous(n.breaks = 10)
-    })
-
-
-    output$intake_rate_table <- DT::renderDT({
-      summary_table() %>%
-        dplyr::select('animal_id', 'instaneous_rate_of_intake_g_min') %>%
-        dplyr::mutate(instaneous_rate_of_intake_g_min = .data$instaneous_rate_of_intake_g_min %>% round(1)) %>%
-        dplyr::arrange(dplyr::desc(.data$instaneous_rate_of_intake_g_min)) %>%
-        fct_DT_nopages(scrollY = 300)
-    })
+#
+#     summary_table <-  reactive({
+#       final_data_full()$df %>%
+#         dplyr::mutate(
+#           instaneous_rate_of_intake_kg_sec_ = .data$selected_final_intake_kg / .data$selected_final_duration_sec
+#         ) %>%
+#         dplyr::group_by(.data$animal_id) %>%
+#         dplyr::summarise(instaneous_rate_of_intake_kg_sec = mean(.data$instaneous_rate_of_intake_kg_sec_ , na.rm=TRUE),
+#                          selected_final_duration_sec = mean(.data$selected_final_duration_sec, na.rm=TRUE)) %>%
+#         dplyr::mutate(instaneous_rate_of_intake_g_min = .data$instaneous_rate_of_intake_kg_sec*1000*60 %>% round(2),
+#                       selected_final_duration_min = .data$selected_final_duration_sec/60 %>% round(2))
+#     })
+#
+#
+#     output$rate_histogram <- renderPlot({
+#       req(!is.null(df_list_byanimal()))
+#
+#       mean_rate <- summary_table()$instaneous_rate_of_intake_g_min %>%
+#         mean(na.rm=TRUE) %>%
+#         round(2)
+#
+#       summary_table() %>%
+#         ggplot2::ggplot(aes(x = .data$instaneous_rate_of_intake_g_min)) +
+#         ggplot2::geom_histogram(bins = 50, fill ='darkgreen',colour = 'grey') +  # Themes, text size = 12 and black
+#         ggplot2::geom_vline(aes(xintercept = mean_rate))+
+#         ggplot2::geom_label(aes(x = mean_rate, y = 3, label = paste('mean:', mean_rate)))+
+#         ggplot2::theme_classic(base_size = 16) +
+#         ggplot2::theme(axis.text = ggplot2::element_text(colour = 'black')) +
+#         ggplot2::scale_x_continuous(n.breaks = 10)
+#     })
+#
+#
+#     output$intake_rate_table <- DT::renderDT({
+#       summary_table() %>%
+#         dplyr::select('animal_id', 'instaneous_rate_of_intake_g_min') %>%
+#         dplyr::mutate(instaneous_rate_of_intake_g_min = .data$instaneous_rate_of_intake_g_min %>% round(1)) %>%
+#         dplyr::arrange(dplyr::desc(.data$instaneous_rate_of_intake_g_min)) %>%
+#         fct_DT_nopages(scrollY = 300)
+#     })
 
     ################################# #
     # Duration summary  ----
     # similar functions with user selection?
     ################################# #
-
-    output$duration_histogram <- renderPlot({
-      req(!is.null(df_list_byanimal()))
-
-      mean_duration <- summary_table()$selected_final_duration_min %>%
-        mean(na.rm=TRUE) %>%
-        round(2)
-
-      summary_table() %>%
-        ggplot2::ggplot(aes(x = .data$selected_final_duration_min)) +
-        ggplot2::geom_histogram(bins = 50, fill ='darkgreen',colour = 'grey') +  # Themes, text size = 12 and black
-        ggplot2::geom_vline(aes(xintercept = mean_duration))+
-        ggplot2::geom_label(aes(x = mean_duration, y = 3, label = paste('mean:', mean_duration)))+
-        ggplot2::theme_classic(base_size = 16) +
-        ggplot2::theme(axis.text = ggplot2::element_text(colour = 'black')) +
-        ggplot2::scale_x_continuous(n.breaks = 10)
-    })
-
-
-    output$duration_table <- DT::renderDT({
-      summary_table() %>%
-        dplyr::select('animal_id', 'selected_final_duration_min') %>%
-        dplyr::mutate(selected_final_duration_min = .data$selected_final_duration_min %>% round(2)) %>%
-        dplyr::arrange(dplyr::desc(.data$selected_final_duration_min)) %>%
-        fct_DT_nopages(scrollY = 300)
-    })
+#
+#     output$duration_histogram <- renderPlot({
+#       req(!is.null(df_list_byanimal()))
+#
+#       mean_duration <- summary_table()$selected_final_duration_min %>%
+#         mean(na.rm=TRUE) %>%
+#         round(2)
+#
+#       summary_table() %>%
+#         ggplot2::ggplot(aes(x = .data$selected_final_duration_min)) +
+#         ggplot2::geom_histogram(bins = 50, fill ='darkgreen',colour = 'grey') +  # Themes, text size = 12 and black
+#         ggplot2::geom_vline(aes(xintercept = mean_duration))+
+#         ggplot2::geom_label(aes(x = mean_duration, y = 3, label = paste('mean:', mean_duration)))+
+#         ggplot2::theme_classic(base_size = 16) +
+#         ggplot2::theme(axis.text = ggplot2::element_text(colour = 'black')) +
+#         ggplot2::scale_x_continuous(n.breaks = 10)
+#     })
+#
+#
+#     output$duration_table <- DT::renderDT({
+#       summary_table() %>%
+#         dplyr::select('animal_id', 'selected_final_duration_min') %>%
+#         dplyr::mutate(selected_final_duration_min = .data$selected_final_duration_min %>% round(2)) %>%
+#         dplyr::arrange(dplyr::desc(.data$selected_final_duration_min)) %>%
+#         fct_DT_nopages(scrollY = 300)
+#     })
 
 
   })
