@@ -29,7 +29,6 @@ mod_welcome_ui <- function(id){
             wrapper = function(x) bslib::card_body(x, fillable = FALSE, fill = TRUE),
             # Set page background color
             tags$style(type="text/css", "body {background-color: #f2f2f2;}"),
-
             # Page title and subtitle
             h2("Welcome to IntakeInspectR"),
 

@@ -156,7 +156,6 @@ mod_by_animal_clean_ui <- function(id){
 
             bslib::navset_card_pill( # a card with nav tabs:
               id = ns('display_tabs'), #used for input$ to see active tab
-
               bslib::nav_panel(
                 title = "Intro",
                 value = "display_intro", #for accessing input$ details

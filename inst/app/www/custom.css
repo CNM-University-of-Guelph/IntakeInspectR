@@ -48,3 +48,19 @@ h4 {
 .align-items-top {
   margin-top: 0px !important;
 }
+
+
+
+#feeding-behaviour-navset .card-header {
+    background-color: #87CEEB;
+}
+
+#feeding-behaviour-navset .nav-link.active {
+    background-color: #890119;
+    color: #FFFFFF;
+}
+
+#feeding-behaviour-navset .nav-link {
+    color: #333333;
+}
+
