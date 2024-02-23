@@ -2,6 +2,7 @@
 
 * Removed grouping of date for `By Bin` functions - it is not necessary because all events are arranged in chronological order with start_time (which also has the date included). This makes execution significantly faster for large data. The `col_date` arguments were deprecated, so old code will still work (ignoring the provided column name).
 * Added requirement for functions in Shiny to wait for the uploaded file, as occasional glitch where data hadn't loaded before other functions tried to access it.
+* Added feeding behaviour analysis, with new UI for final summary page (collapsing sidebar). Outputs may need tweaking, and room for visualisation of behaviour data is warranted. 
 
 # IntakeInspectR 2.1.4
 

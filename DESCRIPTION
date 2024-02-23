@@ -1,7 +1,7 @@
 Package: IntakeInspectR
 Title: Data cleaning and visualisation for automatically collected feed
     intake data
-Version: 2.1.4.9000
+Version: 2.1.4.9001
 Authors@R: 
     person("Dave", "Innes", , "innesd@uoguelph.ca", role = c("cre", "aut"))
 Description: A set of tools to help researchers clean their raw feed
