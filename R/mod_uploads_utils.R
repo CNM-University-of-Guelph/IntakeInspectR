@@ -288,59 +288,51 @@ fct_get_dates_min_max <- function(df_in){
 #'
 #' @param content a list of html to parse to modalDialog function
 #' @param title The title of the modal
+#' @param size A string to match size from `shiny::modalDialog()`. Default 'l'
 #'
 #' @return NULL - used for side effects
 #' @noRd
-fct_show_custom_modal <- function(content, title=NULL) {
+fct_show_custom_modal <- function(content, title=NULL, size = 'l') {
   showModal(modalDialog(
     content,
     title = title,
-    size = "l",
+    size = size,
     easyClose = TRUE,
     footer = modalButton("Ok")
   ))
 }
 
 
-# #' Function to store text for 'more info' button for mod_uploads.R
-# #' Normally parsed to fct_show_custom_modal()
-# #'
-# #' @return a list of HTML
-# #' @noRd
-# fct_modal_content_uploads_more_info <- function() {
-#   html <- list(
-#     #h4("More about the data"),
-#     p(
-#       "The Insentec Roughage Intake Control (RIC) System is one type
-#                  of system used by livestock researchers. This system consists of
-#                  feed bins which are suspended on load cells that constantly
-#                  measure the weight of the bin and the feed inside it. When a animal
-#                  visits the feed bin, a RFID reader checks the animal's ear tag,
-#                  determines if it is allowed access and opens a gate (on some
-#                  models) and records the starting time and weight of the feed bin
-#                  of the feeding event. The system uses 2 lasers to determine if
-#                  the animal's head is still over the feed bin, and once it detects
-#                  that the animal has left it will record the end time and weight.
-#                  This 'event' corresponds to 1 row of data in the database. This
-#                  data can be messy and researchers often do not have the ability to
-#                  easily visualise all of these individual events before
-#                  calculating mean daily feed intake values.\n\nThis dashboard allows
-#                  you to upload raw data from the insentec feed
-#                  system in multiple flat file formats. The minimum information required is:
-#                  "),
-#     HTML("<ul>
-#                    <li> Animal ID </li>
-#                    <li> Feed Bin ID </li>
-#                    <li> Start Time (and date) </li>
-#                    <li> End Time (and date) </li>
-#                    <li> Start Weight </li>
-#                    <li> End Weight </li>
-#                  </ul>"),
-#     br(),
-#     p("For more information see Upload Instructions")
-#   )
-#   return(html)
-# }
+#' Function to store text for duplicated row modal
+#' Normally parsed to fct_show_custom_modal()
+#'
+#' @param duplicated_rows df of duplicates from fct_get_duplicates()
+#' @return a list of HTML
+#' @noRd
+fct_modal_content_duplicates <- function(duplicated_rows){
+  list(
+    p(
+        "There are ",
+        strong(nrow(duplicated_rows)),
+        " duplicated rows in uploaded file. Please remove and re-upload."
+    ),
+    p('Run this code in an R session to find duplicated rows, or preview beliew.'),
+
+    HTML('
+      <code>
+        df_uploaded %&gt;%<br>
+         dplyr::group_by(animal_id, bin_id, start_time, end_time, duration_sec, start_weight_kg, end_weight_kg, date
+         ) %&gt;%<br>
+         dplyr::count() %&gt;%<br>
+         dplyr::filter(n &gt; 1)
+      </code>'
+    ),
+
+    br(),br(),
+    p('Use ', code('dplyr::distinct()'),' to remove them.')
+  )
+}
+
 
 #' Function to store text for instructions for mod_uploads.R
 #' Normally parsed to fct_show_custom_modal()
@@ -450,106 +442,6 @@ fct_modal_content_uploads_instructions <- function() {
         </ul>")
     )
   )
-  #
-  #  list(
-  #   #h4("Instructions"),
-  #   p("Either .DAT, .CSV or .TXT files can be uploaded.
-  #     Multiple files will be joined together automatically.
-  #     See detailed instructions for each file type below."),
-  #   br(),
-  #
-  #   strong(".DAT Files"),
-  #   br(),
-  #   p("When uploading .DAT files, please note that they are specific to the
-  #     Insentec (RIC) system and therefore these should not have column names.
-  #     However, the columns should be in the following order, as they will be
-  #     assigned the following column names (only these first 10 columns will be imported):"),
-  #
-  #   HTML(paste("<ul>",
-  #              paste("<li>",
-  #                    c('transponder_id', 'animal_id', 'bin_id', 'start_time',
-  #                      'end_time', 'duration_sec', 'start_weight_kg', 'end_weight_kg',
-  #                      'diet', 'intake'
-  #                    ), "</li>", sep = "", collapse = ""),
-  #              "</ul>", sep = "")),
-  #   br(),
-  #   p("In addition, the file names for .DAT files must include the date as 6 digits in the format YYMMDD,
-  #     and no other numbers should be in the file name, e.g. `VR220428.DAT`. This is the only way the Insentec system records the date for the files."),
-  #
-  #   strong(".CSV and .TXT Files"),
-  #   br(),
-  #   p("When uploading .CSV and .TXT files they can be delimited by commas, spaces, tabs, or any other delimiter that is
-  #     accepted by", tags$code(a(href = "https://rdatatable.gitlab.io/data.table/reference/fread.html",
-  #                               target="_blank",
-  #                               "data.table::fread(...,sep='auto')")),
-  #     ". These files must also include the same column names for each file and be
-  #     in the same order for each file uploaded simultaneously. The following column
-  #     names are required (in any order):"),
-  #
-  #   HTML(paste("<ul>",
-  #              paste("<li>",
-  #                    c('animal_id', 'bin_id', 'start_time',
-  #                      'end_time', 'duration_sec', 'start_weight_kg', 'end_weight_kg',
-  #                      'date'
-  #                    ), "</li>", sep = "", collapse = ""),
-  #              "</ul>", sep = "")),
-  #   p("
-  #     If a file is uploaded with incorrect names a warning will be shown. You
-  #     can then use the 'Advanced: Custom column names' drop down box to rename
-  #     the columns that were uploaded to the required column names.
-  #     "),
-  #
-  #   p("Currently the date must be provided separately from the start_time and end_time. The date
-  #     should be in a format that can be parsed to",
-  #     tags$code(a(href="https://lubridate.tidyverse.org/reference/ymd.html",
-  #                 target="_blank",
-  #                 "lubridate::ymd()")),
-  #     " (e.g. '2022-04-28' or '220428').
-  #     The start_time and end_time should be in a format that can be parsed to",
-  #     tags$code(a(href="https://lubridate.tidyverse.org/reference/hms.html",
-  #                 target = "_blank",
-  #                 "lubridate::hms()."))
-  #     ),
-  #
-  #   p("If using .csv or .txt files you can upload additional columns beyond the required ones and they will
-  #     be retained throughout analysis. If there is an `intake` column among the
-  #     additional columns, it will be ignored as intake is always calculated based on
-  #     the provided `start_weight_kg` and `end_weight_kg` columns."),
-  #
-  #   strong("Filtering feed bin and animal IDs"),
-  #   br(),
-  #   p("After uploading the files, use the provided controls to filter the data
-  #     by dates, feed bin IDs, and animal IDs. However, please ensure that all data
-  #     for a feed bin is included. If you filter the data to include only some
-  #     animals, but other animals also used the same feed bin, the cleaning process may not work as expected."),
-  #
-  #   p(
-  #     "The Insentec Roughage Intake Control (RIC) System is one type
-  #                of system used by livestock researchers. This system consists of
-  #                feed bins which are suspended on load cells that constantly
-  #                measure the weight of the bin and the feed inside it. When a animal
-  #                visits the feed bin, a RFID reader checks the animal's ear tag,
-  #                determines if it is allowed access and opens a gate (on some
-  #                models) and records the starting time and weight of the feed bin
-  #                of the feeding event. The system uses 2 lasers to determine if
-  #                the animal's head is still over the feed bin, and once it detects
-  #                that the animal has left it will record the end time and weight.
-  #                This 'event' corresponds to 1 row of data in the database. This
-  #                data can be messy and researchers often do not have the ability to
-  #                easily visualise all of these individual events before
-  #                calculating mean daily feed intake values.\n\nThis dashboard allows
-  #                you to upload raw data from the insentec feed
-  #                system in multiple flat file formats. The minimum information required is:
-  #                "),
-  #   HTML("<ul>
-  #                  <li> Animal ID </li>
-  #                  <li> Feed Bin ID </li>
-  #                  <li> Start Time (and date) </li>
-  #                  <li> End Time (and date) </li>
-  #                  <li> Start Weight </li>
-  #                  <li> End Weight </li>
-  #                </ul>")
-  # )
 }
 
 ##############################################################################
@@ -618,7 +510,85 @@ fct_animal_icon <- function(col){
      )
   }
 
+ #' Get duplicated rows
+ #'
+ #' Groups by all requried column names, and returns all rows with duplicated values to warn user.
+ #'
+ #' @param df_in Data to check, normally just uploaded
+ #'
+ #' @return a grouped df of duplicates
+ #' @noRd
+ fct_get_duplicates <- function(df_in){
 
 
+   # Assuming df_in is your data frame and req_cols are the columns you're interested in
+   req_cols <- c('animal_id', 'bin_id', 'start_time',
+                 'end_time', 'duration_sec', 'start_weight_kg', 'end_weight_kg',
+                 'date')
+
+   # Mark rows as duplicated (including the first occurrence)
+   df_in_sub <- df_in %>%
+     dplyr::select(tidyselect::all_of(req_cols)) %>%
+     dplyr::mutate(is_duplicated = duplicated(.) #| duplicated(., fromLast = TRUE)
+                   )
+
+   # Filter to get only duplicated rows based on the selected columns
+   duplicated_rows <- df_in_sub %>%
+     dplyr::filter(is_duplicated)
+
+   # req_cols <- c('animal_id', 'bin_id', 'start_time',
+   #               'end_time', 'duration_sec', 'start_weight_kg', 'end_weight_kg',
+   #               'date')
+#
+#    df_in_sub <- df_in %>%
+#      dplyr::select(tidyselect::all_of(req_cols))
+#
+#    df_distinct <-  df_in_sub %>% dplyr::distinct()
+#
+#    duplicated_rows <-
+
+
+   #
+   # duplicated_rows <-
+   #   df_in %>%
+   #   dplyr::group_by(
+   #     .data$animal_id,
+   #     .data$bin_id,
+   #     .data$start_time,
+   #     .data$end_time,
+   #     .data$duration_sec,
+   #     .data$start_weight_kg,
+   #     .data$end_weight_kg,
+   #     .data$date
+   #   ) %>%
+   #   dplyr::count(sort = TRUE) %>%
+   #   dplyr::filter(.data$n > 1)
+
+   return(duplicated_rows)
+ }
+
+
+ #' Get count of non-duplicated rows
+ #'
+ #' Selects columns required and counts rows of unique rows (non duplicated)
+ #'
+ #' @param df_in Data to check, normally just uploaded
+ #'
+ #' @return a single number from dplyr::n_distinct()
+ #' @noRd
+ fct_nrow_no_duplicates <- function(df_in){
+   nrow <-
+     df_in %>%
+     dplyr::select(
+       tidyselect::all_of(
+         c('animal_id', 'bin_id', 'start_time',
+           'end_time', 'duration_sec', 'start_weight_kg', 'end_weight_kg',
+           'date')
+       )
+     ) %>%
+     dplyr::n_distinct()
+
+   return(nrow)
+ }
 
 
