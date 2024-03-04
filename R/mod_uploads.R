@@ -274,6 +274,23 @@ mod_uploads_server <- function(id){
         df_out <- df_out %>%
           dplyr::mutate(dplyr::across(tidyselect::where(is.numeric), ~ as.double(.x)))
 
+
+        ###########################################################
+        # Check for duplicates
+        is_duplicates <- nrow(df_out) >  fct_nrow_no_duplicates(df_out)
+        if (is_duplicates){
+          print('DEV: Duplicated rows detected:')
+          duplicated_rows <- fct_get_duplicates(df_out)
+          output$duplicated_rows_df <- DT::renderDataTable({ duplicated_rows })
+
+          fct_show_custom_modal(
+            c(fct_modal_content_duplicates(duplicated_rows),
+              DT::dataTableOutput(ns("duplicated_rows_df"))),
+            title = "Duplicate Rows Detected!",
+            size = 'xl'
+            )
+        }
+
         shinybusy::remove_modal_spinner()
 
         variable_out$current_df <- tibble::as_tibble(df_out)
@@ -287,9 +304,6 @@ mod_uploads_server <- function(id){
 
 
     })
-
-
-
 
 
     ###########################################################
