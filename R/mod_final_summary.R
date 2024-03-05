@@ -592,7 +592,7 @@ mod_final_summary_server <- function(id, df_list_bybin, df_list_byanimal){
                input$download_filetype_selection)
       },
       content = function(file) {
-        .f_download_filetype_helper(simplified_final_df())
+        .f_download_filetype_helper(file, simplified_final_df())
       }
     )
 
@@ -604,7 +604,7 @@ mod_final_summary_server <- function(id, df_list_bybin, df_list_byanimal){
                input$download_filetype_selection)
       },
       content = function(file) {
-        .f_download_filetype_helper(final_data_full()$df)
+        .f_download_filetype_helper(file, final_data_full()$df)
       }
     )
 
