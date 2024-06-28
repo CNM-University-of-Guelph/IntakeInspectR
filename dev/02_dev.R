@@ -17,6 +17,7 @@ golem::run_dev()
 
 # bump version
 usethis::use_version(which = 'patch')
+usethis::use_version(which = 'dev')
 
 # Save some data as demo data:
 # This is created by running python cleaning within this app and saving .rds
@@ -149,3 +150,5 @@ purrr::walk(list("DT", "MASS", "broom", "bslib", "dplyr", "dtplyr", "forcats",
          "ggiraph", "glue", "logr", "lubridate", "plotly", "purrr",
          "shinybusy", "shinycssloaders", "shinyjs", "stringr",
          "tibble", "tidyr", "tidyselect"), ~usethis::use_package(.x))
+
+usethis::use_package('shinyTime')

@@ -1,11 +1,12 @@
 # IntakeInspectR (development version)
 
+
 * Removed grouping of date for `By Bin` functions - it is not necessary because all events are arranged in chronological order with start_time (which also has the date included). This makes execution significantly faster for large data. The `col_date` arguments were deprecated, so old code will still work (ignoring the provided column name).
 * Added requirement for functions in Shiny to wait for the uploaded file, as occasional glitch where data hadn't loaded before other functions tried to access it.
 * Added feeding behaviour analysis, with new UI for final summary page (collapsing sidebar). Outputs may need tweaking, and room for visualisation of behaviour data is warranted. 
 * Added duplicate row detection on upload, showing number of duplicates, some code to reproduce in R and a table of duplicated rows in a modal. 
 
-# IntakeInspectR 2.1.4
+
 
 * Added better format for times in download files, added as extra columns called `start_time_simple` and `end_time_simple`. Easier to use with Excel, but kept original times for use with `.rds` files. The 'simplified' data on the download page now uses the new format. 
 

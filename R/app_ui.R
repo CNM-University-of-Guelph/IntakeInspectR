@@ -47,7 +47,7 @@ app_ui <- function(request) {
         $(document).ready(function() {
           $('.btn-file').addClass('btn-success');
         });
-  "))
+        "))
     ),
 
 

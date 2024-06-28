@@ -10,6 +10,7 @@
 mod_final_summary_ui <- function(id){
   ns <- NS(id)
 
+
   bslib::nav_panel(
     title = "Final Summary",
 
@@ -63,7 +64,6 @@ mod_final_summary_ui <- function(id){
           # ),
 
 
-
           ############################################### #
           # Display panel ----
           ################################################ #
@@ -99,6 +99,8 @@ mod_final_summary_ui <- function(id){
                     levels = c('Step', 'Error')
                   )
                 ),
+
+                shinyTime::timeInput(ns("timeInput"), label ="Time to start a new 'day' for daily summaries ('HH:MM'):",  value = "00:00:00", seconds = FALSE),
 
                 actionButton(ns('recalculate_values'), label = "Prepare Final Data", class = "btn-lg btn-success")
 
@@ -386,12 +388,17 @@ mod_final_summary_server <- function(id, df_list_bybin, df_list_byanimal){
       reactiveValues(user_selected_final_intake = NA_character_,
                      user_selected_final_duration = NA_character_)
 
+
     final_data_full <-   reactive({
+
+      custom_start_time <- hms::as_hms(input$timeInput) # Convert to hms object
 
       #log
       tmp <- tempfile(pattern = "log_", fileext = ".log")
       logr::log_open(tmp, logdir = FALSE, show_notes = FALSE)
       logr::sep(" Preparing final data outputs ")
+
+
 
       # If keep all corrections:
       if(all('corrected_intake_bybin' %in% bybin_col_selections()$col_intake &
@@ -457,6 +464,22 @@ mod_final_summary_server <- function(id, df_list_bybin, df_list_byanimal){
             )
         }
 
+      }
+
+      # Add custom day calculation if custom_start_time is not 00:00
+      if (custom_start_time != hms::as_hms("00:00:00")) {
+        logr::log_print(paste("Custom start time used for defining days:", custom_start_time))
+        df_out <- df_out %>%
+          dplyr::mutate(datetime = as.POSIXct( start_time, format = "%Y-%m-%d %H:%M:%S")) %>%
+          dplyr::mutate(filter_date_daily = dplyr::if_else(lubridate::hour(datetime) >= lubridate::hour(custom_start_time),
+                                      lubridate::date(datetime),
+                                      lubridate::date(datetime) - lubridate::days(1))) %>%
+          dplyr::select(-datetime)
+      } else {
+        df_out <- df_out %>%
+          dplyr::mutate(
+            filter_date_daily = date
+          )
       }
 
 
@@ -638,7 +661,7 @@ mod_final_summary_server <- function(id, df_list_bybin, df_list_byanimal){
     df_daily_intakes <- reactive({
 
       final_data_full()$df %>%
-        dplyr::group_by(.data$animal_id, .data$date) %>%
+        dplyr::group_by(.data$animal_id, .data$filter_date_daily) %>%
         # summarise data using either raw or cleaned data:
         dplyr::summarise(
           `Selected as-fed intake kg/d` = sum(.data$selected_final_intake_kg, na.rm=TRUE),
@@ -657,6 +680,7 @@ mod_final_summary_server <- function(id, df_list_bybin, df_list_byanimal){
       req(df_daily_intakes())
 
       df_daily_intakes() %>%
+        dplyr::mutate(date = .data$filter_date_daily) %>%
         ggplot(aes(x = .data$date, y =.data$`Selected as-fed intake kg/d`, group = .data$date))+
         ggplot2::geom_violin(colour = 'darkorange')+
         ggplot2::geom_jitter(alpha = 0.5, width = 0.2)+
@@ -702,7 +726,9 @@ mod_final_summary_server <- function(id, df_list_bybin, df_list_byanimal){
 
       p <- df_daily_intakes() %>%
         dplyr::filter(.data$animal_id %in% input$animal_id_ind_plots) %>%
-        dplyr::mutate('animal_id' = as.character(.data$animal_id)) %>%
+        dplyr::mutate(
+          'animal_id' = as.character(.data$animal_id),
+          date = .data$filter_date_daily) %>%
         ggplot2::ggplot(aes( x = .data$date, y = .data$`Selected as-fed intake kg/d`, colour = .data$animal_id))+
         ggplot2::geom_point(size = 1.5)+
         ggplot2::geom_line()+
