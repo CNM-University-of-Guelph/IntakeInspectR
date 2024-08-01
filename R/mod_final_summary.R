@@ -470,11 +470,13 @@ mod_final_summary_server <- function(id, df_list_bybin, df_list_byanimal){
       if (custom_start_time != hms::as_hms("00:00:00")) {
         logr::log_print(paste("Custom start time used for defining days:", custom_start_time))
         df_out <- df_out %>%
-          dplyr::mutate(datetime = as.POSIXct( start_time, format = "%Y-%m-%d %H:%M:%S")) %>%
-          dplyr::mutate(filter_date_daily = dplyr::if_else(lubridate::hour(datetime) >= lubridate::hour(custom_start_time),
-                                      lubridate::date(datetime),
-                                      lubridate::date(datetime) - lubridate::days(1))) %>%
-          dplyr::select(-datetime)
+          dplyr::mutate(
+            filter_date_daily = dplyr::if_else(
+              hms::as_hms(start_time) >= custom_start_time,
+              lubridate::date(start_time),
+              lubridate::date(start_time) - lubridate::days(1)
+            )
+          )
       } else {
         df_out <- df_out %>%
           dplyr::mutate(
