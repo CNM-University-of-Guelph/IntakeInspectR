@@ -75,8 +75,8 @@ print(df_daily_intakes)
 
 
 # Save
-readr::write_csv(df_final_selections, file = "path/to/df_final_selections.csv")
-readr::write_csv(df_daily_intakes, file = "path/to/df_final_selections.csv")
+data.table::fwrite(df_final_selections, file = "path/to/df_final_selections.csv")
+data.table::fwrite(df_daily_intakes, file = "path/to/df_final_selections.csv")
 
 # END #####################################################################################
 
