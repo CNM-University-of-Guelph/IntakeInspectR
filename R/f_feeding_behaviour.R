@@ -190,19 +190,25 @@ f_daily_meal_summaries <- function(df_in,
 #'
 #' @param df_daily_summary A dataframe containing daily behavioral summary data for each animal. Normally calculated by [f_behaviour_daily_summary()]
 #' @param df_daily_meal_summaries A dataframe containing daily meal summary data for each animal. Normally calculated by [f_daily_meal_summaries()]
+#' @param col_date Column name that defines the df_daily_summary date column, based on what was used previously. Typically `date` or `filter_date_daily`.
 #'
 #' @return A dataframe that combines the daily behavioral summaries with daily meal summaries for each animal, matched by animal ID and date.
 #' @export
 #'
 f_final_daily_summary <- function(df_daily_summary,
-                                  df_daily_meal_summaries) {
+                                  df_daily_meal_summaries,
+                                  col_date = 'filter_date_daily') {
+
+  col_date_LHS = col_date
+  col_date_RHS = 'meal_start_date'
 
   final_daily_summary <-
     dplyr::full_join(
       df_daily_summary,
       df_daily_meal_summaries,
       by = c("animal_id" = "animal_id",
-             "date" = "meal_start_date")) %>%
+             setNames(col_date_RHS, col_date_LHS))
+             ) %>%
     dplyr::ungroup()
 
   return(final_daily_summary)

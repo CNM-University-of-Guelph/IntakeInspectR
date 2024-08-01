@@ -762,7 +762,8 @@ mod_final_summary_server <- function(id, df_list_bybin, df_list_byanimal){
     daily_behaviour <-
       reactive({
         daily_summary <- f_behaviour_daily_summary(
-          df_in = final_data_full()$df
+          df_in = final_data_full()$df,
+          col_date = .data$filter_date_daily
         )
 
         daily_meal_summary <- f_daily_meal_summaries(
@@ -780,7 +781,8 @@ mod_final_summary_server <- function(id, df_list_bybin, df_list_byanimal){
     weekly_behaviour <-
       reactive({
         df_out <- f_behaviour_summary_weekly(
-          daily_behaviour()
+          daily_behaviour(),
+          col_date = .data$filter_date_daily
         )
 
         shinybusy::remove_modal_spinner()

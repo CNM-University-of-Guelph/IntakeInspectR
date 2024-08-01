@@ -4,12 +4,18 @@
 \alias{f_final_daily_summary}
 \title{Final Daily Summary}
 \usage{
-f_final_daily_summary(df_daily_summary, df_daily_meal_summaries)
+f_final_daily_summary(
+  df_daily_summary,
+  df_daily_meal_summaries,
+  col_date = "filter_date_daily"
+)
 }
 \arguments{
 \item{df_daily_summary}{A dataframe containing daily behavioral summary data for each animal. Normally calculated by [f_behaviour_daily_summary()]}
 
 \item{df_daily_meal_summaries}{A dataframe containing daily meal summary data for each animal. Normally calculated by [f_daily_meal_summaries()]}
+
+\item{col_date}{Column name that defines the df_daily_summary date column, based on what was used previously. Typically `date` or `filter_date_daily`.}
 }
 \value{
 A dataframe that combines the daily behavioral summaries with daily meal summaries for each animal, matched by animal ID and date.
