@@ -590,12 +590,12 @@ mod_final_summary_server <- function(id, df_list_bybin, df_list_byanimal){
     # Download data ----
     ################################# #
 
-    .f_download_filetype_helper <- function(file, df){
+    .f_download_filetype_helper <- function(file, df, input_selection){
       # save:
-      if(input$download_filetype_selection_behaviour == '.rds'){
+      if(input_selection == '.rds'){
         saveRDS(df, file = file)
 
-      } else if(input$download_filetype_selection_behaviour %in% c('.csv', '.txt')){
+      } else if(input_selection %in% c('.csv', '.txt')){
         data.table::fwrite(df, file = file)
       }
     }
@@ -615,7 +615,7 @@ mod_final_summary_server <- function(id, df_list_bybin, df_list_byanimal){
                input$download_filetype_selection)
       },
       content = function(file) {
-        .f_download_filetype_helper(file, simplified_final_df())
+        .f_download_filetype_helper(file, simplified_final_df(), input$download_filetype_selection)
       }
     )
 
@@ -627,7 +627,7 @@ mod_final_summary_server <- function(id, df_list_bybin, df_list_byanimal){
                input$download_filetype_selection)
       },
       content = function(file) {
-        .f_download_filetype_helper(file, final_data_full()$df)
+        .f_download_filetype_helper(file, final_data_full()$df, input$download_filetype_selection)
       }
     )
 
@@ -840,7 +840,7 @@ mod_final_summary_server <- function(id, df_list_bybin, df_list_byanimal){
                input$download_filetype_selection_behaviour)
       },
       content = function(file) {
-        .f_download_filetype_helper(file, daily_behaviour())
+        .f_download_filetype_helper(file, daily_behaviour(),input$download_filetype_selection_behaviour)
       }
     )
 
@@ -851,7 +851,7 @@ mod_final_summary_server <- function(id, df_list_bybin, df_list_byanimal){
                input$download_filetype_selection_behaviour)
       },
       content = function(file) {
-        .f_download_filetype_helper(file, weekly_behaviour())
+        .f_download_filetype_helper(file, weekly_behaviour(),input$download_filetype_selection_behaviour)
       }
     )
 
@@ -862,7 +862,7 @@ mod_final_summary_server <- function(id, df_list_bybin, df_list_byanimal){
                input$download_filetype_selection_behaviour)
       },
       content = function(file) {
-        .f_download_filetype_helper(file, individual_meals())
+        .f_download_filetype_helper(file, individual_meals(), input$download_filetype_selection_behaviour)
       }
     )
 
